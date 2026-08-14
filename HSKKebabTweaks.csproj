@@ -1,0 +1,55 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Configurations>Debug;Release;Release16</Configurations>
+    <RootNamespace>HSK.KebabTweaks</RootNamespace>
+    <AssemblyName>HSKKebabTweaks</AssemblyName>
+    <OutputPath>out\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release16'">
+    <TargetFramework>net48</TargetFramework>
+    <KrafsRimworldRefVersion>1.6.*</KrafsRimworldRefVersion>
+    <DefineConstants>RIMWORLD_1_6</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' != 'Release16'">
+    <TargetFramework>net48</TargetFramework>
+    <KrafsRimworldRefVersion>1.5.*</KrafsRimworldRefVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.3.3" ExcludeAssets="runtime" />
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="$(KrafsRimworldRefVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Core_SK">
+      <HintPath>libs\Core_SK.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- 1.5 only: Take From Mending hard refs -->
+  <ItemGroup Condition="'$(Configuration)' != 'Release16'">
+    <Reference Include="HaulToBuilding">
+      <HintPath>libs\HaulToBuilding.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Mending">
+      <HintPath>libs\Mending.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release16'">
+    <Compile Remove="Source\TakeFromMendingPatch.cs" />
+  </ItemGroup>
+
+</Project>
