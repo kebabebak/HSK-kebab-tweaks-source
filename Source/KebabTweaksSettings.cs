@@ -45,6 +45,7 @@ namespace HSK.KebabTweaks
         public static bool EnableDubsAnalyzerBeginUpdateFix = true;
         public static bool EnableDebugLogSplitterDragFix = true;
         public static bool EnableNeanderthalChiefLeaderFix = true;
+        public static bool EnableDominantIngredientStuffFix = true;
 #if RIMWORLD_1_6
         public static bool EnableMapPreviewRngBaselineFix = true;
         public static bool EnableUnifiedXmlPathFix = true;
@@ -76,6 +77,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedDubsAnalyzerBeginUpdateFix = true;
         public static bool AppliedDebugLogSplitterDragFix = true;
         public static bool AppliedNeanderthalChiefLeaderFix = true;
+        public static bool AppliedDominantIngredientStuffFix = true;
 #if RIMWORLD_1_6
         public static bool AppliedMapPreviewRngBaselineFix = true;
         public static bool AppliedUnifiedXmlPathFix = true;
@@ -761,6 +763,14 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.NeanderthalChiefLeaderFix,
                 FixErrorTraceCatalog.NeanderthalChiefLeaderFixTipId);
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.CraftStuffFix".Translate(),
+                "KebabTweaks.Patch.CraftStuffFix.Tooltip".Translate(),
+                null,
+                ref EnableDominantIngredientStuffFix, AppliedDominantIngredientStuffFix,
+                true, false, ResetDominantIngredientStuffFix,
+                null);
 
 #if RIMWORLD_1_6
             DrawPatchBlock(listing, fullWidth,
@@ -1596,6 +1606,7 @@ namespace HSK.KebabTweaks
             ResetDubsAnalyzerBeginUpdateFix();
             ResetDebugLogSplitterDragFix();
             ResetNeanderthalChiefLeaderFix();
+            ResetDominantIngredientStuffFix();
 #if RIMWORLD_1_6
             ResetMapPreviewRngBaselineFix();
             ResetUnifiedXmlPathFix();
@@ -1781,6 +1792,11 @@ namespace HSK.KebabTweaks
             EnableNeanderthalChiefLeaderFix = true;
         }
 
+        private static void ResetDominantIngredientStuffFix()
+        {
+            EnableDominantIngredientStuffFix = true;
+        }
+
 #if RIMWORLD_1_6
         private static void ResetMapPreviewRngBaselineFix()
         {
@@ -1837,6 +1853,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableDebugLogSplitterDragFix, "EnableDebugLogSplitterDragFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableNeanderthalChiefLeaderFix, "EnableNeanderthalChiefLeaderFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableDominantIngredientStuffFix, "EnableDominantIngredientStuffFix",
                 defaultValue: true);
 #if RIMWORLD_1_6
             Scribe_Values.Look(ref EnableMapPreviewRngBaselineFix, "EnableMapPreviewRngBaselineFix",

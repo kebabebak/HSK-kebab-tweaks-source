@@ -174,6 +174,10 @@ namespace HSK.KebabTweaks
                     SupersededStandaloneMods.NeanderthalChiefLeaderFix,
                     "NeanderthalChiefLeaderFixFeatures",
                     () => NeanderthalChiefLeaderFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedDominantIngredientStuffFix,
+                    KebabTweaksSettings.EnableDominantIngredientStuffFix, null,
+                    "DominantIngredientStuffFixFeatures",
+                    () => DominantIngredientStuffFixFeatures.Apply(harmony));
 
 #if RIMWORLD_1_6
                 // XML DefInjected + Rule_String typo safety (no settings toggle).
