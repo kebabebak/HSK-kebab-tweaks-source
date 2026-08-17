@@ -169,14 +169,13 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableSeedsPleaseSowFix,
                     SupersededStandaloneMods.SeedsPleaseSowFix, "SeedsPleaseSowFixFeatures",
                     () => SeedsPleaseSowFixFeatures.Apply(harmony));
-
-#if RIMWORLD_1_6
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedNeanderthalChiefLeaderFix,
                     KebabTweaksSettings.EnableNeanderthalChiefLeaderFix,
                     SupersededStandaloneMods.NeanderthalChiefLeaderFix,
                     "NeanderthalChiefLeaderFixFeatures",
                     () => NeanderthalChiefLeaderFixFeatures.Apply(harmony));
 
+#if RIMWORLD_1_6
                 // XML DefInjected + Rule_String typo safety (no settings toggle).
                 OdysseyRuTradersGuildNamerFixFeatures.Apply(harmony);
 

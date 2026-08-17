@@ -44,8 +44,8 @@ namespace HSK.KebabTweaks
         public static bool EnableAllowToolHaulUrgentlyNreFix = true;
         public static bool EnableDubsAnalyzerBeginUpdateFix = true;
         public static bool EnableDebugLogSplitterDragFix = true;
-#if RIMWORLD_1_6
         public static bool EnableNeanderthalChiefLeaderFix = true;
+#if RIMWORLD_1_6
         public static bool EnableMapPreviewRngBaselineFix = true;
         public static bool EnableUnifiedXmlPathFix = true;
         public static bool EnableMainMenuBgFitFix = true;
@@ -75,8 +75,8 @@ namespace HSK.KebabTweaks
         public static bool AppliedAllowToolHaulUrgentlyNreFix = true;
         public static bool AppliedDubsAnalyzerBeginUpdateFix = true;
         public static bool AppliedDebugLogSplitterDragFix = true;
-#if RIMWORLD_1_6
         public static bool AppliedNeanderthalChiefLeaderFix = true;
+#if RIMWORLD_1_6
         public static bool AppliedMapPreviewRngBaselineFix = true;
         public static bool AppliedUnifiedXmlPathFix = true;
         public static bool AppliedMainMenuBgFitFix = true;
@@ -752,10 +752,9 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.SeedsPleaseSowFix, FixErrorTraceCatalog.SeedsPleaseSowFixTipId);
 
-#if RIMWORLD_1_6
             DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.NeanderthalChiefLeaderFix".Translate(),
-                "KebabTweaks.Patch.NeanderthalChiefLeaderFix.Tooltip".Translate(),
+                "KebabTweaks.Patch.TribalLeaderFix".Translate(),
+                "KebabTweaks.Patch.TribalLeaderFix.Tooltip".Translate(),
                 SupersededStandaloneMods.NeanderthalChiefLeaderFix,
                 ref EnableNeanderthalChiefLeaderFix, AppliedNeanderthalChiefLeaderFix,
                 true, false, ResetNeanderthalChiefLeaderFix,
@@ -763,6 +762,7 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.NeanderthalChiefLeaderFix,
                 FixErrorTraceCatalog.NeanderthalChiefLeaderFixTipId);
 
+#if RIMWORLD_1_6
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.MapPreviewRngBaselineFix".Translate(),
                 "KebabTweaks.Patch.MapPreviewRngBaselineFix.Tooltip".Translate(),
@@ -1595,8 +1595,8 @@ namespace HSK.KebabTweaks
             ResetAllowToolHaulUrgentlyNreFix();
             ResetDubsAnalyzerBeginUpdateFix();
             ResetDebugLogSplitterDragFix();
-#if RIMWORLD_1_6
             ResetNeanderthalChiefLeaderFix();
+#if RIMWORLD_1_6
             ResetMapPreviewRngBaselineFix();
             ResetUnifiedXmlPathFix();
             ResetMainMenuBgFitFix();
@@ -1776,12 +1776,12 @@ namespace HSK.KebabTweaks
             EnableDebugLogSplitterDragFix = true;
         }
 
-#if RIMWORLD_1_6
         private static void ResetNeanderthalChiefLeaderFix()
         {
             EnableNeanderthalChiefLeaderFix = true;
         }
 
+#if RIMWORLD_1_6
         private static void ResetMapPreviewRngBaselineFix()
         {
             EnableMapPreviewRngBaselineFix = true;
@@ -1836,9 +1836,9 @@ namespace HSK.KebabTweaks
                 defaultValue: true);
             Scribe_Values.Look(ref EnableDebugLogSplitterDragFix, "EnableDebugLogSplitterDragFix",
                 defaultValue: true);
-#if RIMWORLD_1_6
             Scribe_Values.Look(ref EnableNeanderthalChiefLeaderFix, "EnableNeanderthalChiefLeaderFix",
                 defaultValue: true);
+#if RIMWORLD_1_6
             Scribe_Values.Look(ref EnableMapPreviewRngBaselineFix, "EnableMapPreviewRngBaselineFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableUnifiedXmlPathFix, "EnableUnifiedXmlPathFix", defaultValue: true);
