@@ -27,12 +27,24 @@ namespace HSK.KebabTweaks
     {
         public const string HarmonyId = "kebabebak.hsk.kebab.tweaks";
 
+        /// <summary>
+        /// One Harmony instance for kebabebak.hsk.kebab.tweaks. Reused for the UXE early Prefix
+        /// and the later feature apply pass so the same id is not constructed twice (Dubs Analyzer
+        /// otherwise attributes the delayed LongEvent callback to mscorlib and warns).
+        ///
+        /// Один экземпляр Harmony для kebabebak.hsk.kebab.tweaks. Переиспользуется для раннего
+        /// Prefix UXE и позднего apply фич, чтобы не создавать тот же id дважды (иначе Dubs Analyzer
+        /// приписывает отложенный LongEvent к mscorlib и выдаёт предупреждение).
+        /// </summary>
+        private static Harmony harmony;
+
         private readonly KebabTweaksSettings settings;
 
         public KebabTweaksMod(ModContentPack content)
             : base(content)
         {
             settings = GetSettings<KebabTweaksSettings>();
+            harmony = new Harmony(HarmonyId);
 #if RIMWORLD_1_6
             if (KebabTweaksSettings.EnableUnifiedXmlPathFix
                 && !SupersededStandaloneMods.IsActive(SupersededStandaloneMods.UnifiedXmlPathFix))
@@ -40,7 +52,7 @@ namespace HSK.KebabTweaks
                 KebabTweaksSettings.AppliedUnifiedXmlPathFix = true;
                 try
                 {
-                    UnifiedXmlPathFixFeatures.ApplyEarly(new Harmony(HarmonyId));
+                    UnifiedXmlPathFixFeatures.ApplyEarly(harmony);
                 }
                 catch (Exception ex)
                 {
@@ -66,7 +78,11 @@ namespace HSK.KebabTweaks
         {
             try
             {
-                Harmony harmony = new Harmony(HarmonyId);
+                if (harmony == null)
+                {
+                    Log.Error("[HSK kebab tweaks] Harmony instance missing; feature apply skipped.");
+                    return;
+                }
 
                 if (SupersededStandaloneMods.IsActive(SupersededStandaloneMods.KebabSwitches))
                 {
