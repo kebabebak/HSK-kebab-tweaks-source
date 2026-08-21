@@ -24,7 +24,7 @@ namespace HSK.KebabTweaks
     /// productHasIngredientStuff. Не проверяет stuffProps.CanMake у продукта. В HSK одежда часто
     /// имеет stuffCategories (ткань) плюс costList (компоненты, металлы). MakeUnfinishedThingIfNeeded
     /// и GenRecipe.MakeRecipeProducts ставят этот выбор в Stuff — и незавершёнка, и готовый
-    /// предмет могут быть футболкой из компонента (или стальной паркой), хотя в счёте была
+    /// предмет могут быть футболкой из компонента (или стальной паркой), хотя в задании была
     /// только ткань.
     ///
     /// Исправление: Harmony Postfix на CalculateDominantIngredient оставляет dominant у

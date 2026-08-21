@@ -7,21 +7,15 @@ using Verse;
 namespace HSK.KebabTweaks
 {
     /// <summary>
-    /// Problem: Many small HSK QoL / fix patches were separate mods, so players had to juggle
-    /// load order and could not toggle individual fixes from one settings panel.
-    ///
-    /// Fix: Bundle kebab switches and the listed Harmony fixes into one mod. Each feature keeps
-    /// its own source file; settings expose per-patch enable + per-feature logging. Disabling
+    /// Combined kebab tweaks mod: kebab switches and the listed Harmony fixes in one package,
+    /// one Harmony id, per-feature settings. Each feature keeps its own source file. Disabling
     /// this mod in the RimWorld mod list disables every bundled feature. If a superseded
     /// standalone package is still active, that feature's Harmony is silently skipped.
     ///
-    /// Проблема: Много мелких HSK QoL / fix-патчей были отдельными модами — игроку приходилось
-    /// следить за load order и нельзя было включать/выключать фиксы из одной панели настроек.
-    ///
-    /// Исправление: Собрать kebab switches и перечисленные Harmony-фиксы в один мод. Каждый
-    /// feature остаётся в своём .cs; настройки дают enable патча и отдельное логирование.
-    /// Выключение этого мода в списке модов RimWorld отключает все встроенные фичи. Если
-    /// устаревший отдельный package всё ещё активен — Harmony этой фичи тихо пропускается.
+    /// Сборный мод kebab tweaks: kebab switches и перечисленные Harmony-фиксы в одном пакете,
+    /// один Harmony id, настройки по фичам. Каждый feature остаётся в своём .cs. Выключение
+    /// этого мода в списке модов RimWorld отключает все встроенные фичи. Если устаревший
+    /// отдельный package всё ещё активен — Harmony этой фичи тихо пропускается.
     /// </summary>
     public class KebabTweaksMod : Mod
     {
@@ -194,6 +188,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableDominantIngredientStuffFix, null,
                     "DominantIngredientStuffFixFeatures",
                     () => DominantIngredientStuffFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedSaveSettingsLoadFix,
+                    KebabTweaksSettings.EnableSaveSettingsLoadFix, null,
+                    "SaveSettingsLoadFixFeatures",
+                    () => SaveSettingsLoadFixFeatures.Apply(harmony));
 
 #if RIMWORLD_1_6
                 // XML DefInjected + Rule_String typo safety (no settings toggle).

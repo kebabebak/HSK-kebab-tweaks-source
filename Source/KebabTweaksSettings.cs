@@ -46,6 +46,7 @@ namespace HSK.KebabTweaks
         public static bool EnableDebugLogSplitterDragFix = true;
         public static bool EnableNeanderthalChiefLeaderFix = true;
         public static bool EnableDominantIngredientStuffFix = true;
+        public static bool EnableSaveSettingsLoadFix = true;
 #if RIMWORLD_1_6
         public static bool EnableMapPreviewRngBaselineFix = true;
         public static bool EnableUnifiedXmlPathFix = true;
@@ -78,6 +79,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedDebugLogSplitterDragFix = true;
         public static bool AppliedNeanderthalChiefLeaderFix = true;
         public static bool AppliedDominantIngredientStuffFix = true;
+        public static bool AppliedSaveSettingsLoadFix = true;
 #if RIMWORLD_1_6
         public static bool AppliedMapPreviewRngBaselineFix = true;
         public static bool AppliedUnifiedXmlPathFix = true;
@@ -232,6 +234,14 @@ namespace HSK.KebabTweaks
         }
 
         private const float SettingsCheckboxRowHeight = 32f;
+        /// <summary>
+        /// Gap above a subsequent main feature header on Patches / Fixes (half of one parameter row).
+        /// The first main header on the tab has no leading spacer.
+        ///
+        /// Отступ над следующим главным заголовком фичи на вкладках Патчи / Фиксы (половина строки параметра).
+        /// Первый главный заголовок вкладки без отступа сверху.
+        /// </summary>
+        private const float FeatureHeaderLeadingSpacerHeight = SettingsCheckboxRowHeight * 0.5f;
         private const float SettingsCheckboxRowGap = 2f;
         private const float SettingsSectionHeaderHeight = 28f;
         private const float SettingsScrollBarWidth = 16f;
@@ -647,6 +657,16 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.ArmorRacksAssignFix, FixErrorTraceCatalog.ArmorRacksAssignFixTipId);
 
             DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.SaveSettingsLoadFix".Translate(),
+                "KebabTweaks.Patch.SaveSettingsLoadFix.Tooltip".Translate(),
+                null,
+                ref EnableSaveSettingsLoadFix, AppliedSaveSettingsLoadFix,
+                true, false, ResetSaveSettingsLoadFix,
+                null,
+                FixErrorTraceCatalog.SaveSettingsLoadFix,
+                FixErrorTraceCatalog.SaveSettingsLoadFixTipId);
+
+            DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.StorageSettingsAllowedToAcceptFix".Translate(),
                 "KebabTweaks.Patch.StorageSettingsAllowedToAcceptFix.Tooltip".Translate(),
                 null,
@@ -901,7 +921,7 @@ namespace HSK.KebabTweaks
         {
             if (leadingSpacer)
             {
-                DrawSettingsCheckboxHeightSpacer(listing);
+                DrawFeatureHeaderLeadingSpacer(listing);
             }
 
             DrawPatchEnableHeaderRow(
@@ -1313,9 +1333,26 @@ namespace HSK.KebabTweaks
             }
         }
 
+        /// <summary>
+        /// Full checkbox-row spacer. Used between Notifications subsection titles, not between
+        /// Patches / Fixes main headers.
+        ///
+        /// Полная высота строки чекбокса. Между заголовками подразделов Уведомлений, не между
+        /// главными заголовками Патчей / Фиксов.
+        /// </summary>
         private static void DrawSettingsCheckboxHeightSpacer(Listing_Standard listing)
         {
             listing.GetRect(SettingsCheckboxRowHeight);
+        }
+
+        /// <summary>
+        /// Half parameter-row gap above a subsequent main feature header (rainbow line under the title).
+        ///
+        /// Половина строки параметра над следующим главным заголовком фичи (радужная линия под названием).
+        /// </summary>
+        private static void DrawFeatureHeaderLeadingSpacer(Listing_Standard listing)
+        {
+            listing.GetRect(FeatureHeaderLeadingSpacerHeight);
         }
 
         private static void DrawSettingsSectionHeader(Listing_Standard listing, string label)
@@ -1588,6 +1625,7 @@ namespace HSK.KebabTweaks
             ResetCeProjectileNullSoundFix();
             ResetArmorRacksAssignFix();
             ResetStorageSettingsAllowedToAcceptFix();
+            ResetSaveSettingsLoadFix();
             ResetFishTableTypeListFix();
             ResetGetActiveRitualsFix();
             ResetGrowerCutTrees();
@@ -1797,6 +1835,11 @@ namespace HSK.KebabTweaks
             EnableDominantIngredientStuffFix = true;
         }
 
+        private static void ResetSaveSettingsLoadFix()
+        {
+            EnableSaveSettingsLoadFix = true;
+        }
+
 #if RIMWORLD_1_6
         private static void ResetMapPreviewRngBaselineFix()
         {
@@ -1856,6 +1899,7 @@ namespace HSK.KebabTweaks
                 defaultValue: true);
             Scribe_Values.Look(ref EnableDominantIngredientStuffFix, "EnableDominantIngredientStuffFix",
                 defaultValue: true);
+            Scribe_Values.Look(ref EnableSaveSettingsLoadFix, "EnableSaveSettingsLoadFix", defaultValue: true);
 #if RIMWORLD_1_6
             Scribe_Values.Look(ref EnableMapPreviewRngBaselineFix, "EnableMapPreviewRngBaselineFix",
                 defaultValue: true);

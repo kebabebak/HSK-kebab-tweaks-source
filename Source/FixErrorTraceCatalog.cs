@@ -29,6 +29,7 @@ namespace HSK.KebabTweaks
         public const int UnifiedXmlPathFixTipId = 19;
         public const int MainMenuBgFitFixTipId = 20;
         public const int RimatomicsGuidancePanelFixTipId = 21;
+        public const int SaveSettingsLoadFixTipId = 22;
 
         public const string TakeFromMending = @"Doio threw exception in WorkGiver DoBillsMakeWeapons: System.NullReferenceException: Object reference not set to an instance of an object
 [Ref 79A5B8F5]
@@ -385,6 +386,15 @@ Verse.PlayDataLoader.DoPlayLoad";
 @"GUI Error: You are pushing more GUIClips than you are popping. Make sure they are balanced.
 Mouse position stack is not empty. There were more calls to BeginScrollView than EndScrollView.
 (Filename: Rimatomics MainTabWindow_Rimatomics.DrawPanel — Guidance System / ResearchGuidenceSystem with empty Unlocks)";
+
+        public const string SaveSettingsLoadFix =
+@"JobDriver threw exception in toil MakeUnfinishedThingIfNeeded's initAction for pawn ExampleColonist driver=JobDriver_DoBill (toilIndex=20) driver.job=(DoBill (Job_1403737) A = Thing_FabricationBench B = Thing_Steel Giver = JobGiver_Work)
+System.InvalidCastException: Specified cast is not valid.
+  at Verse.AI.Toils_Recipe+<>c__DisplayClass1_0.<MakeUnfinishedThingIfNeeded>b__0 ()
+  at Verse.AI.JobDriver.TryActuallyStartNextToil ()
+This version of save files is not supported Please create a new one. File: 
+Problem loading storage settings file 'example.txt'.
+Trying to read from an empty file";
 
     }
 }

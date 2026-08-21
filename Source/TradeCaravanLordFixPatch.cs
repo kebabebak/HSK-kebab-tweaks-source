@@ -696,7 +696,7 @@ namespace HSK.KebabTweaks
     }
 
     /// <summary>
-    /// Registers diagnostic Harmony patches used only for Player.log investigation output.
+    /// Registers diagnostic Harmony patches used only for Player.log diagnostic output.
     ///
     /// Регистрирует диагностические Harmony-патчи для вывода в Player.log.
     /// </summary>
