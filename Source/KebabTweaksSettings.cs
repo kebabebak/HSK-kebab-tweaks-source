@@ -52,6 +52,9 @@ namespace HSK.KebabTweaks
         public static bool EnableUnifiedXmlPathFix = true;
         public static bool EnableMainMenuBgFitFix = true;
         public static bool EnableRimatomicsGuidancePanelFix = true;
+        public static bool EnableUfFillExtraIngredientsFix = true;
+        public static bool EnableUfFillCapPickupToBillCount = true;
+        public static bool UfFillExtraIngredientsFixEnableLogging;
 #endif
 
         public static bool AppliedCatCrazyTime = true;
@@ -85,6 +88,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedUnifiedXmlPathFix = true;
         public static bool AppliedMainMenuBgFitFix = true;
         public static bool AppliedRimatomicsGuidancePanelFix = true;
+        public static bool AppliedUfFillExtraIngredientsFix = true;
 #endif
 
         public static bool CatCrazyTimeEnableLogging;
@@ -234,13 +238,6 @@ namespace HSK.KebabTweaks
         }
 
         private const float SettingsCheckboxRowHeight = 32f;
-        /// <summary>
-        /// Gap above a subsequent main feature header on Patches / Fixes (half of one parameter row).
-        /// The first main header on the tab has no leading spacer.
-        ///
-        /// Отступ над следующим главным заголовком фичи на вкладках Патчи / Фиксы (половина строки параметра).
-        /// Первый главный заголовок вкладки без отступа сверху.
-        /// </summary>
         private const float FeatureHeaderLeadingSpacerHeight = SettingsCheckboxRowHeight * 0.5f;
         private const float SettingsCheckboxRowGap = 2f;
         private const float SettingsSectionHeaderHeight = 28f;
@@ -584,8 +581,33 @@ namespace HSK.KebabTweaks
 
         private void DrawFixesTabContents(Listing_Standard listing, float fullWidth)
         {
-            // Fixes: more settings higher, then header-only; 1.6-only blocks at bottom.
+            // Fixes: more settings higher, then header-only; remaining 1.6-only blocks at bottom.
             bool firstHeaderOnTab = true;
+#if RIMWORLD_1_6
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.UfFillExtraIngredientsFix".Translate(),
+                "KebabTweaks.Patch.UfFillExtraIngredientsFix.Tooltip".Translate(),
+                null,
+                ref EnableUfFillExtraIngredientsFix, AppliedUfFillExtraIngredientsFix,
+                true, false, ResetUfFillExtraIngredientsFix,
+                () =>
+                {
+                    DrawSettingsEnableLoggingCheckboxRow(listing,
+                        "KebabTweaks.Patch.UfFillExtraIngredientsFix.EnableLogging".Translate(),
+                        () => UfFillExtraIngredientsFixEnableLogging,
+                        v => UfFillExtraIngredientsFixEnableLogging = v,
+                        "KebabTweaks.Patch.UfFillExtraIngredientsFix.EnableLoggingTooltip".Translate());
+                    DrawSettingsRowSeparator(listing, fullWidth);
+                    DrawSettingsCheckboxRow(listing,
+                        "KebabTweaks.Patch.UfFillExtraIngredientsFix.CapPickup".Translate(),
+                        ref EnableUfFillCapPickupToBillCount, true,
+                        "KebabTweaks.Patch.UfFillExtraIngredientsFix.CapPickupTooltip".Translate());
+                },
+                FixErrorTraceCatalog.UfFillExtraIngredientsFix,
+                FixErrorTraceCatalog.UfFillExtraIngredientsFixTipId,
+                leadingSpacer: !firstHeaderOnTab);
+            firstHeaderOnTab = false;
+#endif
 #if !RIMWORLD_1_6
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.TakeFromMending".Translate(),
@@ -1345,11 +1367,6 @@ namespace HSK.KebabTweaks
             listing.GetRect(SettingsCheckboxRowHeight);
         }
 
-        /// <summary>
-        /// Half parameter-row gap above a subsequent main feature header (rainbow line under the title).
-        ///
-        /// Половина строки параметра над следующим главным заголовком фичи (радужная линия под названием).
-        /// </summary>
         private static void DrawFeatureHeaderLeadingSpacer(Listing_Standard listing)
         {
             listing.GetRect(FeatureHeaderLeadingSpacerHeight);
@@ -1650,6 +1667,7 @@ namespace HSK.KebabTweaks
             ResetUnifiedXmlPathFix();
             ResetMainMenuBgFitFix();
             ResetRimatomicsGuidancePanelFix();
+            ResetUfFillExtraIngredientsFix();
 #endif
             Write();
         }
@@ -1860,6 +1878,13 @@ namespace HSK.KebabTweaks
         {
             EnableRimatomicsGuidancePanelFix = true;
         }
+
+        private static void ResetUfFillExtraIngredientsFix()
+        {
+            EnableUfFillExtraIngredientsFix = true;
+            EnableUfFillCapPickupToBillCount = true;
+            UfFillExtraIngredientsFixEnableLogging = false;
+        }
 #endif
 
         public override void ExposeData()
@@ -1907,6 +1932,12 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableMainMenuBgFitFix, "EnableMainMenuBgFitFix", defaultValue: true);
             Scribe_Values.Look(ref EnableRimatomicsGuidancePanelFix, "EnableRimatomicsGuidancePanelFix",
                 defaultValue: true);
+            Scribe_Values.Look(ref EnableUfFillExtraIngredientsFix, "EnableUfFillExtraIngredientsFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableUfFillCapPickupToBillCount, "EnableUfFillCapPickupToBillCount",
+                defaultValue: true);
+            Scribe_Values.Look(ref UfFillExtraIngredientsFixEnableLogging,
+                "UfFillExtraIngredientsFixEnableLogging", defaultValue: false);
 #endif
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);

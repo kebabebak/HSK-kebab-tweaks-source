@@ -214,6 +214,11 @@ namespace HSK.KebabTweaks
                     SupersededStandaloneMods.RimatomicsGuidancePanelFix,
                     "RimatomicsGuidancePanelFixFeatures",
                     () => RimatomicsGuidancePanelFixFeatures.Apply(harmony));
+
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedUfFillExtraIngredientsFix,
+                    KebabTweaksSettings.EnableUfFillExtraIngredientsFix, null,
+                    "UfFillExtraIngredientsFixFeatures",
+                    () => UfFillExtraIngredientsFixFeatures.Apply(harmony));
 #endif
 
                 Log.Message("[HSK kebab tweaks] Feature apply pass finished.");
