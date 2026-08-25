@@ -31,6 +31,8 @@ namespace HSK.KebabTweaks
         public const int RimatomicsGuidancePanelFixTipId = 21;
         public const int SaveSettingsLoadFixTipId = 22;
         public const int UfFillExtraIngredientsFixTipId = 23;
+        public const int CompressibleOverlapFixTipId = 24;
+        public const int StartingPawnChildAgeFixTipId = 25;
 
         public const string TakeFromMending = @"Doio threw exception in WorkGiver DoBillsMakeWeapons: System.NullReferenceException: Object reference not set to an instance of an object
 [Ref 79A5B8F5]
@@ -392,6 +394,53 @@ Mouse position stack is not empty. There were more calls to BeginScrollView than
 @"Entered final toil
 placedThings: 1
 Pawn ExampleHauler collected incorrect ingredient amounts for Make enriched uranium. Aborting job.";
+
+        public const string StartingPawnChildAgeFix = @"Tried 300 times to generate age for поселенец
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.Log.Error_Patch2 (string)
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.PawnGenerator.GenerateRandomAge_Patch1 (Verse.Pawn,Verse.PawnGenerationRequest)
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.PawnGenerator.TryGenerateNewPawnInternal_Patch2 (Verse.PawnGenerationRequest&,string&,bool,bool)
+Verse.PawnGenerator:GenerateNewPawnInternal (Verse.PawnGenerationRequest&)
+Verse.PawnGenerator:GenerateOrRedressPawnInternal (Verse.PawnGenerationRequest)
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.PawnGenerator.GeneratePawn_Patch4 (Verse.PawnGenerationRequest)
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.StartingPawnUtility.NewGeneratedStartingPawn_Patch1 (int)
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.StartingPawnUtility.RegenerateStartingPawnInPlace_Patch1 (int)
+Verse.StartingPawnUtility:RandomizeInPlace (Verse.Pawn)
+Verse.StartingPawnUtility:RandomizePawn (int)
+Verse.StartingPawnUtility/<>c__DisplayClass18_0:<DrawPortraitArea>b__0 ()
+RimWorld.CharacterCardUtility/<>c__DisplayClass36_1:<LifestageAndXenotypeOptions>b__3 ()
+Verse.FloatMenuOption:Chosen (bool,Verse.FloatMenu)
+Verse.FloatMenuOption:DoGUI (UnityEngine.Rect,bool,Verse.FloatMenu)
+Verse.FloatMenu:DoWindowContents (UnityEngine.Rect)
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.Window.InnerWindowOnGUI_Patch1 (Verse.Window,int)
+UnityEngine.GUI:CallWindowDelegate (UnityEngine.GUI/WindowFunction,int,int,UnityEngine.GUISkin,int,single,single,single,UnityEngine.GUIStyle)";
+
+        public const string CompressibleOverlapFix =
+@"Found two compressible things in (194, 0, 118). The last was LargeFossil12345
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.Log.Error_Patch2 (string)
+Verse.MapFileCompressor:HashValueForSquare (Verse.IntVec3)
+Verse.MapSerializeUtility/<>c__DisplayClass2_0:<SerializeUshort>b__0 (int)
+Verse.DataSerializeUtility:SerializeUshort (int,System.Func`2<int, uint16>)
+Verse.MapSerializeUtility:SerializeUshort (Verse.Map,System.Func`2<Verse.IntVec3, uint16>)
+Verse.MapFileCompressor:BuildCompressedString ()
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.Map.ExposeData_Patch1 (Verse.Map)
+Verse.Scribe_Deep:Look<Verse.Map> (Verse.Map&,bool,string,object[])
+Verse.Scribe_Collections:Look<Verse.Map> (System.Collections.Generic.List`1[Verse.Map]&,bool,string,Verse.LookMode,object[])
+Verse.Scribe_Collections:Look<Verse.Map> (System.Collections.Generic.List`1[Verse.Map]&,string,bool,Verse.LookMode,object[])
+Verse.Scribe_Collections:Look<Verse.Map> (System.Collections.Generic.List`1[Verse.Map]&,string,Verse.LookMode,object[])
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.Game.ExposeData_Patch1 (Verse.Game)
+Verse.Scribe_Deep:Look<Verse.Game> (Verse.Game&,bool,string,object[])
+Verse.Scribe_Deep:Look<Verse.Game> (Verse.Game&,string,object[])
+Verse.GameDataSaveLoader/<>c:<SaveGame>b__28_0 ()
+Verse.SafeSaver:DoSave (string,string,System.Action)
+Verse.SafeSaver:Save (string,string,System.Action,bool)
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.GameDataSaveLoader.SaveGame_Patch2 (string)
+RimWorld.Dialog_SaveFileList_Save/<>c__DisplayClass3_0:<DoFileInteraction>b__0 ()
+Verse.LongEventHandler:UpdateCurrentSynchronousEvent (bool&)
+Verse.LongEventHandler:LongEventsUpdate (bool&)
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.Root.Update_Patch1 (Verse.Root)
+Verse.Root_Play:Update ()";
 
         public const string SaveSettingsLoadFix =
 @"JobDriver threw exception in toil MakeUnfinishedThingIfNeeded's initAction for pawn ExampleColonist driver=JobDriver_DoBill (toilIndex=20) driver.job=(DoBill (Job_1403737) A = Thing_FabricationBench B = Thing_Steel Giver = JobGiver_Work)

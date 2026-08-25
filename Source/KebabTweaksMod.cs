@@ -158,6 +158,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableTradeCaravanLordFix,
                     SupersededStandaloneMods.TradeCaravanLordFix, "TradeCaravanLordFixFeatures",
                     () => TradeCaravanLordFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedCompressibleOverlapFix,
+                    KebabTweaksSettings.EnableCompressibleOverlapFix, null,
+                    "CompressibleOverlapFixFeatures",
+                    () => CompressibleOverlapFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedAllowToolHaulUrgentlyNreFix,
                     KebabTweaksSettings.EnableAllowToolHaulUrgentlyNreFix, null,
                     "AllowToolHaulUrgentlyNreFixFeatures",
@@ -188,6 +192,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableDominantIngredientStuffFix, null,
                     "DominantIngredientStuffFixFeatures",
                     () => DominantIngredientStuffFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStartingPawnChildAgeFix,
+                    KebabTweaksSettings.EnableStartingPawnChildAgeFix, null,
+                    "StartingPawnChildAgeFixFeatures",
+                    () => StartingPawnChildAgeFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedSaveSettingsLoadFix,
                     KebabTweaksSettings.EnableSaveSettingsLoadFix, null,
                     "SaveSettingsLoadFixFeatures",

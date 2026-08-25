@@ -38,6 +38,7 @@ namespace HSK.KebabTweaks
         public static bool EnableSeedsPleaseSowFix = true;
         public static bool EnableTakeFromMending = true;
         public static bool EnableTradeCaravanLordFix = true;
+        public static bool EnableCompressibleOverlapFix = true;
         public static bool EnableApparelPolicyLoadFix = true;
         public static bool EnableBillRenamePrefill = true;
         public static bool EnableRecipeProductDropLostLog = true;
@@ -46,6 +47,7 @@ namespace HSK.KebabTweaks
         public static bool EnableDebugLogSplitterDragFix = true;
         public static bool EnableNeanderthalChiefLeaderFix = true;
         public static bool EnableDominantIngredientStuffFix = true;
+        public static bool EnableStartingPawnChildAgeFix = true;
         public static bool EnableSaveSettingsLoadFix = true;
 #if RIMWORLD_1_6
         public static bool EnableMapPreviewRngBaselineFix = true;
@@ -74,6 +76,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedSeedsPleaseSowFix = true;
         public static bool AppliedTakeFromMending = true;
         public static bool AppliedTradeCaravanLordFix = true;
+        public static bool AppliedCompressibleOverlapFix = true;
         public static bool AppliedApparelPolicyLoadFix = true;
         public static bool AppliedBillRenamePrefill = true;
         public static bool AppliedRecipeProductDropLostLog = true;
@@ -82,6 +85,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedDebugLogSplitterDragFix = true;
         public static bool AppliedNeanderthalChiefLeaderFix = true;
         public static bool AppliedDominantIngredientStuffFix = true;
+        public static bool AppliedStartingPawnChildAgeFix = true;
         public static bool AppliedSaveSettingsLoadFix = true;
 #if RIMWORLD_1_6
         public static bool AppliedMapPreviewRngBaselineFix = true;
@@ -97,6 +101,7 @@ namespace HSK.KebabTweaks
         public static bool TakeFromMendingEnableLogging;
         public static bool TakeFromMendingShowMaintenanceMessages;
         public static bool TradeCaravanLordEnableLogging;
+        public static bool CompressibleOverlapFixEnableLogging;
 
         public static bool LowTpsEnableLogging;
         public static bool LowTpsColonistsOnly;
@@ -671,6 +676,21 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.TradeCaravanLordFix, FixErrorTraceCatalog.TradeCaravanLordFixTipId);
 
             DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.CompressibleOverlapFix".Translate(),
+                "KebabTweaks.Patch.CompressibleOverlapFix.Tooltip".Translate(),
+                null,
+                ref EnableCompressibleOverlapFix, AppliedCompressibleOverlapFix, true, false,
+                ResetCompressibleOverlapFix,
+                () =>
+                {
+                    DrawSettingsEnableLoggingCheckboxRow(listing,
+                        "KebabTweaks.Patch.CompressibleOverlapFix.EnableLogging".Translate(),
+                        () => CompressibleOverlapFixEnableLogging, v => CompressibleOverlapFixEnableLogging = v,
+                        "KebabTweaks.Patch.CompressibleOverlapFix.EnableLoggingTooltip".Translate());
+                },
+                FixErrorTraceCatalog.CompressibleOverlapFix, FixErrorTraceCatalog.CompressibleOverlapFixTipId);
+
+            DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.ArmorRacksAssignFix".Translate(),
                 "KebabTweaks.Patch.ArmorRacksAssignFix.Tooltip".Translate(),
                 SupersededStandaloneMods.ArmorRacksAssignFix,
@@ -813,6 +833,16 @@ namespace HSK.KebabTweaks
                 ref EnableDominantIngredientStuffFix, AppliedDominantIngredientStuffFix,
                 true, false, ResetDominantIngredientStuffFix,
                 null);
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.StartingPawnChildAgeFix".Translate(),
+                "KebabTweaks.Patch.StartingPawnChildAgeFix.Tooltip".Translate(),
+                null,
+                ref EnableStartingPawnChildAgeFix, AppliedStartingPawnChildAgeFix,
+                true, false, ResetStartingPawnChildAgeFix,
+                null,
+                FixErrorTraceCatalog.StartingPawnChildAgeFix,
+                FixErrorTraceCatalog.StartingPawnChildAgeFixTipId);
 
 #if RIMWORLD_1_6
             DrawPatchBlock(listing, fullWidth,
@@ -1654,6 +1684,7 @@ namespace HSK.KebabTweaks
             ResetSeedsPleaseSowFix();
             ResetTakeFromMending();
             ResetTradeCaravanLordFix();
+            ResetCompressibleOverlapFix();
             ResetApparelPolicyLoadFix();
             ResetBillRenamePrefill();
             ResetRecipeProductDropLostLog();
@@ -1662,6 +1693,7 @@ namespace HSK.KebabTweaks
             ResetDebugLogSplitterDragFix();
             ResetNeanderthalChiefLeaderFix();
             ResetDominantIngredientStuffFix();
+            ResetStartingPawnChildAgeFix();
 #if RIMWORLD_1_6
             ResetMapPreviewRngBaselineFix();
             ResetUnifiedXmlPathFix();
@@ -1813,6 +1845,12 @@ namespace HSK.KebabTweaks
             TradeCaravanLordEnableLogging = false;
         }
 
+        private static void ResetCompressibleOverlapFix()
+        {
+            EnableCompressibleOverlapFix = true;
+            CompressibleOverlapFixEnableLogging = false;
+        }
+
         private static void ResetApparelPolicyLoadFix()
         {
             EnableApparelPolicyLoadFix = true;
@@ -1851,6 +1889,11 @@ namespace HSK.KebabTweaks
         private static void ResetDominantIngredientStuffFix()
         {
             EnableDominantIngredientStuffFix = true;
+        }
+
+        private static void ResetStartingPawnChildAgeFix()
+        {
+            EnableStartingPawnChildAgeFix = true;
         }
 
         private static void ResetSaveSettingsLoadFix()
@@ -1911,6 +1954,7 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableSeedsPleaseSowFix, "EnableSeedsPleaseSowFix", defaultValue: true);
             Scribe_Values.Look(ref EnableTakeFromMending, "EnableTakeFromMending", defaultValue: true);
             Scribe_Values.Look(ref EnableTradeCaravanLordFix, "EnableTradeCaravanLordFix", defaultValue: true);
+            Scribe_Values.Look(ref EnableCompressibleOverlapFix, "EnableCompressibleOverlapFix", defaultValue: true);
             Scribe_Values.Look(ref EnableApparelPolicyLoadFix, "EnableApparelPolicyLoadFix", defaultValue: true);
             Scribe_Values.Look(ref EnableBillRenamePrefill, "EnableBillRenamePrefill", defaultValue: true);
             Scribe_Values.Look(ref EnableRecipeProductDropLostLog, "EnableRecipeProductDropLostLog", defaultValue: true);
@@ -1923,6 +1967,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableNeanderthalChiefLeaderFix, "EnableNeanderthalChiefLeaderFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableDominantIngredientStuffFix, "EnableDominantIngredientStuffFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableStartingPawnChildAgeFix, "EnableStartingPawnChildAgeFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableSaveSettingsLoadFix, "EnableSaveSettingsLoadFix", defaultValue: true);
 #if RIMWORLD_1_6
@@ -1947,6 +1993,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref TakeFromMendingShowMaintenanceMessages, "TakeFromMendingShowMaintenanceMessages",
                 defaultValue: false);
             Scribe_Values.Look(ref TradeCaravanLordEnableLogging, "TradeCaravanLordEnableLogging", defaultValue: false);
+            Scribe_Values.Look(ref CompressibleOverlapFixEnableLogging, "CompressibleOverlapFixEnableLogging",
+                defaultValue: false);
 
             Scribe_Values.Look(ref LowTpsEnableLogging, "LowTpsEnableLogging", defaultValue: false);
             Scribe_Values.Look(ref LowTpsColonistsOnly, "LowTpsColonistsOnly", defaultValue: false);
