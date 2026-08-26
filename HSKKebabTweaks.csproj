@@ -52,4 +52,9 @@
     <Compile Remove="Source\TakeFromMendingPatch.cs" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(Configuration)' != 'Release16'">
+    <Compile Remove="Source\BurnWeaponBillFixPatch.cs" />
+    <Compile Remove="Source\BreachAxeWorkAmountFixPatch.cs" />
+  </ItemGroup>
+
 </Project>

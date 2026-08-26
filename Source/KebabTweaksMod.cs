@@ -227,6 +227,14 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableUfFillExtraIngredientsFix, null,
                     "UfFillExtraIngredientsFixFeatures",
                     () => UfFillExtraIngredientsFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedBurnWeaponBillFix,
+                    KebabTweaksSettings.EnableBurnWeaponBillFix, null,
+                    "BurnWeaponBillFixFeatures",
+                    () => BurnWeaponBillFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedBreachAxeWorkAmountFix,
+                    KebabTweaksSettings.EnableBreachAxeWorkAmountFix, null,
+                    "BreachAxeWorkAmountFixFeatures",
+                    () => BreachAxeWorkAmountFixFeatures.Apply(harmony));
 #endif
 
                 Log.Message("[HSK kebab tweaks] Feature apply pass finished.");

@@ -57,6 +57,8 @@ namespace HSK.KebabTweaks
         public static bool EnableUfFillExtraIngredientsFix = true;
         public static bool EnableUfFillCapPickupToBillCount = true;
         public static bool UfFillExtraIngredientsFixEnableLogging;
+        public static bool EnableBurnWeaponBillFix = true;
+        public static bool EnableBreachAxeWorkAmountFix = true;
 #endif
 
         public static bool AppliedCatCrazyTime = true;
@@ -93,6 +95,8 @@ namespace HSK.KebabTweaks
         public static bool AppliedMainMenuBgFitFix = true;
         public static bool AppliedRimatomicsGuidancePanelFix = true;
         public static bool AppliedUfFillExtraIngredientsFix = true;
+        public static bool AppliedBurnWeaponBillFix = true;
+        public static bool AppliedBreachAxeWorkAmountFix = true;
 #endif
 
         public static bool CatCrazyTimeEnableLogging;
@@ -884,6 +888,24 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.RimatomicsGuidancePanelFix,
                 FixErrorTraceCatalog.RimatomicsGuidancePanelFixTipId);
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.BurnWeaponBillFix".Translate(),
+                "KebabTweaks.Patch.BurnWeaponBillFix.Tooltip".Translate(),
+                null,
+                ref EnableBurnWeaponBillFix, AppliedBurnWeaponBillFix,
+                true, false, ResetBurnWeaponBillFix,
+                null);
+            BurnWeaponBillFixFeatures.SyncRecipeWorkTypes();
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.BreachAxeWorkAmountFix".Translate(),
+                "KebabTweaks.Patch.BreachAxeWorkAmountFix.Tooltip".Translate(),
+                null,
+                ref EnableBreachAxeWorkAmountFix, AppliedBreachAxeWorkAmountFix,
+                true, false, ResetBreachAxeWorkAmountFix,
+                null);
+            BreachAxeWorkAmountFixFeatures.SyncWorkAmount();
 #endif
         }
 
@@ -1700,6 +1722,8 @@ namespace HSK.KebabTweaks
             ResetMainMenuBgFitFix();
             ResetRimatomicsGuidancePanelFix();
             ResetUfFillExtraIngredientsFix();
+            ResetBurnWeaponBillFix();
+            ResetBreachAxeWorkAmountFix();
 #endif
             Write();
         }
@@ -1928,6 +1952,18 @@ namespace HSK.KebabTweaks
             EnableUfFillCapPickupToBillCount = true;
             UfFillExtraIngredientsFixEnableLogging = false;
         }
+
+        private static void ResetBurnWeaponBillFix()
+        {
+            EnableBurnWeaponBillFix = true;
+            BurnWeaponBillFixFeatures.SyncRecipeWorkTypes(force: true);
+        }
+
+        private static void ResetBreachAxeWorkAmountFix()
+        {
+            EnableBreachAxeWorkAmountFix = true;
+            BreachAxeWorkAmountFixFeatures.SyncWorkAmount(force: true);
+        }
 #endif
 
         public override void ExposeData()
@@ -1984,6 +2020,10 @@ namespace HSK.KebabTweaks
                 defaultValue: true);
             Scribe_Values.Look(ref UfFillExtraIngredientsFixEnableLogging,
                 "UfFillExtraIngredientsFixEnableLogging", defaultValue: false);
+            Scribe_Values.Look(ref EnableBurnWeaponBillFix, "EnableBurnWeaponBillFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableBreachAxeWorkAmountFix, "EnableBreachAxeWorkAmountFix",
+                defaultValue: true);
 #endif
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);
