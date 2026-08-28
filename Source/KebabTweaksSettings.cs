@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HSK.KebabTweaks.KebabSwitches;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -49,6 +50,8 @@ namespace HSK.KebabTweaks
         public static bool EnableDominantIngredientStuffFix = true;
         public static bool EnableStartingPawnChildAgeFix = true;
         public static bool EnableSaveSettingsLoadFix = true;
+        public static bool EnableObsoleteFixes;
+        public static bool DoNotResetObsoleteFixesOnReload;
 #if RIMWORLD_1_6
         public static bool EnableMapPreviewRngBaselineFix = true;
         public static bool EnableUnifiedXmlPathFix = true;
@@ -57,8 +60,8 @@ namespace HSK.KebabTweaks
         public static bool EnableUfFillExtraIngredientsFix = true;
         public static bool EnableUfFillCapPickupToBillCount = true;
         public static bool UfFillExtraIngredientsFixEnableLogging;
-        public static bool EnableBurnWeaponBillFix = true;
-        public static bool EnableBreachAxeWorkAmountFix = true;
+        public static bool EnableBurnWeaponBillFix;
+        public static bool EnableBreachAxeWorkAmountFix;
 #endif
 
         public static bool AppliedCatCrazyTime = true;
@@ -95,8 +98,8 @@ namespace HSK.KebabTweaks
         public static bool AppliedMainMenuBgFitFix = true;
         public static bool AppliedRimatomicsGuidancePanelFix = true;
         public static bool AppliedUfFillExtraIngredientsFix = true;
-        public static bool AppliedBurnWeaponBillFix = true;
-        public static bool AppliedBreachAxeWorkAmountFix = true;
+        public static bool AppliedBurnWeaponBillFix;
+        public static bool AppliedBreachAxeWorkAmountFix;
 #endif
 
         public static bool CatCrazyTimeEnableLogging;
@@ -246,8 +249,14 @@ namespace HSK.KebabTweaks
             }
         }
 
+        public static bool IsObsoleteFixEnabled(bool enableFlag)
+        {
+            return EnableObsoleteFixes && enableFlag;
+        }
+
         private const float SettingsCheckboxRowHeight = 32f;
         private const float FeatureHeaderLeadingSpacerHeight = SettingsCheckboxRowHeight * 0.5f;
+        private const float ObsoleteHeaderLeadingSpacerHeight = FeatureHeaderLeadingSpacerHeight * 3f;
         private const float SettingsCheckboxRowGap = 2f;
         private const float SettingsSectionHeaderHeight = 28f;
         private const float SettingsScrollBarWidth = 16f;
@@ -258,6 +267,7 @@ namespace HSK.KebabTweaks
         private const float FullResetButtonWidth = 280f;
         private const float FeatureBodyContentInset = 4f;
         private const float HeaderControlsRightInset = 4f;
+        private const float UnwrappedLabelWidthPad = 2f;
         private const float SettingsTabsHeight = 32f;
         private const float NonDefaultUnderlineThickness = 1f;
 
@@ -278,6 +288,15 @@ namespace HSK.KebabTweaks
         private static readonly Color RestartPendingOutlineColor = new Color(0.95f, 0.85f, 0.15f);
         private static readonly Color SupersededHeaderColor = new Color(0.95f, 0.25f, 0.25f);
         private static readonly Color NonDefaultUnderlineColor = new Color(0.45f, 0.78f, 1f);
+        private static readonly Color SettingsDisabledVeilColor = new Color(0f, 0f, 0f, 0.45f);
+        private static readonly Color RelevancePercentPositiveColor = new Color(1f, 0.85f, 0.15f);
+        private static readonly Color RelevancePercentZeroColor = new Color(0.95f, 0.22f, 0.22f);
+
+        private const int CraftStuffFixRelevancePercent = 25;
+#if RIMWORLD_1_6
+        private const int UfFillFixRelevancePercent = 65;
+        private const int ObsoleteFixRelevancePercent = 0;
+#endif
 
         /// <summary>Cached vertical alpha gradient for feature headers (bilinear, no strip banding).</summary>
         private static Texture2D featureHeaderAlphaGradientTex;
@@ -288,6 +307,7 @@ namespace HSK.KebabTweaks
         private List<float> featureBodyPanelHeightCaches;
         private int featureBodyPanelDrawIndex;
         private static float bodyContentInset;
+        private static bool bodyContentInteractive = true;
 
         private SettingsTabKind selectedSettingsTab = SettingsTabKind.Notifications;
         private Vector2 settingsScrollPositionNotifications;
@@ -298,6 +318,7 @@ namespace HSK.KebabTweaks
         private float scrollContentHeightNotifications;
         private float scrollContentHeightPatches = 500f;
         private float scrollContentHeightFixes = 1100f;
+        private float obsoleteFixesSectionHeightCache;
 
         /// <summary>
         /// Same preset gradient as kebab limits modified-limit highlight colors.
@@ -422,7 +443,7 @@ namespace HSK.KebabTweaks
 
             TextAnchor previousAnchor = Text.Anchor;
             Text.Anchor = TextAnchor.MiddleCenter;
-            Widgets.Label(tabRect, label);
+            DrawUnwrappedLabel(tabRect, label);
             Text.Anchor = previousAnchor;
         }
 
@@ -614,7 +635,8 @@ namespace HSK.KebabTweaks
                 },
                 FixErrorTraceCatalog.UfFillExtraIngredientsFix,
                 FixErrorTraceCatalog.UfFillExtraIngredientsFixTipId,
-                leadingSpacer: !firstHeaderOnTab);
+                leadingSpacer: !firstHeaderOnTab,
+                relevancePercent: UfFillFixRelevancePercent);
             firstHeaderOnTab = false;
 #endif
 #if !RIMWORLD_1_6
@@ -836,7 +858,8 @@ namespace HSK.KebabTweaks
                 null,
                 ref EnableDominantIngredientStuffFix, AppliedDominantIngredientStuffFix,
                 true, false, ResetDominantIngredientStuffFix,
-                null);
+                null,
+                relevancePercent: CraftStuffFixRelevancePercent);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.StartingPawnChildAgeFix".Translate(),
@@ -888,25 +911,9 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.RimatomicsGuidancePanelFix,
                 FixErrorTraceCatalog.RimatomicsGuidancePanelFixTipId);
-
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.BurnWeaponBillFix".Translate(),
-                "KebabTweaks.Patch.BurnWeaponBillFix.Tooltip".Translate(),
-                null,
-                ref EnableBurnWeaponBillFix, AppliedBurnWeaponBillFix,
-                true, false, ResetBurnWeaponBillFix,
-                null);
-            BurnWeaponBillFixFeatures.SyncRecipeWorkTypes();
-
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.BreachAxeWorkAmountFix".Translate(),
-                "KebabTweaks.Patch.BreachAxeWorkAmountFix.Tooltip".Translate(),
-                null,
-                ref EnableBreachAxeWorkAmountFix, AppliedBreachAxeWorkAmountFix,
-                true, false, ResetBreachAxeWorkAmountFix,
-                null);
-            BreachAxeWorkAmountFixFeatures.SyncWorkAmount();
 #endif
+
+            DrawObsoleteFixesSection(listing, fullWidth);
         }
 
         private void DrawFullResetButton(Rect row, float fullWidth)
@@ -977,6 +984,81 @@ namespace HSK.KebabTweaks
             });
         }
 
+        /// <summary>
+        /// Obsolete fixes. Off by default. The set may differ between 1.5 and 1.6.
+        ///
+        /// Устаревшие фиксы. По умолчанию выключены. Состав может отличаться между 1.5 и 1.6.
+        /// </summary>
+        private void DrawObsoleteFixesSection(Listing_Standard listing, float fullWidth)
+        {
+            listing.GetRect(ObsoleteHeaderLeadingSpacerHeight);
+            DrawObsoleteFixesEnableHeaderRow(listing);
+            DrawSettingsRowSeparator(listing, fullWidth);
+            DrawFeatureBodyPanel(
+                listing,
+                fullWidth,
+                () =>
+                {
+                    DrawSettingsCheckboxRow(
+                        listing,
+                        "KebabTweaks.DoNotResetObsoleteFixesOnReload".Translate(),
+                        ref DoNotResetObsoleteFixesOnReload,
+                        false,
+                        "KebabTweaks.DoNotResetObsoleteFixesOnReload.Tooltip".Translate());
+                },
+                interactive: true,
+                drawRainbowTop: false);
+
+            float startY = listing.CurHeight;
+            float cachedHeight = obsoleteFixesSectionHeightCache;
+            Rect cachedRect = new Rect(0f, startY, fullWidth, cachedHeight);
+            BlockDisabledSettingsRowInput(cachedRect, !EnableObsoleteFixes && cachedHeight > 0.5f);
+
+#if RIMWORLD_1_6
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.BurnWeaponBillFix".Translate(),
+                "KebabTweaks.Patch.BurnWeaponBillFix.Tooltip".Translate(),
+                null,
+                ref EnableBurnWeaponBillFix, AppliedBurnWeaponBillFix,
+                false, false, ResetBurnWeaponBillFix,
+                null,
+                interactive: EnableObsoleteFixes,
+                relevancePercent: ObsoleteFixRelevancePercent);
+            BurnWeaponBillFixFeatures.SyncRecipeWorkTypes();
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.BreachAxeWorkAmountFix".Translate(),
+                "KebabTweaks.Patch.BreachAxeWorkAmountFix.Tooltip".Translate(),
+                null,
+                ref EnableBreachAxeWorkAmountFix, AppliedBreachAxeWorkAmountFix,
+                false, false, ResetBreachAxeWorkAmountFix,
+                null,
+                interactive: EnableObsoleteFixes,
+                relevancePercent: ObsoleteFixRelevancePercent);
+            BreachAxeWorkAmountFixFeatures.SyncWorkAmount();
+#endif
+
+            float height = listing.CurHeight - startY;
+            obsoleteFixesSectionHeightCache = height;
+            DrawDisabledSettingsRowVeil(new Rect(0f, startY, fullWidth, height),
+                !EnableObsoleteFixes && height > 0.5f);
+        }
+
+        private void DrawObsoleteFixesEnableHeaderRow(Listing_Standard listing)
+        {
+            DrawPatchEnableHeaderRow(
+                listing,
+                "KebabTweaks.ObsoleteFixes".Translate(),
+                null,
+                null,
+                ref EnableObsoleteFixes,
+                EnableObsoleteFixes,
+                false,
+                false,
+                ResetObsoleteFixes,
+                confirmEnable: true);
+        }
+
         private void DrawPatchBlock(
             Listing_Standard listing,
             float fullWidth,
@@ -991,7 +1073,9 @@ namespace HSK.KebabTweaks
             Action drawBody,
             string errorTrace = null,
             int errorTraceTipId = 0,
-            bool leadingSpacer = true)
+            bool leadingSpacer = true,
+            bool interactive = true,
+            int? relevancePercent = null)
         {
             if (leadingSpacer)
             {
@@ -1009,26 +1093,27 @@ namespace HSK.KebabTweaks
                 requiresRestart,
                 resetAction,
                 errorTrace,
-                errorTraceTipId);
+                errorTraceTipId,
+                interactive,
+                confirmEnable: false,
+                relevancePercent);
             if (drawBody != null)
             {
-                DrawFeatureBodyPanel(listing, fullWidth, drawBody);
+                DrawFeatureBodyPanel(listing, fullWidth, drawBody, enabled);
             }
             else
             {
-                // Header-only: rainbow top edge under the title (same role as panel top).
                 DrawFeatureBlockRainbowTop(listing, fullWidth);
             }
         }
 
         /// <summary>
-        /// Draws feature options inside a dimmed panel: rainbow 1px top (under the header), gray
-        /// left/right/bottom matching the row separator, and a few px inset for left-aligned controls.
+        /// Draws feature options inside a dimmed panel.
         ///
-        /// Рисует опции фичи в затемнённой панели: радужный верх 1px (под заголовком), серые
-        /// левый/правый/низ как у разделителя строк, и небольшой inset для выровненных влево контролов.
+        /// Рисует опции фичи в затемнённой панели.
         /// </summary>
-        private void DrawFeatureBodyPanel(Listing_Standard listing, float fullWidth, Action drawBody)
+        private void DrawFeatureBodyPanel(Listing_Standard listing, float fullWidth, Action drawBody,
+            bool interactive = true, bool drawRainbowTop = true)
         {
             int index = featureBodyPanelDrawIndex++;
             while (featureBodyPanelHeightCaches.Count <= index)
@@ -1038,14 +1123,18 @@ namespace HSK.KebabTweaks
 
             float startY = listing.CurHeight;
             float cachedHeight = featureBodyPanelHeightCaches[index];
-            // Fill behind body rows (Layout height from prior pass); drawing after content washes out labels.
+            Rect cachedRect = new Rect(0f, startY, fullWidth, cachedHeight);
             if (Event.current.type == EventType.Repaint && cachedHeight > 0.5f)
             {
-                DrawFeatureBodyPanelFill(new Rect(0f, startY, fullWidth, cachedHeight));
+                DrawFeatureBodyPanelFill(cachedRect);
             }
 
+            BlockDisabledSettingsRowInput(cachedRect, !interactive && cachedHeight > 0.5f);
+
             float previousInset = bodyContentInset;
+            bool previousInteractive = bodyContentInteractive;
             bodyContentInset = FeatureBodyContentInset;
+            bodyContentInteractive = interactive;
             try
             {
                 drawBody();
@@ -1053,14 +1142,18 @@ namespace HSK.KebabTweaks
             finally
             {
                 bodyContentInset = previousInset;
+                bodyContentInteractive = previousInteractive;
             }
 
             float height = listing.CurHeight - startY;
             featureBodyPanelHeightCaches[index] = height;
+            Rect panelRect = new Rect(0f, startY, fullWidth, height);
             if (Event.current.type == EventType.Repaint && height > 0.5f)
             {
-                DrawFeatureBodyPanelChrome(new Rect(0f, startY, fullWidth, height));
+                DrawFeatureBodyPanelChrome(panelRect, drawRainbowTop);
             }
+
+            DrawDisabledSettingsRowVeil(panelRect, !interactive && height > 0.5f);
         }
 
         private static void DrawFeatureBodyPanelFill(Rect rect)
@@ -1076,12 +1169,7 @@ namespace HSK.KebabTweaks
             GUI.color = previousColor;
         }
 
-        /// <summary>
-        /// Gray left/right/bottom + rainbow top (replaces inter-block gradient separators).
-        ///
-        /// Серые левый/правый/низ + радужный верх (вместо радуги между блоками).
-        /// </summary>
-        private static void DrawFeatureBodyPanelChrome(Rect panel)
+        private static void DrawFeatureBodyPanelChrome(Rect panel, bool drawRainbowTop = true)
         {
             if (Event.current.type != EventType.Repaint)
             {
@@ -1093,18 +1181,22 @@ namespace HSK.KebabTweaks
             GUI.color = SettingsRowSeparatorColor;
             Texture2D tex = BaseContent.WhiteTex;
             GUI.DrawTexture(new Rect(panel.x, panel.yMax - thickness, panel.width, thickness), tex);
-            float sideHeight = Mathf.Max(0f, panel.height - thickness);
-            GUI.DrawTexture(new Rect(panel.x, panel.y + thickness, thickness, sideHeight), tex);
-            GUI.DrawTexture(new Rect(panel.xMax - thickness, panel.y + thickness, thickness, sideHeight), tex);
+            float topSkip = drawRainbowTop ? thickness : 0f;
+            float sideHeight = Mathf.Max(0f, panel.height - thickness - topSkip);
+            GUI.DrawTexture(new Rect(panel.x, panel.y + topSkip, thickness, sideHeight), tex);
+            GUI.DrawTexture(new Rect(panel.xMax - thickness, panel.y + topSkip, thickness, sideHeight), tex);
             GUI.color = previousColor;
 
-            DrawGradientLine(new Rect(panel.x, panel.y, panel.width, thickness));
+            if (drawRainbowTop)
+            {
+                DrawGradientLine(new Rect(panel.x, panel.y, panel.width, thickness));
+            }
         }
 
         /// <summary>
-        /// Rainbow 1px top edge under a feature header (panel top or header-only blocks).
+        /// Draws the rainbow line under a feature header.
         ///
-        /// Радужный верх 1px под заголовком фичи (верх панели или header-only блоки).
+        /// Рисует радужную линию под заголовком фичи.
         /// </summary>
         private static void DrawFeatureBlockRainbowTop(Listing_Standard listing, float fullWidth)
         {
@@ -1160,9 +1252,12 @@ namespace HSK.KebabTweaks
             const float numericFieldHeight = 24f;
             Rect fieldRect = CalcBodyNumericFieldRect(row, right, numericFieldHeight);
             Text.Anchor = TextAnchor.MiddleLeft;
-            Widgets.Label(left, label);
+            DrawUnwrappedLabel(left, label);
             Text.Anchor = TextAnchor.UpperLeft;
+            bool previousGuiEnabled = GUI.enabled;
+            GUI.enabled = previousGuiEnabled && bodyContentInteractive;
             Widgets.TextFieldNumeric(fieldRect, ref value, ref buffer, min, max);
+            GUI.enabled = previousGuiEnabled;
             if (value < min)
             {
                 value = min;
@@ -1200,9 +1295,12 @@ namespace HSK.KebabTweaks
             const float numericFieldHeight = 24f;
             Rect fieldRect = CalcBodyNumericFieldRect(row, right, numericFieldHeight);
             Text.Anchor = TextAnchor.MiddleLeft;
-            Widgets.Label(left, label);
+            DrawUnwrappedLabel(left, label);
             Text.Anchor = TextAnchor.UpperLeft;
+            bool previousGuiEnabled = GUI.enabled;
+            GUI.enabled = previousGuiEnabled && bodyContentInteractive;
             Widgets.TextFieldNumeric(fieldRect, ref value, ref buffer, min, max);
+            GUI.enabled = previousGuiEnabled;
             if (value < min)
             {
                 value = min;
@@ -1252,7 +1350,7 @@ namespace HSK.KebabTweaks
             }
 
             DrawFeatureHeaderLabel(row, label, supersededActive, differsFromDefault: false);
-            DrawFeatureResetButton(resetRect, label, resetAction);
+            DrawFeatureResetButton(resetRect, label, resetAction, interactive: true);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -1275,30 +1373,47 @@ namespace HSK.KebabTweaks
             bool requiresRestart,
             Action resetAction,
             string errorTrace = null,
-            int errorTraceTipId = 0)
+            int errorTraceTipId = 0,
+            bool interactive = true,
+            bool confirmEnable = false,
+            int? relevancePercent = null)
         {
             Rect row = listing.GetRect(SettingsCheckboxRowHeight);
             DrawFeatureHeaderBackground(row);
+            BlockDisabledSettingsRowInput(row, !interactive);
             float controlY = row.y + (row.height - CheckboxControlSize) / 2f;
             Rect checkRect = new Rect(
                 row.xMax - HeaderControlsRightInset - CheckboxControlSize,
                 controlY,
                 CheckboxControlSize,
                 CheckboxControlSize);
-            Rect resetRect = new Rect(
-                checkRect.x - FeatureResetButtonGap - FeatureResetButtonWidth,
-                controlY,
-                FeatureResetButtonWidth,
-                CheckboxControlSize);
+            Rect resetRect = default(Rect);
+            if (resetAction != null)
+            {
+                resetRect = new Rect(
+                    checkRect.x - FeatureResetButtonGap - FeatureResetButtonWidth,
+                    controlY,
+                    FeatureResetButtonWidth,
+                    CheckboxControlSize);
+            }
+
             bool hasErrorTrace = !errorTrace.NullOrEmpty();
             if (hasErrorTrace)
             {
+                float copyRight = resetAction != null ? resetRect.x : checkRect.x;
                 Rect copyRect = new Rect(
-                    resetRect.x - FixErrorTraceUi.CopyButtonGap - FixErrorTraceUi.CopyButtonSize,
+                    copyRight - FixErrorTraceUi.CopyButtonGap - FixErrorTraceUi.CopyButtonSize,
                     controlY,
                     FixErrorTraceUi.CopyButtonSize,
                     FixErrorTraceUi.CopyButtonSize);
-                FixErrorTraceUi.DrawCopyButton(copyRect, errorTrace, errorTraceTipId);
+                if (interactive)
+                {
+                    FixErrorTraceUi.DrawCopyButton(copyRect, errorTrace, errorTraceTipId);
+                }
+                else
+                {
+                    GUI.DrawTexture(copyRect, TexButton.Copy);
+                }
             }
 
             bool supersededActive = SupersededStandaloneMods.IsActive(supersededPackageId);
@@ -1323,19 +1438,34 @@ namespace HSK.KebabTweaks
                 tip += "KebabTweaks.RequiresRestartTooltip".Translate();
             }
 
-            if (!tip.NullOrEmpty())
-            {
-                Rect headerTipRect = row;
-                if (hasErrorTrace)
-                {
-                    headerTipRect.width -= HeaderControlsRightInset
-                        + CheckboxControlSize
-                        + FeatureResetButtonGap
-                        + FeatureResetButtonWidth
-                        + FixErrorTraceUi.CopyButtonReservedWidth;
-                }
+            Rect labelRect;
+            Rect suffixRect;
+            DrawFeatureHeaderLabel(row, label, supersededActive, differsFromDefault: false,
+                relevancePercent, out labelRect, out suffixRect);
+            bool overSuffix = suffixRect.width > 0.5f && Mouse.IsOver(suffixRect);
 
-                if (Mouse.IsOver(headerTipRect))
+            Rect headerTipRect = row;
+            float rightControlsWidth = HeaderControlsRightInset + CheckboxControlSize;
+            if (resetAction != null)
+            {
+                rightControlsWidth += FeatureResetButtonGap + FeatureResetButtonWidth;
+            }
+
+            if (hasErrorTrace)
+            {
+                rightControlsWidth += FixErrorTraceUi.CopyButtonReservedWidth;
+            }
+
+            headerTipRect.width -= rightControlsWidth;
+
+            if (overSuffix)
+            {
+                Widgets.DrawHighlight(suffixRect);
+                TooltipHandler.TipRegion(suffixRect, "KebabTweaks.RelevancePercentTooltip".Translate());
+            }
+            else if (!tip.NullOrEmpty())
+            {
+                if (interactive && Mouse.IsOver(headerTipRect))
                 {
                     Widgets.DrawHighlight(headerTipRect);
                 }
@@ -1343,12 +1473,41 @@ namespace HSK.KebabTweaks
                 TooltipHandler.TipRegion(headerTipRect, tip);
             }
 
-            DrawFeatureHeaderLabel(row, label, supersededActive, differsFromDefault: false);
-            DrawFeatureResetButton(resetRect, label, resetAction);
-            Widgets.Checkbox(new Vector2(checkRect.x, checkRect.y), ref value, CheckboxControlSize);
+            DrawFeatureResetButton(resetRect, label, resetAction, interactive);
+
+            bool displayed = value;
+            Widgets.Checkbox(new Vector2(checkRect.x, checkRect.y), ref displayed, CheckboxControlSize,
+                disabled: !interactive);
+            if (interactive && displayed != value)
+            {
+                if (displayed && confirmEnable)
+                {
+                    Find.WindowStack.Add(new Dialog_MessageBox(
+                        "KebabTweaks.EnableObsoleteFixesConfirm".Translate(),
+                        "Confirm".Translate(),
+                        () =>
+                        {
+                            EnableObsoleteFixes = true;
+                            Write();
+                        },
+                        "Cancel".Translate(),
+                        null,
+                        "KebabTweaks.EnableObsoleteFixesConfirmTitle".Translate(),
+                        buttonADestructive: true));
+                }
+                else
+                {
+                    value = displayed;
+                    if (confirmEnable)
+                    {
+                        Write();
+                    }
+                }
+            }
+
             if (value != defaultEnabled)
             {
-                DrawNonDefaultTextUnderline(row, label, TextAnchor.MiddleCenter);
+                DrawNonDefaultTextUnderline(labelRect, label, TextAnchor.MiddleLeft);
             }
 
             // After restart Applied* matches Enable* — outline stays off until the player toggles again.
@@ -1367,44 +1526,125 @@ namespace HSK.KebabTweaks
             bool supersededActive,
             bool differsFromDefault)
         {
+            Rect unusedLabel;
+            Rect unusedSuffix;
+            DrawFeatureHeaderLabel(row, label, supersededActive, differsFromDefault, null,
+                out unusedLabel, out unusedSuffix);
+        }
+
+        /// <summary>
+        /// Draws a centered patch title plus optional relevance suffix (percent). The combined
+        /// width is centered; the suffix uses its own color and hit box.
+        ///
+        /// Рисует центрированный заголовок патча и необязательный суффикс актуальности (процент).
+        /// Центрируется сумма ширин; у суффикса свой цвет и своя область наведения.
+        /// </summary>
+        private static void DrawFeatureHeaderLabel(
+            Rect row,
+            string label,
+            bool supersededActive,
+            bool differsFromDefault,
+            int? relevancePercent,
+            out Rect labelRect,
+            out Rect suffixRect)
+        {
+            string suffix = relevancePercent.HasValue
+                ? " (" + relevancePercent.Value.ToString() + "%)"
+                : string.Empty;
+
             TextAnchor previousAnchor = Text.Anchor;
             Color previousColor = GUI.color;
             FontStyle previousStyle = Text.CurFontStyle.fontStyle;
-            Text.Anchor = TextAnchor.MiddleCenter;
+            bool previousWrap = Text.WordWrap;
+            Text.WordWrap = false;
+            Text.Anchor = TextAnchor.MiddleLeft;
             if (supersededActive)
             {
                 GUI.color = SupersededHeaderColor;
                 Text.CurFontStyle.fontStyle = FontStyle.Bold;
             }
 
-            Widgets.Label(row, label);
+            Vector2 labelSize = CalcUnwrappedLabelSize(label);
+            Vector2 suffixSize = suffix.NullOrEmpty() ? Vector2.zero : CalcUnwrappedLabelSize(suffix);
+            float startX = row.x + (row.width - labelSize.x - suffixSize.x) / 2f;
+            labelRect = new Rect(startX, row.y, labelSize.x, row.height);
+            suffixRect = suffix.NullOrEmpty()
+                ? new Rect(startX + labelSize.x, row.y, 0f, row.height)
+                : new Rect(startX + labelSize.x, row.y, suffixSize.x, row.height);
+
+            Widgets.Label(labelRect, label);
             Text.CurFontStyle.fontStyle = previousStyle;
             GUI.color = previousColor;
+
+            if (!suffix.NullOrEmpty())
+            {
+                GUI.color = relevancePercent.GetValueOrDefault() > 0
+                    ? RelevancePercentPositiveColor
+                    : RelevancePercentZeroColor;
+                Widgets.Label(suffixRect, suffix);
+                GUI.color = previousColor;
+            }
+
+            Text.WordWrap = previousWrap;
             Text.Anchor = previousAnchor;
 
             if (differsFromDefault)
             {
-                DrawNonDefaultTextUnderline(row, label, TextAnchor.MiddleCenter);
+                DrawNonDefaultTextUnderline(labelRect, label, TextAnchor.MiddleLeft);
             }
         }
 
-        private void DrawFeatureResetButton(Rect rect, string featureLabel, Action resetAction)
+        /// <summary>
+        /// Single-line label size with word wrap off and a small width pad.
+        ///
+        /// Размер однострочного лейбла без переноса слов и с небольшим запасом ширины.
+        /// </summary>
+        private static Vector2 CalcUnwrappedLabelSize(string text)
         {
-            if (Widgets.ButtonText(rect, "KebabTweaks.ResetFeature".Translate()))
+            bool previousWrap = Text.WordWrap;
+            Text.WordWrap = false;
+            Vector2 size = Text.CalcSize(text ?? string.Empty);
+            Text.WordWrap = previousWrap;
+            size.x = Mathf.Ceil(size.x) + UnwrappedLabelWidthPad;
+            return size;
+        }
+
+        private static void DrawUnwrappedLabel(Rect rect, string text)
+        {
+            bool previousWrap = Text.WordWrap;
+            Text.WordWrap = false;
+            Widgets.Label(rect, text);
+            Text.WordWrap = previousWrap;
+        }
+
+        private void DrawFeatureResetButton(Rect rect, string featureLabel, Action resetAction, bool interactive)
+        {
+            if (resetAction == null)
             {
-                Find.WindowStack.Add(new Dialog_MessageBox(
-                    "KebabTweaks.ResetFeatureConfirm".Translate(featureLabel.Named("FEATURE")),
-                    "Confirm".Translate(),
-                    () =>
-                    {
-                        resetAction();
-                        Write();
-                    },
-                    "Cancel".Translate(),
-                    null,
-                    "KebabTweaks.ResetFeature".Translate(),
-                    buttonADestructive: true));
+                return;
             }
+
+            bool previousGuiEnabled = GUI.enabled;
+            GUI.enabled = previousGuiEnabled && interactive;
+            bool clicked = Widgets.ButtonText(rect, "KebabTweaks.ResetFeature".Translate());
+            GUI.enabled = previousGuiEnabled;
+            if (!interactive || !clicked)
+            {
+                return;
+            }
+
+            Find.WindowStack.Add(new Dialog_MessageBox(
+                "KebabTweaks.ResetFeatureConfirm".Translate(featureLabel.Named("FEATURE")),
+                "Confirm".Translate(),
+                () =>
+                {
+                    resetAction();
+                    Write();
+                },
+                "Cancel".Translate(),
+                null,
+                "KebabTweaks.ResetFeature".Translate(),
+                buttonADestructive: true));
         }
 
         /// <summary>
@@ -1428,19 +1668,17 @@ namespace HSK.KebabTweaks
         {
             Text.Anchor = TextAnchor.MiddleCenter;
             Rect row = listing.GetRect(SettingsSectionHeaderHeight);
-            Widgets.Label(row, label);
+            DrawUnwrappedLabel(row, label);
             Text.Anchor = TextAnchor.UpperLeft;
             listing.Gap(SettingsCheckboxRowGap);
         }
 
         /// <summary>
-        /// Main feature/patch header fill only: black like tabs, alpha 0 at top → tab opacity
-        /// (~80%) at bottom, via a bilinear texture (smooth, no strip banding). Not used inside
-        /// body panels.
+        /// Main feature/patch header fill: black like tabs, alpha 0 at top to tab opacity at bottom.
+        /// Not used inside body panels.
         ///
-        /// Только главные заголовки мода/патча: чёрный как у вкладок, альфа 0 сверху →
-        /// непрозрачность вкладок (~80%) снизу, через bilinear-текстуру (без полос). Внутри
-        /// панелей не используется.
+        /// Заливка главного заголовка: чёрный как у вкладок, альфа 0 сверху до непрозрачности вкладок снизу.
+        /// Внутри панелей не используется.
         /// </summary>
         private static void DrawFeatureHeaderBackground(Rect row)
         {
@@ -1451,7 +1689,6 @@ namespace HSK.KebabTweaks
 
             Color previous = GUI.color;
             GUI.color = Color.white;
-            // Top of row = transparent, bottom = tab opacity (matches pixel layout: y=0 opaque).
             GUI.DrawTexture(row, GetFeatureHeaderAlphaGradientTex());
             GUI.color = previous;
         }
@@ -1558,7 +1795,7 @@ namespace HSK.KebabTweaks
             ApplyBodyContentInset(ref row, listing.ColumnWidth);
             if (!tooltip.NullOrEmpty())
             {
-                if (Mouse.IsOver(row))
+                if (bodyContentInteractive && Mouse.IsOver(row))
                 {
                     Widgets.DrawHighlight(row);
                 }
@@ -1566,7 +1803,7 @@ namespace HSK.KebabTweaks
                 TooltipHandler.TipRegion(row, tooltip);
             }
 
-            Widgets.CheckboxLabeled(row, label, ref value);
+            Widgets.CheckboxLabeled(row, label, ref value, disabled: !bodyContentInteractive);
             if (value != defaultValue)
             {
                 DrawNonDefaultTextUnderline(row, label, TextAnchor.MiddleLeft);
@@ -1591,7 +1828,7 @@ namespace HSK.KebabTweaks
             ApplyBodyContentInset(ref row, listing.ColumnWidth);
             if (!featureTooltip.NullOrEmpty())
             {
-                if (Mouse.IsOver(row))
+                if (bodyContentInteractive && Mouse.IsOver(row))
                 {
                     Widgets.DrawHighlight(row);
                 }
@@ -1601,7 +1838,18 @@ namespace HSK.KebabTweaks
 
             bool value = getValue();
             bool previous = value;
-            Widgets.CheckboxLabeled(row, label, ref value);
+            Widgets.CheckboxLabeled(row, label, ref value, disabled: !bodyContentInteractive);
+            if (!bodyContentInteractive)
+            {
+                if (getValue())
+                {
+                    DrawNonDefaultTextUnderline(row, label, TextAnchor.MiddleLeft);
+                }
+
+                listing.Gap(SettingsCheckboxRowGap);
+                return;
+            }
+
             if (!previous && value)
             {
                 value = false;
@@ -1637,6 +1885,44 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// Swallows mouse input on a settings row so disabled controls cannot be changed.
+        ///
+        /// Поглощает клики по строке настроек, чтобы выключенные элементы нельзя было изменить.
+        /// </summary>
+        private static void BlockDisabledSettingsRowInput(Rect row, bool disabled)
+        {
+            if (!disabled || !Mouse.IsOver(row))
+            {
+                return;
+            }
+
+            Event current = Event.current;
+            if (current.type == EventType.MouseDown || current.type == EventType.MouseUp ||
+                current.type == EventType.MouseDrag)
+            {
+                current.Use();
+            }
+        }
+
+        /// <summary>
+        /// Draws a semi-transparent dark veil over an inactive settings row.
+        ///
+        /// Рисует полупрозрачную тёмную пелену поверх неактивной строки настроек.
+        /// </summary>
+        private static void DrawDisabledSettingsRowVeil(Rect row, bool disabled)
+        {
+            if (!disabled || Event.current.type != EventType.Repaint)
+            {
+                return;
+            }
+
+            Color previous = GUI.color;
+            GUI.color = SettingsDisabledVeilColor;
+            GUI.DrawTexture(row, BaseContent.WhiteTex);
+            GUI.color = previous;
+        }
+
+        /// <summary>
         /// Light-blue underline under a setting label when the value differs from default.
         ///
         /// Голубая линия под текстом настройки, если значение отличается от дефолта.
@@ -1648,7 +1934,7 @@ namespace HSK.KebabTweaks
                 return;
             }
 
-            Vector2 size = Text.CalcSize(text);
+            Vector2 size = CalcUnwrappedLabelSize(text);
             float x;
             if (anchor == TextAnchor.MiddleCenter || anchor == TextAnchor.UpperCenter ||
                 anchor == TextAnchor.LowerCenter)
@@ -1716,14 +2002,13 @@ namespace HSK.KebabTweaks
             ResetNeanderthalChiefLeaderFix();
             ResetDominantIngredientStuffFix();
             ResetStartingPawnChildAgeFix();
+            ResetObsoleteFixes();
 #if RIMWORLD_1_6
             ResetMapPreviewRngBaselineFix();
             ResetUnifiedXmlPathFix();
             ResetMainMenuBgFitFix();
             ResetRimatomicsGuidancePanelFix();
             ResetUfFillExtraIngredientsFix();
-            ResetBurnWeaponBillFix();
-            ResetBreachAxeWorkAmountFix();
 #endif
             Write();
         }
@@ -1925,6 +2210,45 @@ namespace HSK.KebabTweaks
             EnableSaveSettingsLoadFix = true;
         }
 
+        /// <summary>
+        /// Defaults the Obsolete section enable, leftover children, and the Do not reset on reload checkbox.
+        ///
+        /// Возвращает включение раздела «Устаревшие», фиксы под ним и чекбокс «не сбрасывать» к умолчанию.
+        /// </summary>
+        private static void ResetObsoleteFixes()
+        {
+            DoNotResetObsoleteFixesOnReload = false;
+            ResetObsoleteFixToggles();
+#if RIMWORLD_1_6
+            ResetBurnWeaponBillFix();
+            ResetBreachAxeWorkAmountFix();
+#endif
+        }
+
+        /// <summary>
+        /// Turns Obsolete and leftover children off after settings load when Do not reset on reload is off.
+        ///
+        /// После загрузки настроек выключает «Устаревшие» и фиксы под ним, если «не сбрасывать» выключен.
+        /// </summary>
+        public static void ApplyObsoleteFixesResetOnGameStart()
+        {
+            if (DoNotResetObsoleteFixesOnReload)
+            {
+                return;
+            }
+
+            ResetObsoleteFixToggles();
+        }
+
+        private static void ResetObsoleteFixToggles()
+        {
+            EnableObsoleteFixes = false;
+#if RIMWORLD_1_6
+            EnableBurnWeaponBillFix = false;
+            EnableBreachAxeWorkAmountFix = false;
+#endif
+        }
+
 #if RIMWORLD_1_6
         private static void ResetMapPreviewRngBaselineFix()
         {
@@ -1955,13 +2279,13 @@ namespace HSK.KebabTweaks
 
         private static void ResetBurnWeaponBillFix()
         {
-            EnableBurnWeaponBillFix = true;
+            EnableBurnWeaponBillFix = false;
             BurnWeaponBillFixFeatures.SyncRecipeWorkTypes(force: true);
         }
 
         private static void ResetBreachAxeWorkAmountFix()
         {
-            EnableBreachAxeWorkAmountFix = true;
+            EnableBreachAxeWorkAmountFix = false;
             BreachAxeWorkAmountFixFeatures.SyncWorkAmount(force: true);
         }
 #endif
@@ -2007,6 +2331,9 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableStartingPawnChildAgeFix, "EnableStartingPawnChildAgeFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableSaveSettingsLoadFix, "EnableSaveSettingsLoadFix", defaultValue: true);
+            Scribe_Values.Look(ref EnableObsoleteFixes, "EnableObsoleteFixes", defaultValue: false);
+            Scribe_Values.Look(ref DoNotResetObsoleteFixesOnReload, "DoNotResetObsoleteFixesOnReload",
+                defaultValue: false);
 #if RIMWORLD_1_6
             Scribe_Values.Look(ref EnableMapPreviewRngBaselineFix, "EnableMapPreviewRngBaselineFix",
                 defaultValue: true);
@@ -2021,9 +2348,9 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref UfFillExtraIngredientsFixEnableLogging,
                 "UfFillExtraIngredientsFixEnableLogging", defaultValue: false);
             Scribe_Values.Look(ref EnableBurnWeaponBillFix, "EnableBurnWeaponBillFix",
-                defaultValue: true);
+                defaultValue: false);
             Scribe_Values.Look(ref EnableBreachAxeWorkAmountFix, "EnableBreachAxeWorkAmountFix",
-                defaultValue: true);
+                defaultValue: false);
 #endif
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);
@@ -2108,6 +2435,11 @@ namespace HSK.KebabTweaks
 
             Scribe_Collections.Look(ref SuppressAlertIds, "SuppressAlertIds", LookMode.Value);
             EnsureSuppressAlertIds();
+
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+            {
+                ApplyObsoleteFixesResetOnGameStart();
+            }
         }
     }
 }

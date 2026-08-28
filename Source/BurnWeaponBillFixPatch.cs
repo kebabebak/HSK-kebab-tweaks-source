@@ -61,7 +61,8 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static void SyncRecipeWorkTypes(bool force = false)
         {
-            bool enable = KebabTweaksSettings.EnableBurnWeaponBillFix;
+            bool enable = KebabTweaksSettings.IsObsoleteFixEnabled(
+                KebabTweaksSettings.EnableBurnWeaponBillFix);
             CaptureOriginalsIfNeeded();
             if (originalGiverWorkTypes == null || originalGiverWorkTypes.Count == 0)
             {

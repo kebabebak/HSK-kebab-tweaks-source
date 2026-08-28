@@ -53,7 +53,8 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static void SyncWorkAmount(bool force = false)
         {
-            bool enable = KebabTweaksSettings.EnableBreachAxeWorkAmountFix;
+            bool enable = KebabTweaksSettings.IsObsoleteFixEnabled(
+                KebabTweaksSettings.EnableBreachAxeWorkAmountFix);
             if (!CaptureOriginalsIfNeeded())
             {
                 return;

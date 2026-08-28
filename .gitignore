@@ -6,3 +6,4 @@ libs/*.dll
 *.user
 *.suo
 .vs/
+*.md

@@ -78,6 +78,8 @@ namespace HSK.KebabTweaks
                     return;
                 }
 
+                KebabTweaksSettings.ApplyObsoleteFixesResetOnGameStart();
+
                 if (SupersededStandaloneMods.IsActive(SupersededStandaloneMods.KebabSwitches))
                 {
                     Log.Message(
@@ -228,11 +230,11 @@ namespace HSK.KebabTweaks
                     "UfFillExtraIngredientsFixFeatures",
                     () => UfFillExtraIngredientsFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedBurnWeaponBillFix,
-                    KebabTweaksSettings.EnableBurnWeaponBillFix, null,
+                    KebabTweaksSettings.IsObsoleteFixEnabled(KebabTweaksSettings.EnableBurnWeaponBillFix), null,
                     "BurnWeaponBillFixFeatures",
                     () => BurnWeaponBillFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedBreachAxeWorkAmountFix,
-                    KebabTweaksSettings.EnableBreachAxeWorkAmountFix, null,
+                    KebabTweaksSettings.IsObsoleteFixEnabled(KebabTweaksSettings.EnableBreachAxeWorkAmountFix), null,
                     "BreachAxeWorkAmountFixFeatures",
                     () => BreachAxeWorkAmountFixFeatures.Apply(harmony));
 #endif
