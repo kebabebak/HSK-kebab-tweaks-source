@@ -141,6 +141,7 @@ namespace HSK.KebabTweaks
         public static bool SuppressTraderCaravanLeavingMessage;
         public static bool SuppressTraderCaravanDismissedMessage;
         public static bool SuppressCompSpawnerSpawnedItemMessage;
+        public static bool SuppressFishCaughtInTrap;
         public static bool SuppressPlantDiedOfCold;
         public static bool SuppressPlantDiedOfRotUnharvested;
         public static bool SuppressPlantDiedOfRotLight;
@@ -150,6 +151,9 @@ namespace HSK.KebabTweaks
         public static bool SuppressPlantDiedOfPollution;
         public static bool SuppressPlantDiedOfNoPollution;
         public static bool SuppressPlantDiedOfRotPollutedTerrain;
+#if RIMWORLD_1_6
+        public static bool SuppressPlantDiedOfVacuum;
+#endif
         public static bool SuppressMinifiedTreeDied;
         public static bool SuppressRottedAwayInStorage;
         public static bool SuppressDeterioratedAway;
@@ -280,9 +284,7 @@ namespace HSK.KebabTweaks
 
         private static readonly Color SettingsRowSeparatorColor = new Color(0.55f, 0.55f, 0.55f, 0.8f);
         private static readonly Color FeatureBodyPanelFillColor = new Color(0f, 0f, 0f, 0.22f);
-        /// <summary>Unselected tab fill ~80% opaque.</summary>
         private static readonly Color SettingsTabFillColor = new Color(0f, 0f, 0f, 0.8f);
-        /// <summary>Selected tab: lighter fill + stronger edge glow vs idle tabs.</summary>
         private static readonly Color SettingsTabSelectedFillColor = new Color(0.32f, 0.32f, 0.36f, 0.88f);
         private static readonly Color SettingsTabSelectedGlowColor = new Color(0.85f, 0.88f, 1f, 0.95f);
         private static readonly Color RestartPendingOutlineColor = new Color(0.95f, 0.85f, 0.15f);
@@ -298,7 +300,6 @@ namespace HSK.KebabTweaks
         private const int ObsoleteFixRelevancePercent = 0;
 #endif
 
-        /// <summary>Cached vertical alpha gradient for feature headers (bilinear, no strip banding).</summary>
         private static Texture2D featureHeaderAlphaGradientTex;
 
         private readonly List<float> featureBodyPanelHeightCachesNotifications = new List<float>();
@@ -391,9 +392,9 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Dark ~80%-opaque tabs; selected tab uses a lighter fill and bright edge glow.
+        /// Draws the three settings tabs.
         ///
-        /// Тёмные вкладки ~80% непрозрачности; выбранная — светлее и с ярким свечением края.
+        /// Рисует три вкладки настроек.
         /// </summary>
         private void DrawSettingsTabBar(Rect tabBarRect)
         {
@@ -502,7 +503,6 @@ namespace HSK.KebabTweaks
 
         private void DrawPatchesTabContents(Listing_Standard listing, float fullWidth)
         {
-            // Non-fix utilities: more settings higher.
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.LowTpsPawnDump".Translate(),
                 "KebabTweaks.Patch.LowTpsPawnDump.Tooltip".Translate(),
@@ -611,7 +611,6 @@ namespace HSK.KebabTweaks
 
         private void DrawFixesTabContents(Listing_Standard listing, float fullWidth)
         {
-            // Fixes: more settings higher, then header-only; remaining 1.6-only blocks at bottom.
             bool firstHeaderOnTab = true;
 #if RIMWORLD_1_6
             DrawPatchBlock(listing, fullWidth,
@@ -1355,12 +1354,11 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Patch title centered on the full row width (ignores reset/checkbox for layout). Optional
-        /// copy-trace button (Fixes tab) sits left of reset; reset left of enable. Yellow outline when
-        /// restart-required and Enable* != Applied* (not while superseded silent-skip is active).
+        /// Centered patch title with reset, enable, and optional copy-trace. Yellow outline when a
+        /// restart-required toggle is pending.
         ///
-        /// Заголовок патча по центру полной ширины строки. На вкладке «Фиксы» слева от сброса —
-        /// кнопка копирования trace; сброс слева от enable. Жёлтая обводка при рестарте и Enable* ≠ Applied*.
+        /// Центрированный заголовок патча со сбросом, enable и необязательным копированием trace.
+        /// Жёлтая обводка, пока рестарт-переключатель не применён.
         /// </summary>
         private void DrawPatchEnableHeaderRow(
             Listing_Standard listing,
@@ -1533,11 +1531,9 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Draws a centered patch title plus optional relevance suffix (percent). The combined
-        /// width is centered; the suffix uses its own color and hit box.
+        /// Draws the centered patch title and optional relevance percent suffix.
         ///
-        /// Рисует центрированный заголовок патча и необязательный суффикс актуальности (процент).
-        /// Центрируется сумма ширин; у суффикса свой цвет и своя область наведения.
+        /// Рисует центрированный заголовок патча и необязательный суффикс актуальности в процентах.
         /// </summary>
         private static void DrawFeatureHeaderLabel(
             Rect row,
@@ -1595,9 +1591,9 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Single-line label size with word wrap off and a small width pad.
+        /// Label size with word wrap off.
         ///
-        /// Размер однострочного лейбла без переноса слов и с небольшим запасом ширины.
+        /// Размер лейбла без переноса слов.
         /// </summary>
         private static Vector2 CalcUnwrappedLabelSize(string text)
         {
@@ -1647,13 +1643,6 @@ namespace HSK.KebabTweaks
                 buttonADestructive: true));
         }
 
-        /// <summary>
-        /// Full checkbox-row spacer. Used between Notifications subsection titles, not between
-        /// Patches / Fixes main headers.
-        ///
-        /// Полная высота строки чекбокса. Между заголовками подразделов Уведомлений, не между
-        /// главными заголовками Патчей / Фиксов.
-        /// </summary>
         private static void DrawSettingsCheckboxHeightSpacer(Listing_Standard listing)
         {
             listing.GetRect(SettingsCheckboxRowHeight);
@@ -1674,11 +1663,9 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Main feature/patch header fill: black like tabs, alpha 0 at top to tab opacity at bottom.
-        /// Not used inside body panels.
+        /// Draws the feature header background.
         ///
-        /// Заливка главного заголовка: чёрный как у вкладок, альфа 0 сверху до непрозрачности вкладок снизу.
-        /// Внутри панелей не используется.
+        /// Рисует фон заголовка фичи.
         /// </summary>
         private static void DrawFeatureHeaderBackground(Rect row)
         {
@@ -2033,6 +2020,7 @@ namespace HSK.KebabTweaks
             SuppressTraderCaravanLeavingMessage = false;
             SuppressTraderCaravanDismissedMessage = false;
             SuppressCompSpawnerSpawnedItemMessage = false;
+            SuppressFishCaughtInTrap = false;
             SuppressPlantDiedOfCold = false;
             SuppressPlantDiedOfRotUnharvested = false;
             SuppressPlantDiedOfRotLight = false;
@@ -2042,6 +2030,9 @@ namespace HSK.KebabTweaks
             SuppressPlantDiedOfPollution = false;
             SuppressPlantDiedOfNoPollution = false;
             SuppressPlantDiedOfRotPollutedTerrain = false;
+#if RIMWORLD_1_6
+            SuppressPlantDiedOfVacuum = false;
+#endif
             SuppressMinifiedTreeDied = false;
             SuppressRottedAwayInStorage = false;
             SuppressDeterioratedAway = false;
@@ -2407,6 +2398,7 @@ namespace HSK.KebabTweaks
                 defaultValue: false);
             Scribe_Values.Look(ref SuppressCompSpawnerSpawnedItemMessage, "SuppressCompSpawnerSpawnedItemMessage",
                 defaultValue: false);
+            Scribe_Values.Look(ref SuppressFishCaughtInTrap, "SuppressFishCaughtInTrap", defaultValue: false);
             Scribe_Values.Look(ref SuppressPlantDiedOfCold, "SuppressPlantDiedOfCold", defaultValue: false);
             Scribe_Values.Look(ref SuppressPlantDiedOfRotUnharvested, "SuppressPlantDiedOfRotUnharvested",
                 defaultValue: false);
@@ -2419,6 +2411,9 @@ namespace HSK.KebabTweaks
                 defaultValue: false);
             Scribe_Values.Look(ref SuppressPlantDiedOfRotPollutedTerrain, "SuppressPlantDiedOfRotPollutedTerrain",
                 defaultValue: false);
+#if RIMWORLD_1_6
+            Scribe_Values.Look(ref SuppressPlantDiedOfVacuum, "SuppressPlantDiedOfVacuum", defaultValue: false);
+#endif
             Scribe_Values.Look(ref SuppressMinifiedTreeDied, "SuppressMinifiedTreeDied", defaultValue: false);
             Scribe_Values.Look(ref SuppressRottedAwayInStorage, "SuppressRottedAwayInStorage", defaultValue: false);
             Scribe_Values.Look(ref SuppressDeterioratedAway, "SuppressDeterioratedAway", defaultValue: false);

@@ -49,13 +49,12 @@ namespace HSK.KebabTweaks.KebabSwitches
     }
 
     /// <summary>
-    /// Catalog of spam-prone screen Messages found in RimWorld/HSK that players may want to mute.
-    /// Includes the English-only filled-the-map line, Core plant-death / storage-rot lines, and
-    /// Biotech pollution plant-death lines (e.g. Russian «семена погибли» from MessagePlantDied*).
+    /// Catalog of repeating upper-left screen Messages the player can mute. Includes Core plant-death
+    /// and storage-rot lines, the HSK fish-trap catch, and Odyssey vacuum plant-death.
     ///
-    /// Каталог spam screen Messages из RimWorld/HSK, которые игрок может отключить.
-    /// Включает англоязычный filled-the-map, Core смерти растений / гниение на складе и Biotech
-    /// гибель от загрязнения (например RU «семена погибли» из MessagePlantDied*).
+    /// Каталог повторяющихся screen Messages слева сверху, которые игрок может отключить.
+    /// Включает гибель растений и гниение на складе из Core, поимку рыбы в ловушке HSK и гибель
+    /// растений от вакуума Odyssey.
     /// </summary>
     public static class SuppressibleScreenMessages
     {
@@ -183,6 +182,13 @@ namespace HSK.KebabTweaks.KebabSwitches
                 translationKey: "MessageCompSpawnerSpawnedItem"),
 
             new SuppressibleScreenMessageEntry(
+                "FishCaughtInTrap",
+                "KebabSwitches.Ignore.FishCaughtInTrap",
+                () => KebabTweaksSettings.SuppressFishCaughtInTrap,
+                v => KebabTweaksSettings.SuppressFishCaughtInTrap = v,
+                translationKey: "HSK.TrapSuccessTitle"),
+
+            new SuppressibleScreenMessageEntry(
                 "PlantDiedOfCold",
                 "KebabSwitches.Ignore.PlantDiedOfCold",
                 () => KebabTweaksSettings.SuppressPlantDiedOfCold,
@@ -244,6 +250,14 @@ namespace HSK.KebabTweaks.KebabSwitches
                 () => KebabTweaksSettings.SuppressPlantDiedOfRotPollutedTerrain,
                 v => KebabTweaksSettings.SuppressPlantDiedOfRotPollutedTerrain = v,
                 translationKey: "MessagePlantDiedOfRot_PollutedTerrain"),
+#if RIMWORLD_1_6
+            new SuppressibleScreenMessageEntry(
+                "PlantDiedOfVacuum",
+                "KebabSwitches.Ignore.PlantDiedOfVacuum",
+                () => KebabTweaksSettings.SuppressPlantDiedOfVacuum,
+                v => KebabTweaksSettings.SuppressPlantDiedOfVacuum = v,
+                translationKey: "MessagePlantDiedOfRot_ExposedToVacuum"),
+#endif
 
             new SuppressibleScreenMessageEntry(
                 "MinifiedTreeDied",

@@ -117,6 +117,8 @@ namespace HSK.KebabTweaks.KebabSwitches
             AddExact("CompSpawnerSpawnedItem", "Item produced: {0}.");
             AddExact("CompSpawnerSpawnedItem", "Воспроизводит: {0}.");
 
+            AddExact("FishCaughtInTrap", "Fish Caught in Trap");
+
             AddExact("PlantDiedOfCold", "{0} has died because of cold.");
             AddExact("PlantDiedOfRotUnharvested", "{0} has died from rotting due to being left unharvested.");
             AddExact("PlantDiedOfRotLight", "{0} has died due to being exposed to light.");
@@ -126,6 +128,9 @@ namespace HSK.KebabTweaks.KebabSwitches
             AddExact("PlantDiedOfPollution", "{0} has died because of pollution.");
             AddExact("PlantDiedOfNoPollution", "{0} has died because of a lack of pollution.");
             AddExact("PlantDiedOfRotPollutedTerrain", "{0} has rotted due to polluted terrain.");
+#if RIMWORLD_1_6
+            AddExact("PlantDiedOfVacuum", "{0} has died from vacuum exposure.");
+#endif
             AddExact("MinifiedTreeDied", "An extracted tree just died.");
             AddExact("RottedAwayInStorage", "{1_label} has rotted away in storage.");
             AddExact("DeterioratedAway", "{0} has deteriorated away in storage.");
@@ -143,6 +148,10 @@ namespace HSK.KebabTweaks.KebabSwitches
                 "{0} {0_gender ? погиб : погибла : погибло} из-за недостатка загрязнения.");
             AddExact("PlantDiedOfRotPollutedTerrain",
                 "{0} {0_gender ? сгнил : сгнила : сгнило} из-за загрязнённой почвы.");
+#if RIMWORLD_1_6
+            AddExact("PlantDiedOfVacuum",
+                "{0} {0_gender ? погиб : погибла : погибло} от вакуума.");
+#endif
             AddExact("MinifiedTreeDied", "Извлечённое дерево погибло.");
             AddExact("RottedAwayInStorage", "{1_label} {1_gender ? сгнил : сгнила : сгнило} на складе.");
             AddExact("DeterioratedAway", "{0} {0_gender ? пришёл : пришла : пришло} в негодность на складе.");

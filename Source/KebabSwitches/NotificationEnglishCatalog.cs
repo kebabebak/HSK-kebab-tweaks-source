@@ -51,6 +51,7 @@ namespace HSK.KebabTweaks.KebabSwitches
             map["MessageTraderCaravanLeaving"] = "The trade caravan from {0} is leaving.";
             map["MessageTraderCaravanDismissed"] = "The trade caravan from {0} has been dismissed.";
             map["MessageCompSpawnerSpawnedItem"] = "Item produced: {0}.";
+            map["HSK.TrapSuccessTitle"] = "Fish Caught in Trap";
             map["MessagePlantDiedOfCold"] = "{0} has died because of cold.";
             map["MessagePlantDiedOfRot_LeftUnharvested"] =
                 "{0} has died from rotting due to being left unharvested.";
@@ -61,6 +62,9 @@ namespace HSK.KebabTweaks.KebabSwitches
             map["MessagePlantDiedOfPollution"] = "{0} has died because of pollution.";
             map["MessagePlantDiedOfNoPollution"] = "{0} has died because of a lack of pollution.";
             map["MessagePlantDiedOfRot_PollutedTerrain"] = "{0} has rotted due to polluted terrain.";
+#if RIMWORLD_1_6
+            map["MessagePlantDiedOfRot_ExposedToVacuum"] = "{0} has died from vacuum exposure.";
+#endif
             map["MessageMinifiedTreeDied"] = "An extracted tree just died.";
             map["MessageRottedAwayInStorage"] = "{1_label} has rotted away in storage.";
             map["MessageDeterioratedAway"] = "{0} has deteriorated away in storage.";
