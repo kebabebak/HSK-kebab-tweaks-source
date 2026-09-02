@@ -78,7 +78,9 @@ namespace HSK.KebabTweaks
                     return;
                 }
 
+                FixSymptomProbe.Ensure();
                 KebabTweaksSettings.ApplyObsoleteFixesResetOnGameStart();
+                KebabTweaksSettings.ApplySymptomBucketCurrentDefaultsOnce();
 
                 if (SupersededStandaloneMods.IsActive(SupersededStandaloneMods.KebabSwitches))
                 {
@@ -93,7 +95,7 @@ namespace HSK.KebabTweaks
 
                 // Live-toggle (Harmony applied when not superseded; Enable* gated inside hooks).
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedCatCrazyTime,
-                    KebabTweaksSettings.EnableCatCrazyTime, SupersededStandaloneMods.CatCrazyTime,
+                    KebabTweaksSettings.IsCatCrazyTimeEnabled(), SupersededStandaloneMods.CatCrazyTime,
                     "CatCrazyTimeFeatures", () => CatCrazyTimeFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedCatFloorSleep,
                     KebabTweaksSettings.EnableCatFloorSleep, SupersededStandaloneMods.CatFloorSleep,
@@ -230,11 +232,11 @@ namespace HSK.KebabTweaks
                     "UfFillExtraIngredientsFixFeatures",
                     () => UfFillExtraIngredientsFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedBurnWeaponBillFix,
-                    KebabTweaksSettings.IsObsoleteFixEnabled(KebabTweaksSettings.EnableBurnWeaponBillFix), null,
+                    KebabTweaksSettings.IsBurnWeaponBillFixEnabled(), null,
                     "BurnWeaponBillFixFeatures",
                     () => BurnWeaponBillFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedBreachAxeWorkAmountFix,
-                    KebabTweaksSettings.IsObsoleteFixEnabled(KebabTweaksSettings.EnableBreachAxeWorkAmountFix), null,
+                    KebabTweaksSettings.IsBreachAxeWorkAmountFixEnabled(), null,
                     "BreachAxeWorkAmountFixFeatures",
                     () => BreachAxeWorkAmountFixFeatures.Apply(harmony));
 #endif

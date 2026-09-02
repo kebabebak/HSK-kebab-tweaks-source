@@ -22,7 +22,11 @@ namespace HSK.KebabTweaks
         public const int DefaultIdleWorkSearchCooldownTicks = 1000;
         public const int MaxIdleWorkSearchCooldownTicks = 100000;
 
+#if RIMWORLD_1_6
+        public static bool EnableCatCrazyTime;
+#else
         public static bool EnableCatCrazyTime = true;
+#endif
         public static bool EnableCatFloorSleep = true;
         public static bool EnableCeRunForCoverDestFix = true;
         public static bool EnableCeProjectileNullSoundFix = true;
@@ -52,6 +56,7 @@ namespace HSK.KebabTweaks
         public static bool EnableSaveSettingsLoadFix = true;
         public static bool EnableObsoleteFixes;
         public static bool DoNotResetObsoleteFixesOnReload;
+        public static bool SymptomBucketDefaultsApplied;
 #if RIMWORLD_1_6
         public static bool EnableMapPreviewRngBaselineFix = true;
         public static bool EnableUnifiedXmlPathFix = true;
@@ -64,7 +69,11 @@ namespace HSK.KebabTweaks
         public static bool EnableBreachAxeWorkAmountFix;
 #endif
 
+#if RIMWORLD_1_6
+        public static bool AppliedCatCrazyTime;
+#else
         public static bool AppliedCatCrazyTime = true;
+#endif
         public static bool AppliedCatFloorSleep = true;
         public static bool AppliedCeRunForCoverDestFix = true;
         public static bool AppliedCeProjectileNullSoundFix = true;
@@ -258,6 +267,51 @@ namespace HSK.KebabTweaks
             return EnableObsoleteFixes && enableFlag;
         }
 
+        /// <summary>
+        /// True when Cat Crazy Time hooks should run: current enable when the load-reroll
+        /// symptom is still present; Obsolete section plus leftover enable when SK already
+        /// keeps saved num.
+        ///
+        /// True, когда хуки Cat Crazy Time должны работать: обычный enable, если реролл при
+        /// load ещё есть; раздел «Устаревшие» плюс leftover enable, если SK уже хранит num.
+        /// </summary>
+        public static bool IsCatCrazyTimeEnabled()
+        {
+            if (FixSymptomProbe.IsCatCrazyTimeLeftover())
+            {
+                return IsObsoleteFixEnabled(EnableCatCrazyTime);
+            }
+
+            return EnableCatCrazyTime;
+        }
+
+#if RIMWORLD_1_6
+        public static bool IsBurnWeaponBillFixEnabled()
+        {
+            if (FixSymptomProbe.IsBurnWeaponBillFixLeftover())
+            {
+                return IsObsoleteFixEnabled(EnableBurnWeaponBillFix);
+            }
+
+            return EnableBurnWeaponBillFix;
+        }
+
+        public static bool IsBreachAxeWorkAmountFixEnabled()
+        {
+            if (FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
+            {
+                return IsObsoleteFixEnabled(EnableBreachAxeWorkAmountFix);
+            }
+
+            return EnableBreachAxeWorkAmountFix;
+        }
+#endif
+
+        public static bool HasAnyObsoleteLeftover()
+        {
+            return FixSymptomProbe.HasAnyLeftover();
+        }
+
         private const float SettingsCheckboxRowHeight = 32f;
         private const float FeatureHeaderLeadingSpacerHeight = SettingsCheckboxRowHeight * 0.5f;
         private const float ObsoleteHeaderLeadingSpacerHeight = FeatureHeaderLeadingSpacerHeight * 3f;
@@ -295,6 +349,7 @@ namespace HSK.KebabTweaks
         private static readonly Color RelevancePercentZeroColor = new Color(0.95f, 0.22f, 0.22f);
 
         private const int CraftStuffFixRelevancePercent = 25;
+        private const int CatCrazyTimeFixRelevancePercent = 0;
 #if RIMWORLD_1_6
         private const int UfFillFixRelevancePercent = 65;
         private const int ObsoleteFixRelevancePercent = 0;
@@ -611,6 +666,7 @@ namespace HSK.KebabTweaks
 
         private void DrawFixesTabContents(Listing_Standard listing, float fullWidth)
         {
+            FixSymptomProbe.Ensure();
             bool firstHeaderOnTab = true;
 #if RIMWORLD_1_6
             DrawPatchBlock(listing, fullWidth,
@@ -658,21 +714,12 @@ namespace HSK.KebabTweaks
                 leadingSpacer: !firstHeaderOnTab);
             firstHeaderOnTab = false;
 #endif
-
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.CatCrazyTime".Translate(),
-                "KebabTweaks.Patch.CatCrazyTime.Tooltip".Translate(),
-                SupersededStandaloneMods.CatCrazyTime,
-                ref EnableCatCrazyTime, AppliedCatCrazyTime, true, false, ResetCatCrazyTime,
-                () =>
-                {
-                    DrawSettingsEnableLoggingCheckboxRow(listing, "CatCrazyTimePatch.EnableLogging".Translate(),
-                        () => CatCrazyTimeEnableLogging, v => CatCrazyTimeEnableLogging = v,
-                        "CatCrazyTimePatch.EnableLoggingTooltip".Translate());
-                },
-                FixErrorTraceCatalog.CatCrazyTime, FixErrorTraceCatalog.CatCrazyTimeTipId,
-                leadingSpacer: !firstHeaderOnTab);
-            firstHeaderOnTab = false;
+            if (!FixSymptomProbe.IsCatCrazyTimeLeftover())
+            {
+                DrawCatCrazyTimePatchBlock(listing, fullWidth, leftover: false,
+                    leadingSpacer: !firstHeaderOnTab);
+                firstHeaderOnTab = false;
+            }
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.CatFloorSleep".Translate(),
@@ -910,9 +957,22 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.RimatomicsGuidancePanelFix,
                 FixErrorTraceCatalog.RimatomicsGuidancePanelFixTipId);
+
+            if (!FixSymptomProbe.IsBurnWeaponBillFixLeftover())
+            {
+                DrawBurnWeaponBillFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
+            if (!FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
+            {
+                DrawBreachAxeWorkAmountFixPatchBlock(listing, fullWidth, leftover: false);
+            }
 #endif
 
-            DrawObsoleteFixesSection(listing, fullWidth);
+            if (HasAnyObsoleteLeftover())
+            {
+                DrawObsoleteFixesSection(listing, fullWidth);
+            }
         }
 
         private void DrawFullResetButton(Rect row, float fullWidth)
@@ -984,9 +1044,9 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Obsolete fixes. Off by default. The set may differ between 1.5 and 1.6.
+        /// Obsolete leftover fixes for this launch. Hidden when the probe found none.
         ///
-        /// Устаревшие фиксы. По умолчанию выключены. Состав может отличаться между 1.5 и 1.6.
+        /// Устаревшие leftover-фиксы этого запуска. Скрыт, если зонд ничего не нашёл.
         /// </summary>
         private void DrawObsoleteFixesSection(Listing_Standard listing, float fullWidth)
         {
@@ -1013,28 +1073,21 @@ namespace HSK.KebabTweaks
             Rect cachedRect = new Rect(0f, startY, fullWidth, cachedHeight);
             BlockDisabledSettingsRowInput(cachedRect, !EnableObsoleteFixes && cachedHeight > 0.5f);
 
-#if RIMWORLD_1_6
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.BurnWeaponBillFix".Translate(),
-                "KebabTweaks.Patch.BurnWeaponBillFix.Tooltip".Translate(),
-                null,
-                ref EnableBurnWeaponBillFix, AppliedBurnWeaponBillFix,
-                false, false, ResetBurnWeaponBillFix,
-                null,
-                interactive: EnableObsoleteFixes,
-                relevancePercent: ObsoleteFixRelevancePercent);
-            BurnWeaponBillFixFeatures.SyncRecipeWorkTypes();
+            if (FixSymptomProbe.IsCatCrazyTimeLeftover())
+            {
+                DrawCatCrazyTimePatchBlock(listing, fullWidth, leftover: true, leadingSpacer: true);
+            }
 
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.BreachAxeWorkAmountFix".Translate(),
-                "KebabTweaks.Patch.BreachAxeWorkAmountFix.Tooltip".Translate(),
-                null,
-                ref EnableBreachAxeWorkAmountFix, AppliedBreachAxeWorkAmountFix,
-                false, false, ResetBreachAxeWorkAmountFix,
-                null,
-                interactive: EnableObsoleteFixes,
-                relevancePercent: ObsoleteFixRelevancePercent);
-            BreachAxeWorkAmountFixFeatures.SyncWorkAmount();
+#if RIMWORLD_1_6
+            if (FixSymptomProbe.IsBurnWeaponBillFixLeftover())
+            {
+                DrawBurnWeaponBillFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
+            {
+                DrawBreachAxeWorkAmountFixPatchBlock(listing, fullWidth, leftover: true);
+            }
 #endif
 
             float height = listing.CurHeight - startY;
@@ -1057,6 +1110,66 @@ namespace HSK.KebabTweaks
                 ResetObsoleteFixes,
                 confirmEnable: true);
         }
+
+        private void DrawCatCrazyTimePatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover,
+            bool leadingSpacer)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.CatCrazyTime".Translate(),
+                "KebabTweaks.Patch.CatCrazyTime.Tooltip".Translate(),
+                SupersededStandaloneMods.CatCrazyTime,
+                ref EnableCatCrazyTime, AppliedCatCrazyTime,
+                !leftover, false, ResetCatCrazyTime,
+                () =>
+                {
+                    DrawSettingsEnableLoggingCheckboxRow(listing, "CatCrazyTimePatch.EnableLogging".Translate(),
+                        () => CatCrazyTimeEnableLogging, v => CatCrazyTimeEnableLogging = v,
+                        "CatCrazyTimePatch.EnableLoggingTooltip".Translate());
+                },
+                FixErrorTraceCatalog.CatCrazyTime, FixErrorTraceCatalog.CatCrazyTimeTipId,
+                leadingSpacer: leadingSpacer,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? CatCrazyTimeFixRelevancePercent : (int?)null);
+        }
+
+#if RIMWORLD_1_6
+        private void DrawBurnWeaponBillFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.BurnWeaponBillFix".Translate(),
+                "KebabTweaks.Patch.BurnWeaponBillFix.Tooltip".Translate(),
+                null,
+                ref EnableBurnWeaponBillFix, AppliedBurnWeaponBillFix,
+                !leftover, false, ResetBurnWeaponBillFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+            BurnWeaponBillFixFeatures.SyncRecipeWorkTypes();
+        }
+
+        private void DrawBreachAxeWorkAmountFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.BreachAxeWorkAmountFix".Translate(),
+                "KebabTweaks.Patch.BreachAxeWorkAmountFix.Tooltip".Translate(),
+                null,
+                ref EnableBreachAxeWorkAmountFix, AppliedBreachAxeWorkAmountFix,
+                !leftover, false, ResetBreachAxeWorkAmountFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+            BreachAxeWorkAmountFixFeatures.SyncWorkAmount();
+        }
+#endif
 
         private void DrawPatchBlock(
             Listing_Standard listing,
@@ -1996,6 +2109,8 @@ namespace HSK.KebabTweaks
             ResetMainMenuBgFitFix();
             ResetRimatomicsGuidancePanelFix();
             ResetUfFillExtraIngredientsFix();
+            ResetBurnWeaponBillFix();
+            ResetBreachAxeWorkAmountFix();
 #endif
             Write();
         }
@@ -2045,7 +2160,7 @@ namespace HSK.KebabTweaks
 
         private static void ResetCatCrazyTime()
         {
-            EnableCatCrazyTime = true;
+            EnableCatCrazyTime = !FixSymptomProbe.IsCatCrazyTimeLeftover();
             CatCrazyTimeEnableLogging = false;
         }
 
@@ -2210,9 +2325,20 @@ namespace HSK.KebabTweaks
         {
             DoNotResetObsoleteFixesOnReload = false;
             ResetObsoleteFixToggles();
+            if (FixSymptomProbe.IsCatCrazyTimeLeftover())
+            {
+                CatCrazyTimeEnableLogging = false;
+            }
 #if RIMWORLD_1_6
-            ResetBurnWeaponBillFix();
-            ResetBreachAxeWorkAmountFix();
+            if (FixSymptomProbe.IsBurnWeaponBillFixLeftover())
+            {
+                ResetBurnWeaponBillFix();
+            }
+
+            if (FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
+            {
+                ResetBreachAxeWorkAmountFix();
+            }
 #endif
         }
 
@@ -2228,15 +2354,75 @@ namespace HSK.KebabTweaks
                 return;
             }
 
+            FixSymptomProbe.Ensure();
             ResetObsoleteFixToggles();
+        }
+
+        /// <summary>
+        /// Once per settings file, turn still-needed candidates on if they were left off.
+        /// RimWorld 1.6 only; waits until def-backed probes have run.
+        ///
+        /// Один раз на файл настроек включает ещё нужные фиксы, если они остались выкл.
+        /// Только RimWorld 1.6; ждёт зонды по дефам.
+        /// </summary>
+        public static void ApplySymptomBucketCurrentDefaultsOnce()
+        {
+            if (SymptomBucketDefaultsApplied)
+            {
+                return;
+            }
+
+#if !RIMWORLD_1_6
+            SymptomBucketDefaultsApplied = true;
+            return;
+#else
+            FixSymptomProbe.Ensure();
+            if (!FixSymptomProbe.DefBackedProbesReady)
+            {
+                return;
+            }
+
+            SymptomBucketDefaultsApplied = true;
+            if (!FixSymptomProbe.IsCatCrazyTimeLeftover())
+            {
+                EnableCatCrazyTime = true;
+            }
+
+            if (!FixSymptomProbe.IsBurnWeaponBillFixLeftover())
+            {
+                EnableBurnWeaponBillFix = true;
+            }
+
+            if (!FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
+            {
+                EnableBreachAxeWorkAmountFix = true;
+            }
+
+            Mod mod = LoadedModManager.GetMod<KebabTweaksMod>();
+            if (mod != null)
+            {
+                mod.WriteSettings();
+            }
+#endif
         }
 
         private static void ResetObsoleteFixToggles()
         {
             EnableObsoleteFixes = false;
+            if (FixSymptomProbe.IsCatCrazyTimeLeftover())
+            {
+                EnableCatCrazyTime = false;
+            }
 #if RIMWORLD_1_6
-            EnableBurnWeaponBillFix = false;
-            EnableBreachAxeWorkAmountFix = false;
+            if (FixSymptomProbe.IsBurnWeaponBillFixLeftover())
+            {
+                EnableBurnWeaponBillFix = false;
+            }
+
+            if (FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
+            {
+                EnableBreachAxeWorkAmountFix = false;
+            }
 #endif
         }
 
@@ -2270,13 +2456,13 @@ namespace HSK.KebabTweaks
 
         private static void ResetBurnWeaponBillFix()
         {
-            EnableBurnWeaponBillFix = false;
+            EnableBurnWeaponBillFix = !FixSymptomProbe.IsBurnWeaponBillFixLeftover();
             BurnWeaponBillFixFeatures.SyncRecipeWorkTypes(force: true);
         }
 
         private static void ResetBreachAxeWorkAmountFix()
         {
-            EnableBreachAxeWorkAmountFix = false;
+            EnableBreachAxeWorkAmountFix = !FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover();
             BreachAxeWorkAmountFixFeatures.SyncWorkAmount(force: true);
         }
 #endif
@@ -2285,7 +2471,11 @@ namespace HSK.KebabTweaks
         {
             base.ExposeData();
 
+#if RIMWORLD_1_6
+            Scribe_Values.Look(ref EnableCatCrazyTime, "EnableCatCrazyTime", defaultValue: false);
+#else
             Scribe_Values.Look(ref EnableCatCrazyTime, "EnableCatCrazyTime", defaultValue: true);
+#endif
             Scribe_Values.Look(ref EnableCatFloorSleep, "EnableCatFloorSleep", defaultValue: true);
             Scribe_Values.Look(ref EnableCeRunForCoverDestFix, "EnableCeRunForCoverDestFix", defaultValue: true);
             Scribe_Values.Look(ref EnableCeProjectileNullSoundFix, "EnableCeProjectileNullSoundFix", defaultValue: true);
@@ -2324,6 +2514,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableSaveSettingsLoadFix, "EnableSaveSettingsLoadFix", defaultValue: true);
             Scribe_Values.Look(ref EnableObsoleteFixes, "EnableObsoleteFixes", defaultValue: false);
             Scribe_Values.Look(ref DoNotResetObsoleteFixesOnReload, "DoNotResetObsoleteFixesOnReload",
+                defaultValue: false);
+            Scribe_Values.Look(ref SymptomBucketDefaultsApplied, "SymptomBucketDefaultsApplied",
                 defaultValue: false);
 #if RIMWORLD_1_6
             Scribe_Values.Look(ref EnableMapPreviewRngBaselineFix, "EnableMapPreviewRngBaselineFix",

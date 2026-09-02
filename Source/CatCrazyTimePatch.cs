@@ -10,23 +10,27 @@ using Verse.AI;
 namespace HSK.KebabTweaks
 {
     /// <summary>
-    /// Problem: JobDriver_CrazyTime.MakeNewToils always rolls num = Rand.RangeInclusive(3, 8)
+    /// Problem: On 1.5, JobDriver_CrazyTime.MakeNewToils always rolls num = Rand.RangeInclusive(3, 8)
     /// even after ExposeData restored num from a save. On load SetupToils rebuilds toils with a
     /// new count while curToilIndex still points at the saved progress →
-    /// "tried to get CurToil with curToilIndex=N but only has N toils".
+    /// "tried to get CurToil with curToilIndex=N but only has N toils". On 1.6, Core_SK already
+    /// rolls only when num is 0; leftover is SetupToils clamp for already-broken saves.
     ///
     /// Fix: Postfix MakeNewToils — on resume (num &gt; 0) replace __result before enumeration so
     /// saved num is kept; fresh jobs (num &lt;= 0) leave the vanilla iterator to roll num.
-    /// Postfix SetupToils clamps curToilIndex for already-corrupted saves.
+    /// Postfix SetupToils clamps curToilIndex for already-corrupted saves. On 1.6 the feature
+    /// sits under Obsolete (default off).
     ///
-    /// Проблема: JobDriver_CrazyTime.MakeNewToils всегда бросает num = Rand.RangeInclusive(3, 8)
+    /// Проблема: На 1.5 JobDriver_CrazyTime.MakeNewToils всегда бросает num = Rand.RangeInclusive(3, 8)
     /// даже после того, как ExposeData восстановил num из сейва. При load SetupToils пересобирает
     /// toils с новым числом, а curToilIndex всё ещё указывает на сохранённый прогресс →
-    /// "tried to get CurToil with curToilIndex=N but only has N toils".
+    /// "tried to get CurToil with curToilIndex=N but only has N toils". На 1.6 Core_SK уже
+    /// бросает только при num = 0; остаётся clamp SetupToils для уже битых сейвов.
     ///
     /// Исправление: Postfix MakeNewToils — при resume (num &gt; 0) подменить __result до
     /// перечисления, сохранив num из сейва; новые job (num &lt;= 0) оставляют vanilla iterator.
-    /// Postfix SetupToils ограничивает curToilIndex для уже битых сейвов.
+    /// Postfix SetupToils ограничивает curToilIndex для уже битых сейвов. На 1.6 фича в
+    /// «Устаревших» (по умолчанию выкл.).
     /// </summary>
     public static class CatCrazyTimeFeatures
     {
@@ -74,7 +78,7 @@ namespace HSK.KebabTweaks
     {
         public static void Postfix(JobDriver_CrazyTime __instance, ref IEnumerable<Toil> __result)
         {
-            if (!KebabTweaksSettings.EnableCatCrazyTime)
+            if (!KebabTweaksSettings.IsCatCrazyTimeEnabled())
             {
                 return;
             }
@@ -111,7 +115,7 @@ namespace HSK.KebabTweaks
 
         public static void Postfix(JobDriver __instance)
         {
-            if (!KebabTweaksSettings.EnableCatCrazyTime)
+            if (!KebabTweaksSettings.IsCatCrazyTimeEnabled())
             {
                 return;
             }

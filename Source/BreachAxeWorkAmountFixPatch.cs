@@ -53,9 +53,8 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static void SyncWorkAmount(bool force = false)
         {
-            bool enable = KebabTweaksSettings.IsObsoleteFixEnabled(
-                KebabTweaksSettings.EnableBreachAxeWorkAmountFix);
-            if (!CaptureOriginalsIfNeeded())
+            bool enable = KebabTweaksSettings.IsBreachAxeWorkAmountFixEnabled();
+            if (!EnsureOriginalsCaptured())
             {
                 return;
             }
@@ -70,7 +69,12 @@ namespace HSK.KebabTweaks
             lastEnabled = enable;
         }
 
-        static bool CaptureOriginalsIfNeeded()
+        /// <summary>
+        /// Stores WorkToMake / recipe workAmount before kebab writes 5000.
+        ///
+        /// Запоминает WorkToMake / workAmount рецепта до записи 5000.
+        /// </summary>
+        public static bool EnsureOriginalsCaptured()
         {
             if (captured)
             {
@@ -94,6 +98,18 @@ namespace HSK.KebabTweaks
             originalThingWorkToMake = thing.GetStatValueAbstract(StatDefOf.WorkToMake);
             originalRecipeWorkAmount = recipe.workAmount;
             captured = true;
+            return true;
+        }
+
+        public static bool TryGetCapturedThingWorkToMake(out float thingWork)
+        {
+            thingWork = 0f;
+            if (!EnsureOriginalsCaptured())
+            {
+                return false;
+            }
+
+            thingWork = originalThingWorkToMake;
             return true;
         }
 

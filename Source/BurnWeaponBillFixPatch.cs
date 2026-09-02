@@ -61,9 +61,8 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static void SyncRecipeWorkTypes(bool force = false)
         {
-            bool enable = KebabTweaksSettings.IsObsoleteFixEnabled(
-                KebabTweaksSettings.EnableBurnWeaponBillFix);
-            CaptureOriginalsIfNeeded();
+            bool enable = KebabTweaksSettings.IsBurnWeaponBillFixEnabled();
+            EnsureOriginalsCaptured();
             if (originalGiverWorkTypes == null || originalGiverWorkTypes.Count == 0)
             {
                 return;
@@ -88,7 +87,12 @@ namespace HSK.KebabTweaks
             lastEnabled = enable;
         }
 
-        static void CaptureOriginalsIfNeeded()
+        /// <summary>
+        /// Stores requiredGiverWorkType from XML/HSK before kebab clears the field.
+        ///
+        /// Запоминает requiredGiverWorkType из XML/HSK до того, как kebab обнулит поле.
+        /// </summary>
+        public static void EnsureOriginalsCaptured()
         {
             if (originalGiverWorkTypes != null && originalGiverWorkTypes.Count > 0)
             {
@@ -113,6 +117,18 @@ namespace HSK.KebabTweaks
             }
 
             originalGiverWorkTypes = captured;
+        }
+
+        public static WorkTypeDef GetCapturedRequiredGiver(string defName)
+        {
+            EnsureOriginalsCaptured();
+            if (originalGiverWorkTypes == null || defName == null)
+            {
+                return null;
+            }
+
+            WorkTypeDef workType;
+            return originalGiverWorkTypes.TryGetValue(defName, out workType) ? workType : null;
         }
     }
 }

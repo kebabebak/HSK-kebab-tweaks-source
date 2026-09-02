@@ -14,10 +14,11 @@ namespace HSK.KebabTweaks
     /// the same stone make that overlap likely. Rock chunks can hit the same compressor
     /// rule when two land in one cell.
     ///
-    /// Fix: Postfix Minerals PlaceIsBlocked so OccupiedRect overlap with another saveCompressible
+    /// Fix: Postfix Minerals PlaceIsBlocked so OccupiedRect overlap with another compressor-conflict
     /// thing is treated as blocked (soft-optional if Minerals is absent). Prefix
     /// MapFileCompressor.BuildCompressedString and Postfix Map.FinalizeInit move extras to a free
-    /// cell, or destroy them if none is free, so save does not spam the error on existing maps.
+    /// cell, or destroy them if none is free. Items on a cell that already allows more than one
+    /// item stay in place, matching CompressibilityDeciderUtility.IsSaveCompressible.
     ///
     /// Проблема: MapFileCompressor.HashValueForSquare допускает один saveCompressible объект на
     /// клетку и пишет Error, если в клетке два. Minerals StaticMineral PlaceIsBlocked смотрит только
@@ -26,10 +27,11 @@ namespace HSK.KebabTweaks
     /// кластеры на одном камне делают пересечение вероятным. Камни Chunk* дают ту же ошибку
     /// компрессора, если два попадают в одну клетку.
     ///
-    /// Исправление: Postfix Minerals PlaceIsBlocked считает OccupiedRect с другим saveCompressible
-    /// занятым (soft-optional, если Minerals нет). Prefix MapFileCompressor.BuildCompressedString
-    /// и Postfix Map.FinalizeInit переносят лишние на свободную клетку или уничтожают, если места
-    /// нет, чтобы сейв существующей карты не спамил ошибку.
+    /// Исправление: Postfix Minerals PlaceIsBlocked считает OccupiedRect с другим конфликтом
+    /// компрессора занятым (soft-optional, если Minerals нет). Prefix
+    /// MapFileCompressor.BuildCompressedString и Postfix Map.FinalizeInit переносят лишние на
+    /// свободную клетку или уничтожают, если места нет. Предметы в клетке, где уже разрешено больше
+    /// одного предмета, остаются на месте, как в CompressibilityDeciderUtility.IsSaveCompressible.
     /// </summary>
     public static class CompressibleOverlapFixFeatures
     {
@@ -162,11 +164,12 @@ namespace HSK.KebabTweaks
                     return;
                 }
 
+                int maxItemsInCell = cell.GetMaxItemsAllowedInCell(map);
                 List<Thing> list = map.thingGrid.ThingsListAtFast(cell);
                 for (int i = 0; i < list.Count; i++)
                 {
                     Thing thing = list[i];
-                    if (thing == null || thing.Destroyed || thing.def == null || !thing.def.saveCompressible)
+                    if (!CompressibleOverlapFix.IsCompressorConflictThing(thing, maxItemsInCell))
                     {
                         continue;
                     }
@@ -280,12 +283,13 @@ namespace HSK.KebabTweaks
             {
                 IntVec3 cell = map.cellIndices.IndexToCell(i);
                 List<Thing> list = map.thingGrid.ThingsListAtFast(cell);
+                int maxItemsInCell = cell.GetMaxItemsAllowedInCell(map);
                 Thing keep = null;
                 int compressible = 0;
                 for (int j = 0; j < list.Count; j++)
                 {
                     Thing other = list[j];
-                    if (!IsSaveCompressibleThing(other))
+                    if (!IsCompressorConflictThing(other, maxItemsInCell))
                     {
                         continue;
                     }
@@ -305,7 +309,7 @@ namespace HSK.KebabTweaks
                 for (int j = 0; j < list.Count; j++)
                 {
                     Thing other = list[j];
-                    if (!IsSaveCompressibleThing(other) || other == keep)
+                    if (!IsCompressorConflictThing(other, maxItemsInCell) || other == keep)
                     {
                         continue;
                     }
@@ -375,9 +379,10 @@ namespace HSK.KebabTweaks
                 }
 
                 List<Thing> list = map.thingGrid.ThingsListAtFast(occupied);
+                int maxItemsInCell = occupied.GetMaxItemsAllowedInCell(map);
                 for (int i = 0; i < list.Count; i++)
                 {
-                    if (IsSaveCompressibleThing(list[i]))
+                    if (IsCompressorConflictThing(list[i], maxItemsInCell))
                     {
                         return false;
                     }
@@ -387,9 +392,28 @@ namespace HSK.KebabTweaks
             return true;
         }
 
-        private static bool IsSaveCompressibleThing(Thing thing)
+        /// <summary>
+        /// True when this thing would occupy a compressor hash slot. Matches the def.saveCompressible
+        /// flag except for items on a cell that already allows more than one item (vanilla
+        /// CompressibilityDeciderUtility.IsSaveCompressible returns false there).
+        ///
+        /// True, если объект занял бы слот хеша компрессора. Совпадает с флагом def.saveCompressible,
+        /// кроме предметов в клетке, где уже разрешено больше одного предмета (ванильный
+        /// CompressibilityDeciderUtility.IsSaveCompressible там возвращает false).
+        /// </summary>
+        internal static bool IsCompressorConflictThing(Thing thing, int maxItemsInCell)
         {
-            return thing != null && !thing.Destroyed && thing.Spawned && thing.def != null && thing.def.saveCompressible;
+            if (thing == null || thing.Destroyed || !thing.Spawned || thing.def == null || !thing.def.saveCompressible)
+            {
+                return false;
+            }
+
+            if (thing.def.category == ThingCategory.Item && maxItemsInCell > 1)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private enum RelocateResult
