@@ -55,6 +55,7 @@
   <ItemGroup Condition="'$(Configuration)' != 'Release16'">
     <Compile Remove="Source\BurnWeaponBillFixPatch.cs" />
     <Compile Remove="Source\BreachAxeWorkAmountFixPatch.cs" />
+    <Compile Remove="Source\RawFungusBillFixPatch.cs" />
   </ItemGroup>
 
 </Project>

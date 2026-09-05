@@ -26,6 +26,7 @@ namespace HSK.KebabTweaks
         static bool defsProbed;
         static bool burnWeaponLeftover;
         static bool breachAxeLeftover;
+        static bool rawFungusLeftover;
 #endif
         static bool logged;
 
@@ -61,6 +62,12 @@ namespace HSK.KebabTweaks
             Ensure();
             return breachAxeLeftover;
         }
+
+        public static bool IsRawFungusBillFixLeftover()
+        {
+            Ensure();
+            return rawFungusLeftover;
+        }
 #endif
 
         public static bool DefBackedProbesReady
@@ -83,7 +90,8 @@ namespace HSK.KebabTweaks
             }
 
 #if RIMWORLD_1_6
-            if (IsBurnWeaponBillFixLeftover() || IsBreachAxeWorkAmountFixLeftover())
+            if (IsBurnWeaponBillFixLeftover() || IsBreachAxeWorkAmountFixLeftover() ||
+                IsRawFungusBillFixLeftover())
             {
                 return true;
             }
@@ -171,6 +179,8 @@ namespace HSK.KebabTweaks
             burnWeaponLeftover = ProbeBurnWeaponClosed();
             BreachAxeWorkAmountFixFeatures.EnsureOriginalsCaptured();
             breachAxeLeftover = ProbeBreachAxeClosed();
+            RawFungusBillFixFeatures.EnsureOriginalsCaptured();
+            rawFungusLeftover = ProbeRawFungusClosed();
         }
 
         /// <summary>
@@ -271,6 +281,18 @@ namespace HSK.KebabTweaks
 
             return thingWork > BreachAxeMissingWorkToMakeMax;
         }
+
+        /// <summary>
+        /// Closed when captured RawFungus already belongs to FungusPlantRaw (HSK 1.5 overwrite
+        /// or a later Unified fix). Alive when it is still only PlantFoodRaw.
+        ///
+        /// Closed, если сохранённый RawFungus уже в FungusPlantRaw (overwrite HSK 1.5 или
+        /// поздний фикс Unified). Alive, если он всё ещё только в PlantFoodRaw.
+        /// </summary>
+        static bool ProbeRawFungusClosed()
+        {
+            return RawFungusBillFixFeatures.CapturedInFungusCategory();
+        }
 #endif
 
         static void LogOnce()
@@ -297,7 +319,8 @@ namespace HSK.KebabTweaks
             Log.Message(
                 "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover +
                 " BurnWeapon=" + burnWeaponLeftover +
-                " BreachAxe=" + breachAxeLeftover + ".");
+                " BreachAxe=" + breachAxeLeftover +
+                " RawFungus=" + rawFungusLeftover + ".");
 #else
             Log.Message(
                 "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover + ".");

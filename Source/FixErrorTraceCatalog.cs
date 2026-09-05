@@ -15,6 +15,7 @@ namespace HSK.KebabTweaks
         public const int StorageSettingsAllowedToAcceptFixTipId = 14;
         public const int CeRunForCoverDestFixTipId = 6;
         public const int CeProjectileNullSoundFixTipId = 12;
+        public const int CeExtendedLoadoutMedicineLabelFixTipId = 26;
         public const int FishTableTypeListFixTipId = 7;
         public const int GetActiveRitualsFixTipId = 8;
         public const int IdleErrorWanderFixTipId = 9;
@@ -154,6 +155,29 @@ Verse.TickList:Tick ()
 Verse.TickManager:TickManagerUpdate ()
 (wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.Game.UpdatePlay_Patch3 (Verse.Game)
 Verse.Root_Play:Update ()";
+
+        public const string CeExtendedLoadoutMedicineLabelFix = @"[HugsLib][ERR] CombatExtended.ExtendedLoadout caused an exception during OnDefsLoaded: System.IndexOutOfRangeException: index + length > size
+[Ref 223561D5]
+  at System.Array.Clear (System.Array array, System.Int32 index, System.Int32 length) [0x00044] in <51fded79cd284d4d911c5949aff4cb21>:0 
+  at Verse.GrammarResolverSimple.Formatted (Verse.TaggedString str, System.Collections.Generic.List`1[T] argsLabelsArg, System.Collections.Generic.List`1[T] argsObjectsArg) [0x0004b] in <61e4173561894da49d210260257b5097>:0 
+  at Verse.GrammarResolverSimpleStringExtensions.Formatted (System.String str, Verse.NamedArgument arg1) [0x0003a] in <61e4173561894da49d210260257b5097>:0 
+  at Verse.GrammarResolverSimpleStringExtensions.Formatted (Verse.TaggedString str, Verse.NamedArgument arg1) [0x00007] in <61e4173561894da49d210260257b5097>:0 
+  at Verse.TranslatorFormattedStringExtensions.Translate (System.String key, Verse.NamedArgument arg1) [0x00006] in <61e4173561894da49d210260257b5097>:0 
+  at CombatExtended.ExtendedLoadout.MedicineDefs.Initialize () [0x000ae] in <39deb5ee002246f09f13fc1a62275555>:0 
+  at CombatExtended.ExtendedLoadout.ExtendedLoadoutMod.DefsLoaded () [0x0030a] in <39deb5ee002246f09f13fc1a62275555>:0 
+  at HugsLib.HugsLibController.OnDefsLoaded () [0x0001a] in <e92fb9c535b84355b807623efc376846>:0 
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+(wrapper dynamic-method) MonoMod.Utils.DynamicMethodDefinition:Verse.Log.Error_Patch2 (string)
+HugsLib.Utils.ModLogger:ReportException (System.Exception,string,bool,string)
+HugsLib.HugsLibController:OnDefsLoaded ()
+HugsLib.HugsLibController:LoadReloadInitialize ()
+Verse.LongEventHandler:RunEventFromAnotherThread (System.Action)
+Verse.LongEventHandler/<>c:<UpdateCurrentAsynchronousEvent>b__28_0 ()
+System.Threading.ThreadHelper:ThreadStart_Context (object)
+System.Threading.ExecutionContext:RunInternal (System.Threading.ExecutionContext,System.Threading.ContextCallback,object,bool)
+System.Threading.ExecutionContext:Run (System.Threading.ExecutionContext,System.Threading.ContextCallback,object,bool)
+System.Threading.ExecutionContext:Run (System.Threading.ExecutionContext,System.Threading.ContextCallback,object)
+System.Threading.ThreadHelper:ThreadStart ()";
 
         public const string FishTableTypeListFix = @"Soyuz caught this error. Please don't report this to the RocketMan team unless you're certain RocketMan caused this error. with error System.InvalidOperationException: Failed to find parent index in FishTable<Verse.Pawn, System.Int32> for key: 'System.Object', hashCode: '779', value: '0', count: '4', bucket array length: '16', total tailing entries count: '2', known chain of tails:
 { index: '7' key: 'Lousa', hashCode: '103875', value: '3 }

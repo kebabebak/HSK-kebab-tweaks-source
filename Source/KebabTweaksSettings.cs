@@ -30,6 +30,7 @@ namespace HSK.KebabTweaks
         public static bool EnableCatFloorSleep = true;
         public static bool EnableCeRunForCoverDestFix = true;
         public static bool EnableCeProjectileNullSoundFix = true;
+        public static bool EnableCeExtendedLoadoutMedicineLabelFix = true;
         public static bool EnableArmorRacksAssignFix = true;
         public static bool EnableStorageSettingsAllowedToAcceptFix = true;
         public static bool EnableFishTableTypeListFix = true;
@@ -47,6 +48,7 @@ namespace HSK.KebabTweaks
         public static bool EnableApparelPolicyLoadFix = true;
         public static bool EnableBillRenamePrefill = true;
         public static bool EnableRecipeProductDropLostLog = true;
+        public static bool EnableNumbersLoadDefaultFallback = true;
         public static bool EnableAllowToolHaulUrgentlyNreFix = true;
         public static bool EnableDubsAnalyzerBeginUpdateFix = true;
         public static bool EnableDebugLogSplitterDragFix = true;
@@ -67,6 +69,7 @@ namespace HSK.KebabTweaks
         public static bool UfFillExtraIngredientsFixEnableLogging;
         public static bool EnableBurnWeaponBillFix;
         public static bool EnableBreachAxeWorkAmountFix;
+        public static bool EnableRawFungusBillFix = true;
 #endif
 
 #if RIMWORLD_1_6
@@ -77,6 +80,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedCatFloorSleep = true;
         public static bool AppliedCeRunForCoverDestFix = true;
         public static bool AppliedCeProjectileNullSoundFix = true;
+        public static bool AppliedCeExtendedLoadoutMedicineLabelFix = true;
         public static bool AppliedArmorRacksAssignFix = true;
         public static bool AppliedStorageSettingsAllowedToAcceptFix = true;
         public static bool AppliedFishTableTypeListFix = true;
@@ -94,6 +98,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedApparelPolicyLoadFix = true;
         public static bool AppliedBillRenamePrefill = true;
         public static bool AppliedRecipeProductDropLostLog = true;
+        public static bool AppliedNumbersLoadDefaultFallback = true;
         public static bool AppliedAllowToolHaulUrgentlyNreFix = true;
         public static bool AppliedDubsAnalyzerBeginUpdateFix = true;
         public static bool AppliedDebugLogSplitterDragFix = true;
@@ -109,6 +114,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedUfFillExtraIngredientsFix = true;
         public static bool AppliedBurnWeaponBillFix;
         public static bool AppliedBreachAxeWorkAmountFix;
+        public static bool AppliedRawFungusBillFix;
 #endif
 
         public static bool CatCrazyTimeEnableLogging;
@@ -304,6 +310,16 @@ namespace HSK.KebabTweaks
             }
 
             return EnableBreachAxeWorkAmountFix;
+        }
+
+        public static bool IsRawFungusBillFixEnabled()
+        {
+            if (FixSymptomProbe.IsRawFungusBillFixLeftover())
+            {
+                return IsObsoleteFixEnabled(EnableRawFungusBillFix);
+            }
+
+            return EnableRawFungusBillFix;
         }
 #endif
 
@@ -662,6 +678,14 @@ namespace HSK.KebabTweaks
                 ref EnableRecipeProductDropLostLog, AppliedRecipeProductDropLostLog, true, false,
                 ResetRecipeProductDropLostLog,
                 null);
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.NumbersLoadDefaultFallback".Translate(),
+                "KebabTweaks.Patch.NumbersLoadDefaultFallback.Tooltip".Translate(),
+                null,
+                ref EnableNumbersLoadDefaultFallback, AppliedNumbersLoadDefaultFallback, true, false,
+                ResetNumbersLoadDefaultFallback,
+                null);
         }
 
         private void DrawFixesTabContents(Listing_Standard listing, float fullWidth)
@@ -807,6 +831,16 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.CeProjectileNullSoundFix,
                 FixErrorTraceCatalog.CeProjectileNullSoundFixTipId);
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.CeExtendedLoadoutMedicineLabelFix".Translate(),
+                "KebabTweaks.Patch.CeExtendedLoadoutMedicineLabelFix.Tooltip".Translate(),
+                null,
+                ref EnableCeExtendedLoadoutMedicineLabelFix, AppliedCeExtendedLoadoutMedicineLabelFix,
+                true, true, ResetCeExtendedLoadoutMedicineLabelFix,
+                null,
+                FixErrorTraceCatalog.CeExtendedLoadoutMedicineLabelFix,
+                FixErrorTraceCatalog.CeExtendedLoadoutMedicineLabelFixTipId);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.FishTableTypeListFix".Translate(),
@@ -967,6 +1001,11 @@ namespace HSK.KebabTweaks
             {
                 DrawBreachAxeWorkAmountFixPatchBlock(listing, fullWidth, leftover: false);
             }
+
+            if (!FixSymptomProbe.IsRawFungusBillFixLeftover())
+            {
+                DrawRawFungusBillFixPatchBlock(listing, fullWidth, leftover: false);
+            }
 #endif
 
             if (HasAnyObsoleteLeftover())
@@ -1088,6 +1127,11 @@ namespace HSK.KebabTweaks
             {
                 DrawBreachAxeWorkAmountFixPatchBlock(listing, fullWidth, leftover: true);
             }
+
+            if (FixSymptomProbe.IsRawFungusBillFixLeftover())
+            {
+                DrawRawFungusBillFixPatchBlock(listing, fullWidth, leftover: true);
+            }
 #endif
 
             float height = listing.CurHeight - startY;
@@ -1168,6 +1212,23 @@ namespace HSK.KebabTweaks
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
             BreachAxeWorkAmountFixFeatures.SyncWorkAmount();
+        }
+
+        private void DrawRawFungusBillFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.RawFungusBillFix".Translate(),
+                "KebabTweaks.Patch.RawFungusBillFix.Tooltip".Translate(),
+                null,
+                ref EnableRawFungusBillFix, AppliedRawFungusBillFix,
+                !leftover, false, ResetRawFungusBillFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+            RawFungusBillFixFeatures.SyncCategory();
         }
 #endif
 
@@ -2078,6 +2139,7 @@ namespace HSK.KebabTweaks
             ResetCatFloorSleep();
             ResetCeRunForCoverDestFix();
             ResetCeProjectileNullSoundFix();
+            ResetCeExtendedLoadoutMedicineLabelFix();
             ResetArmorRacksAssignFix();
             ResetStorageSettingsAllowedToAcceptFix();
             ResetSaveSettingsLoadFix();
@@ -2096,6 +2158,7 @@ namespace HSK.KebabTweaks
             ResetApparelPolicyLoadFix();
             ResetBillRenamePrefill();
             ResetRecipeProductDropLostLog();
+            ResetNumbersLoadDefaultFallback();
             ResetAllowToolHaulUrgentlyNreFix();
             ResetDubsAnalyzerBeginUpdateFix();
             ResetDebugLogSplitterDragFix();
@@ -2111,6 +2174,7 @@ namespace HSK.KebabTweaks
             ResetUfFillExtraIngredientsFix();
             ResetBurnWeaponBillFix();
             ResetBreachAxeWorkAmountFix();
+            ResetRawFungusBillFix();
 #endif
             Write();
         }
@@ -2178,6 +2242,11 @@ namespace HSK.KebabTweaks
         private static void ResetCeProjectileNullSoundFix()
         {
             EnableCeProjectileNullSoundFix = true;
+        }
+
+        private static void ResetCeExtendedLoadoutMedicineLabelFix()
+        {
+            EnableCeExtendedLoadoutMedicineLabelFix = true;
         }
 
         private static void ResetArmorRacksAssignFix()
@@ -2281,6 +2350,11 @@ namespace HSK.KebabTweaks
             EnableRecipeProductDropLostLog = true;
         }
 
+        private static void ResetNumbersLoadDefaultFallback()
+        {
+            EnableNumbersLoadDefaultFallback = true;
+        }
+
         private static void ResetAllowToolHaulUrgentlyNreFix()
         {
             EnableAllowToolHaulUrgentlyNreFix = true;
@@ -2338,6 +2412,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
             {
                 ResetBreachAxeWorkAmountFix();
+            }
+
+            if (FixSymptomProbe.IsRawFungusBillFixLeftover())
+            {
+                ResetRawFungusBillFix();
             }
 #endif
         }
@@ -2398,6 +2477,11 @@ namespace HSK.KebabTweaks
                 EnableBreachAxeWorkAmountFix = true;
             }
 
+            if (!FixSymptomProbe.IsRawFungusBillFixLeftover())
+            {
+                EnableRawFungusBillFix = true;
+            }
+
             Mod mod = LoadedModManager.GetMod<KebabTweaksMod>();
             if (mod != null)
             {
@@ -2422,6 +2506,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
             {
                 EnableBreachAxeWorkAmountFix = false;
+            }
+
+            if (FixSymptomProbe.IsRawFungusBillFixLeftover())
+            {
+                EnableRawFungusBillFix = false;
             }
 #endif
         }
@@ -2465,6 +2554,12 @@ namespace HSK.KebabTweaks
             EnableBreachAxeWorkAmountFix = !FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover();
             BreachAxeWorkAmountFixFeatures.SyncWorkAmount(force: true);
         }
+
+        private static void ResetRawFungusBillFix()
+        {
+            EnableRawFungusBillFix = !FixSymptomProbe.IsRawFungusBillFixLeftover();
+            RawFungusBillFixFeatures.SyncCategory(force: true);
+        }
 #endif
 
         public override void ExposeData()
@@ -2479,6 +2574,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableCatFloorSleep, "EnableCatFloorSleep", defaultValue: true);
             Scribe_Values.Look(ref EnableCeRunForCoverDestFix, "EnableCeRunForCoverDestFix", defaultValue: true);
             Scribe_Values.Look(ref EnableCeProjectileNullSoundFix, "EnableCeProjectileNullSoundFix", defaultValue: true);
+            Scribe_Values.Look(ref EnableCeExtendedLoadoutMedicineLabelFix,
+                "EnableCeExtendedLoadoutMedicineLabelFix", defaultValue: true);
             Scribe_Values.Look(ref EnableArmorRacksAssignFix, "EnableArmorRacksAssignFix", defaultValue: true);
             Scribe_Values.Look(ref EnableStorageSettingsAllowedToAcceptFix,
                 "EnableStorageSettingsAllowedToAcceptFix", defaultValue: true);
@@ -2499,6 +2596,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableApparelPolicyLoadFix, "EnableApparelPolicyLoadFix", defaultValue: true);
             Scribe_Values.Look(ref EnableBillRenamePrefill, "EnableBillRenamePrefill", defaultValue: true);
             Scribe_Values.Look(ref EnableRecipeProductDropLostLog, "EnableRecipeProductDropLostLog", defaultValue: true);
+            Scribe_Values.Look(ref EnableNumbersLoadDefaultFallback, "EnableNumbersLoadDefaultFallback",
+                defaultValue: true);
             Scribe_Values.Look(ref EnableAllowToolHaulUrgentlyNreFix, "EnableAllowToolHaulUrgentlyNreFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableDubsAnalyzerBeginUpdateFix, "EnableDubsAnalyzerBeginUpdateFix",
@@ -2534,6 +2633,8 @@ namespace HSK.KebabTweaks
                 defaultValue: false);
             Scribe_Values.Look(ref EnableBreachAxeWorkAmountFix, "EnableBreachAxeWorkAmountFix",
                 defaultValue: false);
+            Scribe_Values.Look(ref EnableRawFungusBillFix, "EnableRawFungusBillFix",
+                defaultValue: true);
 #endif
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);

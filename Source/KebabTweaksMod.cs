@@ -22,12 +22,14 @@ namespace HSK.KebabTweaks
         public const string HarmonyId = "kebabebak.hsk.kebab.tweaks";
 
         /// <summary>
-        /// One Harmony instance for kebabebak.hsk.kebab.tweaks. Reused for the UXE early Prefix
-        /// and the later feature apply pass so the same id is not constructed twice (Dubs Analyzer
-        /// otherwise attributes the delayed LongEvent callback to mscorlib and warns).
+        /// One Harmony instance for kebabebak.hsk.kebab.tweaks. Reused for ctor early hooks
+        /// (UXE path Prefix, CE Extended Loadout medicine-label transpiler) and the later
+        /// feature apply pass so the same id is not constructed twice (Dubs Analyzer otherwise
+        /// attributes the delayed LongEvent callback to mscorlib and warns).
         ///
-        /// Один экземпляр Harmony для kebabebak.hsk.kebab.tweaks. Переиспользуется для раннего
-        /// Prefix UXE и позднего apply фич, чтобы не создавать тот же id дважды (иначе Dubs Analyzer
+        /// Один экземпляр Harmony для kebabebak.hsk.kebab.tweaks. Переиспользуется для ранних
+        /// хуков в ctor (Prefix пути UXE, transpiler подписи медицины CE Extended Loadout) и
+        /// позднего apply фич, чтобы не создавать тот же id дважды (иначе Dubs Analyzer
         /// приписывает отложенный LongEvent к mscorlib и выдаёт предупреждение).
         /// </summary>
         private static Harmony harmony;
@@ -58,6 +60,25 @@ namespace HSK.KebabTweaks
                 KebabTweaksSettings.AppliedUnifiedXmlPathFix = KebabTweaksSettings.EnableUnifiedXmlPathFix;
             }
 #endif
+            if (KebabTweaksSettings.EnableCeExtendedLoadoutMedicineLabelFix)
+            {
+                KebabTweaksSettings.AppliedCeExtendedLoadoutMedicineLabelFix = true;
+                try
+                {
+                    CeExtendedLoadoutMedicineLabelFixFeatures.ApplyEarly(harmony);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(
+                        "[HSK kebab tweaks] Failed to apply CE Extended Loadout medicine label fix early: " + ex);
+                }
+            }
+            else
+            {
+                KebabTweaksSettings.AppliedCeExtendedLoadoutMedicineLabelFix =
+                    KebabTweaksSettings.EnableCeExtendedLoadoutMedicineLabelFix;
+            }
+
             LongEventHandler.ExecuteWhenFinished(ApplyAllFeatures);
         }
 
@@ -158,6 +179,10 @@ namespace HSK.KebabTweaks
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedRecipeProductDropLostLog,
                     KebabTweaksSettings.EnableRecipeProductDropLostLog, null,
                     "RecipeProductDropLostLogFeatures", () => RecipeProductDropLostLogFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedNumbersLoadDefaultFallback,
+                    KebabTweaksSettings.EnableNumbersLoadDefaultFallback, null,
+                    "NumbersLoadDefaultFallbackFeatures",
+                    () => NumbersLoadDefaultFallbackFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedTradeCaravanLordFix,
                     KebabTweaksSettings.EnableTradeCaravanLordFix,
                     SupersededStandaloneMods.TradeCaravanLordFix, "TradeCaravanLordFixFeatures",
@@ -239,6 +264,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.IsBreachAxeWorkAmountFixEnabled(), null,
                     "BreachAxeWorkAmountFixFeatures",
                     () => BreachAxeWorkAmountFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedRawFungusBillFix,
+                    KebabTweaksSettings.IsRawFungusBillFixEnabled(), null,
+                    "RawFungusBillFixFeatures",
+                    () => RawFungusBillFixFeatures.Apply(harmony));
 #endif
 
                 Log.Message("[HSK kebab tweaks] Feature apply pass finished.");
