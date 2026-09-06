@@ -163,6 +163,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableIdleWorkSearchCooldown, null,
                     "IdleWorkSearchCooldownFeatures",
                     () => IdleWorkSearchCooldownFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStartingCorpsesNoHaul,
+                    KebabTweaksSettings.EnableStartingCorpsesNoHaul, null,
+                    "StartingCorpsesNoHaulFeatures",
+                    () => StartingCorpsesNoHaulFeatures.Apply(harmony));
 #if !RIMWORLD_1_6
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedTakeFromMending,
                     KebabTweaksSettings.EnableTakeFromMending, SupersededStandaloneMods.TakeFromMending,
@@ -225,6 +229,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableStartingPawnChildAgeFix, null,
                     "StartingPawnChildAgeFixFeatures",
                     () => StartingPawnChildAgeFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStartingPawnNameFix,
+                    KebabTweaksSettings.EnableStartingPawnNameFix, null,
+                    "StartingPawnNameFixFeatures",
+                    () => StartingPawnNameFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedSaveSettingsLoadFix,
                     KebabTweaksSettings.EnableSaveSettingsLoadFix, null,
                     "SaveSettingsLoadFixFeatures",

@@ -40,6 +40,8 @@ namespace HSK.KebabTweaks
         public static bool EnableHospitalityGuestApparelOptimizeFix = true;
         public static bool EnableLowTpsPawnDump = true;
         public static bool EnableIdleWorkSearchCooldown = true;
+        public static bool EnableStartingCorpsesNoHaul = true;
+        public static int StartingCorpseMarkMode;
         public static bool EnablePtgMedicalCare = true;
         public static bool EnableSeedsPleaseSowFix = true;
         public static bool EnableTakeFromMending = true;
@@ -55,6 +57,7 @@ namespace HSK.KebabTweaks
         public static bool EnableNeanderthalChiefLeaderFix = true;
         public static bool EnableDominantIngredientStuffFix = true;
         public static bool EnableStartingPawnChildAgeFix = true;
+        public static bool EnableStartingPawnNameFix = true;
         public static bool EnableSaveSettingsLoadFix = true;
         public static bool EnableObsoleteFixes;
         public static bool DoNotResetObsoleteFixesOnReload;
@@ -90,6 +93,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedHospitalityGuestApparelOptimizeFix = true;
         public static bool AppliedLowTpsPawnDump = true;
         public static bool AppliedIdleWorkSearchCooldown = true;
+        public static bool AppliedStartingCorpsesNoHaul = true;
         public static bool AppliedPtgMedicalCare = true;
         public static bool AppliedSeedsPleaseSowFix = true;
         public static bool AppliedTakeFromMending = true;
@@ -105,6 +109,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedNeanderthalChiefLeaderFix = true;
         public static bool AppliedDominantIngredientStuffFix = true;
         public static bool AppliedStartingPawnChildAgeFix = true;
+        public static bool AppliedStartingPawnNameFix = true;
         public static bool AppliedSaveSettingsLoadFix = true;
 #if RIMWORLD_1_6
         public static bool AppliedMapPreviewRngBaselineFix = true;
@@ -137,6 +142,8 @@ namespace HSK.KebabTweaks
         public static bool IdleWorkSearchCooldownEnableLogging;
         public static int IdleWorkSearchCooldownTicks = DefaultIdleWorkSearchCooldownTicks;
         public static string IdleWorkSearchCooldownTicks_Buffer;
+
+        public const int DefaultStartingCorpseMarkMode = 0;
 
         public static bool KebabSwitchesEnableLogging;
         public static bool SuppressFilledMapMessage;
@@ -358,6 +365,9 @@ namespace HSK.KebabTweaks
         private static readonly Color SettingsTabSelectedFillColor = new Color(0.32f, 0.32f, 0.36f, 0.88f);
         private static readonly Color SettingsTabSelectedGlowColor = new Color(0.85f, 0.88f, 1f, 0.95f);
         private static readonly Color RestartPendingOutlineColor = new Color(0.95f, 0.85f, 0.15f);
+        private static readonly Color ModeDigitActiveColor = new Color(0.25f, 0.9f, 0.25f);
+        private static readonly Color ModeDigitInactiveColor = Color.white;
+        private static readonly Color ModeDigitDisabledColor = Color.white;
         private static readonly Color SupersededHeaderColor = new Color(0.95f, 0.25f, 0.25f);
         private static readonly Color NonDefaultUnderlineColor = new Color(0.45f, 0.78f, 1f);
         private static readonly Color SettingsDisabledVeilColor = new Color(0f, 0f, 0f, 0.45f);
@@ -658,11 +668,24 @@ namespace HSK.KebabTweaks
                 });
 
             DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.StartingCorpsesNoHaul".Translate(),
+                "KebabTweaks.Patch.StartingCorpsesNoHaul.Tooltip".Translate(),
+                null,
+                ref EnableStartingCorpsesNoHaul, AppliedStartingCorpsesNoHaul, true, false,
+                ResetStartingCorpsesNoHaul,
+                () =>
+                {
+                    DrawStartingCorpseMarkModeRow(listing);
+                },
+                researchLink: FeatureResearchLinkCatalog.StartingCorpsesNoHaul);
+
+            DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.ApparelPolicyLoad".Translate(),
                 "KebabTweaks.Patch.ApparelPolicyLoad.Tooltip".Translate(),
                 null,
                 ref EnableApparelPolicyLoadFix, AppliedApparelPolicyLoadFix, true, false, ResetApparelPolicyLoadFix,
-                null);
+                null,
+                researchLink: FeatureResearchLinkCatalog.ApparelPolicyLoadFix);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.BillRenamePrefill".Translate(),
@@ -685,7 +708,8 @@ namespace HSK.KebabTweaks
                 null,
                 ref EnableNumbersLoadDefaultFallback, AppliedNumbersLoadDefaultFallback, true, false,
                 ResetNumbersLoadDefaultFallback,
-                null);
+                null,
+                researchLink: FeatureResearchLinkCatalog.NumbersLoadDefaultFallback);
         }
 
         private void DrawFixesTabContents(Listing_Standard listing, float fullWidth)
@@ -715,7 +739,8 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.UfFillExtraIngredientsFix,
                 FixErrorTraceCatalog.UfFillExtraIngredientsFixTipId,
                 leadingSpacer: !firstHeaderOnTab,
-                relevancePercent: UfFillFixRelevancePercent);
+                relevancePercent: UfFillFixRelevancePercent,
+                researchLink: FeatureResearchLinkCatalog.UfFillExtraIngredientsFix);
             firstHeaderOnTab = false;
 #endif
 #if !RIMWORLD_1_6
@@ -735,7 +760,8 @@ namespace HSK.KebabTweaks
                         "TakeFromMendingPatch.ShowMaintenanceMessagesTooltip".Translate());
                 },
                 FixErrorTraceCatalog.TakeFromMending, FixErrorTraceCatalog.TakeFromMendingTipId,
-                leadingSpacer: !firstHeaderOnTab);
+                leadingSpacer: !firstHeaderOnTab,
+                researchLink: FeatureResearchLinkCatalog.TakeFromMending);
             firstHeaderOnTab = false;
 #endif
             if (!FixSymptomProbe.IsCatCrazyTimeLeftover())
@@ -784,7 +810,8 @@ namespace HSK.KebabTweaks
                         () => CompressibleOverlapFixEnableLogging, v => CompressibleOverlapFixEnableLogging = v,
                         "KebabTweaks.Patch.CompressibleOverlapFix.EnableLoggingTooltip".Translate());
                 },
-                FixErrorTraceCatalog.CompressibleOverlapFix, FixErrorTraceCatalog.CompressibleOverlapFixTipId);
+                FixErrorTraceCatalog.CompressibleOverlapFix, FixErrorTraceCatalog.CompressibleOverlapFixTipId,
+                researchLink: FeatureResearchLinkCatalog.CompressibleOverlapFix);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.ArmorRacksAssignFix".Translate(),
@@ -792,7 +819,8 @@ namespace HSK.KebabTweaks
                 SupersededStandaloneMods.ArmorRacksAssignFix,
                 ref EnableArmorRacksAssignFix, AppliedArmorRacksAssignFix, true, false, ResetArmorRacksAssignFix,
                 null,
-                FixErrorTraceCatalog.ArmorRacksAssignFix, FixErrorTraceCatalog.ArmorRacksAssignFixTipId);
+                FixErrorTraceCatalog.ArmorRacksAssignFix, FixErrorTraceCatalog.ArmorRacksAssignFixTipId,
+                researchLink: FeatureResearchLinkCatalog.ArmorRacksAssignFix);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.SaveSettingsLoadFix".Translate(),
@@ -802,7 +830,8 @@ namespace HSK.KebabTweaks
                 true, false, ResetSaveSettingsLoadFix,
                 null,
                 FixErrorTraceCatalog.SaveSettingsLoadFix,
-                FixErrorTraceCatalog.SaveSettingsLoadFixTipId);
+                FixErrorTraceCatalog.SaveSettingsLoadFixTipId,
+                researchLink: FeatureResearchLinkCatalog.SaveSettingsLoadFix);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.StorageSettingsAllowedToAcceptFix".Translate(),
@@ -840,7 +869,8 @@ namespace HSK.KebabTweaks
                 true, true, ResetCeExtendedLoadoutMedicineLabelFix,
                 null,
                 FixErrorTraceCatalog.CeExtendedLoadoutMedicineLabelFix,
-                FixErrorTraceCatalog.CeExtendedLoadoutMedicineLabelFixTipId);
+                FixErrorTraceCatalog.CeExtendedLoadoutMedicineLabelFixTipId,
+                researchLink: FeatureResearchLinkCatalog.CeExtendedLoadoutMedicineLabelFix);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.FishTableTypeListFix".Translate(),
@@ -930,7 +960,8 @@ namespace HSK.KebabTweaks
                 true, false, ResetNeanderthalChiefLeaderFix,
                 null,
                 FixErrorTraceCatalog.NeanderthalChiefLeaderFix,
-                FixErrorTraceCatalog.NeanderthalChiefLeaderFixTipId);
+                FixErrorTraceCatalog.NeanderthalChiefLeaderFixTipId,
+                researchLink: FeatureResearchLinkCatalog.NeanderthalChiefLeaderFix);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.CraftStuffFix".Translate(),
@@ -939,7 +970,8 @@ namespace HSK.KebabTweaks
                 ref EnableDominantIngredientStuffFix, AppliedDominantIngredientStuffFix,
                 true, false, ResetDominantIngredientStuffFix,
                 null,
-                relevancePercent: CraftStuffFixRelevancePercent);
+                relevancePercent: CraftStuffFixRelevancePercent,
+                researchLink: FeatureResearchLinkCatalog.DominantIngredientStuffFix);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.StartingPawnChildAgeFix".Translate(),
@@ -949,7 +981,17 @@ namespace HSK.KebabTweaks
                 true, false, ResetStartingPawnChildAgeFix,
                 null,
                 FixErrorTraceCatalog.StartingPawnChildAgeFix,
-                FixErrorTraceCatalog.StartingPawnChildAgeFixTipId);
+                FixErrorTraceCatalog.StartingPawnChildAgeFixTipId,
+                researchLink: FeatureResearchLinkCatalog.StartingPawnChildAgeFix);
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.StartingPawnNameFix".Translate(),
+                "KebabTweaks.Patch.StartingPawnNameFix.Tooltip".Translate(),
+                null,
+                ref EnableStartingPawnNameFix, AppliedStartingPawnNameFix,
+                true, false, ResetStartingPawnNameFix,
+                null,
+                researchLink: FeatureResearchLinkCatalog.StartingPawnNameFix);
 
 #if RIMWORLD_1_6
             DrawPatchBlock(listing, fullWidth,
@@ -1193,7 +1235,8 @@ namespace HSK.KebabTweaks
                 !leftover, false, ResetBurnWeaponBillFix,
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
-                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                researchLink: FeatureResearchLinkCatalog.BurnWeaponBillFix);
             BurnWeaponBillFixFeatures.SyncRecipeWorkTypes();
         }
 
@@ -1210,7 +1253,8 @@ namespace HSK.KebabTweaks
                 !leftover, false, ResetBreachAxeWorkAmountFix,
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
-                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                researchLink: FeatureResearchLinkCatalog.BreachAxeWorkAmountFix);
             BreachAxeWorkAmountFixFeatures.SyncWorkAmount();
         }
 
@@ -1227,7 +1271,8 @@ namespace HSK.KebabTweaks
                 !leftover, false, ResetRawFungusBillFix,
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
-                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                researchLink: FeatureResearchLinkCatalog.RawFungusBillFix);
             RawFungusBillFixFeatures.SyncCategory();
         }
 #endif
@@ -1248,7 +1293,8 @@ namespace HSK.KebabTweaks
             int errorTraceTipId = 0,
             bool leadingSpacer = true,
             bool interactive = true,
-            int? relevancePercent = null)
+            int? relevancePercent = null,
+            string researchLink = null)
         {
             if (leadingSpacer)
             {
@@ -1269,7 +1315,11 @@ namespace HSK.KebabTweaks
                 errorTraceTipId,
                 interactive,
                 confirmEnable: false,
-                relevancePercent);
+                relevancePercent,
+                researchLink,
+                showCopyButton: selectedSettingsTab == SettingsTabKind.Fixes,
+                showSearchButton: selectedSettingsTab == SettingsTabKind.Patches
+                    || selectedSettingsTab == SettingsTabKind.Fixes);
             if (drawBody != null)
             {
                 DrawFeatureBodyPanel(listing, fullWidth, drawBody, enabled);
@@ -1528,10 +1578,10 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Centered patch title with reset, enable, and optional copy-trace. Yellow outline when a
-        /// restart-required toggle is pending.
+        /// Centered patch title with reset, enable, optional magnifier, and optional copy.
+        /// Yellow outline when a restart-required toggle is pending.
         ///
-        /// Центрированный заголовок патча со сбросом, enable и необязательным копированием trace.
+        /// Центрированный заголовок патча со сбросом, enable, необязательной лупой и копированием.
         /// Жёлтая обводка, пока рестарт-переключатель не применён.
         /// </summary>
         private void DrawPatchEnableHeaderRow(
@@ -1548,7 +1598,10 @@ namespace HSK.KebabTweaks
             int errorTraceTipId = 0,
             bool interactive = true,
             bool confirmEnable = false,
-            int? relevancePercent = null)
+            int? relevancePercent = null,
+            string researchLink = null,
+            bool showCopyButton = false,
+            bool showSearchButton = false)
         {
             Rect row = listing.GetRect(SettingsCheckboxRowHeight);
             DrawFeatureHeaderBackground(row);
@@ -1570,22 +1623,45 @@ namespace HSK.KebabTweaks
             }
 
             bool hasErrorTrace = !errorTrace.NullOrEmpty();
-            if (hasErrorTrace)
+            int headerIconCount = 0;
+            if (showCopyButton)
             {
-                float copyRight = resetAction != null ? resetRect.x : checkRect.x;
+                headerIconCount++;
+            }
+
+            if (showSearchButton)
+            {
+                headerIconCount++;
+            }
+
+            float iconCursorX = resetAction != null ? resetRect.x : checkRect.x;
+            if (showCopyButton)
+            {
                 Rect copyRect = new Rect(
-                    copyRight - FixErrorTraceUi.CopyButtonGap - FixErrorTraceUi.CopyButtonSize,
+                    iconCursorX - FixErrorTraceUi.CopyButtonGap - FixErrorTraceUi.CopyButtonSize,
                     controlY,
                     FixErrorTraceUi.CopyButtonSize,
                     FixErrorTraceUi.CopyButtonSize);
-                if (interactive)
-                {
-                    FixErrorTraceUi.DrawCopyButton(copyRect, errorTrace, errorTraceTipId);
-                }
-                else
-                {
-                    GUI.DrawTexture(copyRect, TexButton.Copy);
-                }
+                FixErrorTraceUi.DrawHeaderIconButton(
+                    copyRect,
+                    TexButton.Copy,
+                    errorTrace,
+                    clickDisabled: !interactive || !hasErrorTrace);
+                iconCursorX = copyRect.x;
+            }
+
+            if (showSearchButton)
+            {
+                Rect searchRect = new Rect(
+                    iconCursorX - FixErrorTraceUi.CopyButtonGap - FixErrorTraceUi.CopyButtonSize,
+                    controlY,
+                    FixErrorTraceUi.CopyButtonSize,
+                    FixErrorTraceUi.CopyButtonSize);
+                FixErrorTraceUi.DrawHeaderIconButton(
+                    searchRect,
+                    FixErrorTraceUi.SearchIcon,
+                    researchLink,
+                    clickDisabled: !interactive || researchLink.NullOrEmpty());
             }
 
             bool supersededActive = SupersededStandaloneMods.IsActive(supersededPackageId);
@@ -1623,9 +1699,9 @@ namespace HSK.KebabTweaks
                 rightControlsWidth += FeatureResetButtonGap + FeatureResetButtonWidth;
             }
 
-            if (hasErrorTrace)
+            if (headerIconCount > 0)
             {
-                rightControlsWidth += FixErrorTraceUi.CopyButtonReservedWidth;
+                rightControlsWidth += FixErrorTraceUi.HeaderIconsReservedWidth(headerIconCount);
             }
 
             headerTipRect.width -= rightControlsWidth;
@@ -1973,6 +2049,95 @@ namespace HSK.KebabTweaks
             listing.Gap(SettingsCheckboxRowGap);
         }
 
+        private void DrawStartingCorpseMarkModeRow(Listing_Standard listing)
+        {
+            const float controlSize = 24f;
+            const float digitGap = 4f;
+            const int controlCount = 3;
+            float controlsWidth = controlCount * controlSize + (controlCount - 1) * digitGap;
+            bool interactive = bodyContentInteractive;
+
+            Rect row = listing.GetRect(SettingsCheckboxRowHeight);
+            ApplyBodyContentInset(ref row, listing.ColumnWidth);
+            BlockDisabledSettingsRowInput(row, !interactive);
+
+            Rect labelRect = row;
+            labelRect.width = Mathf.Max(0f, row.width - controlsWidth);
+            TextAnchor previousAnchor = Text.Anchor;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            Widgets.Label(labelRect, "KebabTweaks.Patch.StartingCorpsesNoHaul.Mode".Translate());
+            Text.Anchor = previousAnchor;
+            if (StartingCorpseMarkMode != DefaultStartingCorpseMarkMode)
+            {
+                DrawNonDefaultTextUnderline(labelRect,
+                    "KebabTweaks.Patch.StartingCorpsesNoHaul.Mode".Translate(),
+                    TextAnchor.MiddleLeft);
+            }
+
+            float controlY = row.y + (row.height - controlSize) / 2f;
+            float x = row.xMax - controlSize;
+            Rect crossRect = new Rect(x, controlY, controlSize, controlSize);
+            TooltipHandler.TipRegion(crossRect,
+                "KebabTweaks.Patch.StartingCorpsesNoHaul.ModeX.Tooltip".Translate());
+            if (interactive && Widgets.ButtonImage(crossRect, Widgets.CheckboxOffTex))
+            {
+                StartingCorpseMarkMode = 0;
+            }
+            else if (!interactive)
+            {
+                GUI.DrawTexture(crossRect, Widgets.CheckboxOffTex);
+            }
+
+            x -= digitGap + controlSize;
+            DrawStartingCorpseMarkModeDigit(new Rect(x, controlY, controlSize, controlSize), 2, interactive);
+            x -= digitGap + controlSize;
+            DrawStartingCorpseMarkModeDigit(new Rect(x, controlY, controlSize, controlSize), 1, interactive);
+
+            listing.Gap(SettingsCheckboxRowGap);
+        }
+
+        private static void DrawStartingCorpseMarkModeDigit(Rect rect, int mode, bool interactive)
+        {
+            string tooltipKey = mode == 1
+                ? "KebabTweaks.Patch.StartingCorpsesNoHaul.Mode1.Tooltip"
+                : "KebabTweaks.Patch.StartingCorpsesNoHaul.Mode2.Tooltip";
+            TooltipHandler.TipRegion(rect, tooltipKey.Translate());
+            if (interactive && Mouse.IsOver(rect))
+            {
+                Widgets.DrawHighlight(rect);
+            }
+
+            if (interactive && Widgets.ButtonInvisible(rect))
+            {
+                StartingCorpseMarkMode = mode;
+            }
+
+            bool active = StartingCorpseMarkMode == mode;
+            if (active)
+            {
+                DrawInnerBoxBorder(rect, 2f, ModeDigitActiveColor);
+            }
+
+            Color digitColor = StartingCorpseMarkMode == 0
+                ? ModeDigitDisabledColor
+                : active ? ModeDigitActiveColor : ModeDigitInactiveColor;
+
+            GameFont previousFont = Text.Font;
+            TextAnchor previousAnchor = Text.Anchor;
+            Color previousColor = GUI.color;
+            Text.Font = GameFont.Medium;
+            GUIStyle labelStyle = new GUIStyle(Text.CurFontStyle)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontStyle = FontStyle.Bold
+            };
+            GUI.color = digitColor;
+            GUI.Label(rect, mode.ToString(), labelStyle);
+            GUI.color = previousColor;
+            Text.Anchor = previousAnchor;
+            Text.Font = previousFont;
+        }
+
         /// <summary>
         /// Enable-logging checkbox: turning ON opens a confirm dialog (like feature reset); OFF is immediate.
         ///
@@ -2150,6 +2315,7 @@ namespace HSK.KebabTweaks
             ResetHospitalityGuestApparelOptimizeFix();
             ResetLowTpsPawnDump();
             ResetIdleWorkSearchCooldown();
+            ResetStartingCorpsesNoHaul();
             ResetPtgMedicalCare();
             ResetSeedsPleaseSowFix();
             ResetTakeFromMending();
@@ -2165,6 +2331,7 @@ namespace HSK.KebabTweaks
             ResetNeanderthalChiefLeaderFix();
             ResetDominantIngredientStuffFix();
             ResetStartingPawnChildAgeFix();
+            ResetStartingPawnNameFix();
             ResetObsoleteFixes();
 #if RIMWORLD_1_6
             ResetMapPreviewRngBaselineFix();
@@ -2306,6 +2473,12 @@ namespace HSK.KebabTweaks
             IdleWorkSearchCooldownTicks_Buffer = null;
         }
 
+        private static void ResetStartingCorpsesNoHaul()
+        {
+            EnableStartingCorpsesNoHaul = true;
+            StartingCorpseMarkMode = DefaultStartingCorpseMarkMode;
+        }
+
         private static void ResetPtgMedicalCare()
         {
             EnablePtgMedicalCare = true;
@@ -2383,6 +2556,11 @@ namespace HSK.KebabTweaks
         private static void ResetStartingPawnChildAgeFix()
         {
             EnableStartingPawnChildAgeFix = true;
+        }
+
+        private static void ResetStartingPawnNameFix()
+        {
+            EnableStartingPawnNameFix = true;
         }
 
         private static void ResetSaveSettingsLoadFix()
@@ -2588,6 +2766,13 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableLowTpsPawnDump, "EnableLowTpsPawnDump", defaultValue: true);
             Scribe_Values.Look(ref EnableIdleWorkSearchCooldown, "EnableIdleWorkSearchCooldown",
                 defaultValue: true);
+            Scribe_Values.Look(ref EnableStartingCorpsesNoHaul, "EnableStartingCorpsesNoHaul", defaultValue: true);
+            Scribe_Values.Look(ref StartingCorpseMarkMode, "StartingCorpseMarkMode",
+                defaultValue: DefaultStartingCorpseMarkMode);
+            if (StartingCorpseMarkMode < 0 || StartingCorpseMarkMode > 2)
+            {
+                StartingCorpseMarkMode = DefaultStartingCorpseMarkMode;
+            }
             Scribe_Values.Look(ref EnablePtgMedicalCare, "EnablePtgMedicalCare", defaultValue: true);
             Scribe_Values.Look(ref EnableSeedsPleaseSowFix, "EnableSeedsPleaseSowFix", defaultValue: true);
             Scribe_Values.Look(ref EnableTakeFromMending, "EnableTakeFromMending", defaultValue: true);
@@ -2609,6 +2794,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableDominantIngredientStuffFix, "EnableDominantIngredientStuffFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableStartingPawnChildAgeFix, "EnableStartingPawnChildAgeFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableStartingPawnNameFix, "EnableStartingPawnNameFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableSaveSettingsLoadFix, "EnableSaveSettingsLoadFix", defaultValue: true);
             Scribe_Values.Look(ref EnableObsoleteFixes, "EnableObsoleteFixes", defaultValue: false);

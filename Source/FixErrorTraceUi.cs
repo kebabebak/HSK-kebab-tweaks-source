@@ -6,38 +6,38 @@ using Verse.Sound;
 namespace HSK.KebabTweaks
 {
     /// <summary>
-    /// Fixes-tab header copy control: custom trace panel tooltip and clipboard on click.
-    /// Hover records which trace is active inside the tab scroll view; panel placement uses
-    /// Event.current.mousePosition at the end of DrawSettings (outside the scroll
-    /// group) — same GUI space as vanilla tips relative to the settings window.
+    /// Header clipboard icons (copy / magnifier): hover panel and clipboard on click.
+    /// Hover is recorded in the tab scroll; the panel is placed at the end of DrawSettings
+    /// from Event.current.mousePosition (outside the scroll group). Inactive icons use reduced
+    /// glyph alpha and have no tooltip.
     ///
-    /// Hover запоминает активный trace внутри scroll вкладки; позиция панели берёт
-    /// Event.current.mousePosition в конце DrawSettings (вне scroll group) —
-    /// тот же GUI space, что у vanilla tips относительно окна настроек.
+    /// Иконки буфера в заголовке (копирование / лупа): панель при наведении и клик в буфер.
+    /// Hover запоминается внутри scroll вкладки; панель ставится в конце DrawSettings из
+    /// Event.current.mousePosition (вне scroll group). Неактивные иконки — пониженная альфа
+    /// глифа, без тултипа.
     /// </summary>
     public static class FixErrorTraceUi
     {
         public const float CopyButtonSize = 24f;
         public const float CopyButtonGap = 4f;
 
+        private static readonly Color IconDisabledTint = new Color(1f, 1f, 1f, 0.35f);
+
+        private static Texture2D cachedSearchIcon;
+
         private const float TooltipMaxWidth = 560f;
         private const float TooltipMinWidth = 280f;
         private const float TooltipMaxHeight = 420f;
         private const float TooltipPadding = 8f;
-        /// <summary>Same order of magnitude as vanilla ActiveTip mouse offset (~15–18).</summary>
         private const float TooltipOffset = 16f;
         private const float BorderThickness = 1f;
         private const float BoundsInset = 4f;
-        /// <summary>
-        /// Settings inRect ends above dialog Close/OK; vanilla tips may cover that chrome.
-        /// Expanding yMax stops the content bottom from shoving tall panels upward.
-        /// </summary>
         private const float DialogChromeBelowAllowance = 72f;
 
         private static readonly Color PanelFillColor = new Color(0f, 0f, 0f, 0.22f);
         private static readonly Color PanelBorderColor = new Color(0.55f, 0.55f, 0.55f, 0.8f);
 
-        private static string activeTrace;
+        private static string activePanelText;
         private static bool hasActiveHover;
         private static Rect drawBoundsGui;
         private static bool hasDrawBoundsGui;
@@ -64,70 +64,143 @@ namespace HSK.KebabTweaks
         {
         }
 
-        /// <summary>
-        /// Clears hover state at the start of each settings frame.
-        ///
-        /// Сбрасывает hover в начале каждого кадра настроек.
-        /// </summary>
         public static void BeginHoverFrame()
         {
-            activeTrace = null;
+            activePanelText = null;
             hasActiveHover = false;
             hasDrawBoundsGui = false;
         }
 
         /// <summary>
-        /// Draws TexButton.Copy; hover shows a dimmed panel with trace text only.
+        /// Magnifier used on patch and fix headers. TexButton.Search when present, else the
+        /// vanilla search atlas, else Info.
         ///
-        /// Рисует TexButton.Copy; при наведении — затемнённая панель только с текстом trace.
+        /// Лупа в заголовках патчей и фиксов. TexButton.Search если есть, иначе атлас поиска,
+        /// иначе Info.
         /// </summary>
-        public static void DrawCopyButton(Rect rect, string trace, int tipUniqueId)
+        public static Texture2D SearchIcon
         {
-            if (trace.NullOrEmpty())
+            get
             {
+                if (cachedSearchIcon != null)
+                {
+                    return cachedSearchIcon;
+                }
+
+                cachedSearchIcon = AccessToolsSearchIcon();
+                if (cachedSearchIcon == null)
+                {
+                    cachedSearchIcon = ContentFinder<Texture2D>.Get("UI/Buttons/Search", reportFailure: false);
+                }
+
+                if (cachedSearchIcon == null)
+                {
+                    cachedSearchIcon = TexButton.Info;
+                }
+
+                return cachedSearchIcon;
+            }
+        }
+
+        /// <summary>
+        /// Draws a header clipboard icon. Empty payload or clickDisabled: same glyph at reduced
+        /// alpha, no click, no hover panel.
+        ///
+        /// Рисует иконку буфера в заголовке. Пустой текст или clickDisabled: тот же глиф с
+        /// пониженной альфой, без клика и без панели.
+        /// </summary>
+        public static void DrawHeaderIconButton(Rect rect, Texture2D icon, string clipboardText,
+            bool clickDisabled = false)
+        {
+            bool active = !clickDisabled && !clipboardText.NullOrEmpty() && icon != null;
+            if (!active)
+            {
+                DrawDisabledHeaderIcon(rect, icon);
+                SwallowMouseOn(rect);
                 return;
             }
 
-            if (Widgets.ButtonImage(rect, TexButton.Copy, true))
+            if (Widgets.ButtonImage(rect, icon, true))
             {
-                GUIUtility.systemCopyBuffer = trace;
+                GUIUtility.systemCopyBuffer = clipboardText;
                 SoundDefOf.Click.PlayOneShotOnCamera();
             }
 
             if (Mouse.IsOver(rect))
             {
-                // Only remember which trace; mouse for placement is read outside the scroll group.
-                activeTrace = trace;
+                activePanelText = clipboardText;
                 hasActiveHover = true;
             }
         }
 
         /// <summary>
-        /// Draws the hovered trace panel in settings GUI space (call once at end of DrawSettings).
+        /// Draws the hovered clipboard panel in settings GUI space (call once at end of DrawSettings).
         ///
-        /// Рисует панель trace в GUI space настроек (один раз в конце DrawSettings).
+        /// Рисует панель буфера в GUI space настроек (один раз в конце DrawSettings).
         /// </summary>
         public static void DrawHoverPanelIfNeeded()
         {
-            if (activeTrace.NullOrEmpty() || !hasActiveHover || Event.current.type != EventType.Repaint)
+            if (activePanelText.NullOrEmpty() || !hasActiveHover || Event.current.type != EventType.Repaint)
             {
                 return;
             }
 
-            // End of DrawSettings is outside BeginScrollView — mousePosition matches panel draw space
-            // (vanilla tips also follow the current GUI mouse, not a scroll-local capture).
             Vector2 mouseGui = Event.current.mousePosition;
-            Rect panelRect = CalcPanelRect(activeTrace, mouseGui);
-            DrawTraceTooltipPanelContents(activeTrace, panelRect);
+            Rect panelRect = CalcPanelRect(activePanelText, mouseGui);
+            DrawTraceTooltipPanelContents(activePanelText, panelRect);
         }
 
-        /// <summary>
-        /// Width reserved for copy + gap when a trace copy button is shown.
-        ///
-        /// Ширина под кнопку копирования и зазор, когда trace-кнопка отображается.
-        /// </summary>
         public static float CopyButtonReservedWidth =>
             CopyButtonSize + CopyButtonGap;
+
+        public static float HeaderIconsReservedWidth(int iconCount)
+        {
+            if (iconCount <= 0)
+            {
+                return 0f;
+            }
+
+            return iconCount * CopyButtonReservedWidth;
+        }
+
+        private static Texture2D AccessToolsSearchIcon()
+        {
+            var field = HarmonyLib.AccessTools.Field(typeof(TexButton), "Search");
+            if (field == null)
+            {
+                return null;
+            }
+
+            return field.GetValue(null) as Texture2D;
+        }
+
+        private static void DrawDisabledHeaderIcon(Rect rect, Texture2D icon)
+        {
+            if (icon == null || Event.current.type != EventType.Repaint)
+            {
+                return;
+            }
+
+            Color previous = GUI.color;
+            GUI.color = IconDisabledTint;
+            GUI.DrawTexture(rect, icon);
+            GUI.color = previous;
+        }
+
+        private static void SwallowMouseOn(Rect rect)
+        {
+            if (!Mouse.IsOver(rect))
+            {
+                return;
+            }
+
+            Event current = Event.current;
+            if (current.type == EventType.MouseDown || current.type == EventType.MouseUp ||
+                current.type == EventType.MouseDrag)
+            {
+                current.Use();
+            }
+        }
 
         private static Rect GetDrawBounds()
         {
@@ -137,9 +210,7 @@ namespace HSK.KebabTweaks
             }
 
             Rect bounds = drawBoundsGui;
-            // Window GUI origin is above settings body (reset/tabs); allow tip into that chrome.
             bounds.yMin = 0f;
-            // inRect.yMax is above Dialog Close — without this, tall tips are shoved upward.
             bounds.yMax += DialogChromeBelowAllowance;
             return bounds;
         }
@@ -184,10 +255,8 @@ namespace HSK.KebabTweaks
 
         /// <summary>
         /// Vanilla ActiveTip-style placement: prefer below-right of mouse; flip left/above at edges.
-        /// Top may leave the settings body (tabs/reset); bottom uses expanded dialog chrome.
         ///
         /// Как ActiveTip: сначала ниже-справа от мыши; у краёв — слева / сверху.
-        /// Верх может выходить из тела настроек (вкладки/сброс); низ — расширенный chrome диалога.
         /// </summary>
         private static bool TryFindPanelRect(
             float panelWidth,
@@ -252,7 +321,6 @@ namespace HSK.KebabTweaks
                 return false;
             }
 
-            // Reject only if the whole panel is above the window GUI top.
             if (candidate.yMax < BoundsInset)
             {
                 return false;
@@ -268,7 +336,6 @@ namespace HSK.KebabTweaks
                 bounds.x + BoundsInset,
                 Mathf.Max(bounds.x + BoundsInset, bounds.xMax - panelWidth - BoundsInset));
 
-            // Pull up only when bottom would leave expanded bounds — do not force yMin down into body.
             float maxY = bounds.yMax - panelHeight - BoundsInset;
             if (panelRect.y > maxY)
             {
