@@ -54,5 +54,11 @@ namespace HSK.KebabTweaks
 
         public const string ArmorRacksAssignFix =
             "https://discord.com/channels/272340793174392832/1529881109842628758";
+
+        public const string AndroidEnlightenFix =
+            "https://discord.com/channels/272340793174392832/1546902289871274004";
+
+        public const string SeedsPleaseSowFix =
+            "https://discord.com/channels/272340793174392832/1547522139278807090";
     }
 }

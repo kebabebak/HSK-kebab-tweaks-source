@@ -58,6 +58,7 @@ namespace HSK.KebabTweaks
         public static bool EnableDominantIngredientStuffFix = true;
         public static bool EnableStartingPawnChildAgeFix = true;
         public static bool EnableStartingPawnNameFix = true;
+        public static bool EnableAndroidEnlightenFix = true;
         public static bool EnableSaveSettingsLoadFix = true;
         public static bool EnableObsoleteFixes;
         public static bool DoNotResetObsoleteFixesOnReload;
@@ -110,6 +111,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedDominantIngredientStuffFix = true;
         public static bool AppliedStartingPawnChildAgeFix = true;
         public static bool AppliedStartingPawnNameFix = true;
+        public static bool AppliedAndroidEnlightenFix = true;
         public static bool AppliedSaveSettingsLoadFix = true;
 #if RIMWORLD_1_6
         public static bool AppliedMapPreviewRngBaselineFix = true;
@@ -710,6 +712,16 @@ namespace HSK.KebabTweaks
                 ResetNumbersLoadDefaultFallback,
                 null,
                 researchLink: FeatureResearchLinkCatalog.NumbersLoadDefaultFallback);
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.AndroidEnlightenFix".Translate(),
+                "KebabTweaks.Patch.AndroidEnlightenFix.Tooltip".Translate(),
+                null,
+                ref EnableAndroidEnlightenFix, AppliedAndroidEnlightenFix,
+                true, false, ResetAndroidEnlightenFix,
+                null,
+                researchLink: FeatureResearchLinkCatalog.AndroidEnlightenFix);
+            AndroidEnlightenFixFeatures.SyncGivers();
         }
 
         private void DrawFixesTabContents(Listing_Standard listing, float fullWidth)
@@ -950,7 +962,8 @@ namespace HSK.KebabTweaks
                 SupersededStandaloneMods.SeedsPleaseSowFix,
                 ref EnableSeedsPleaseSowFix, AppliedSeedsPleaseSowFix, true, true, ResetSeedsPleaseSowFix,
                 null,
-                FixErrorTraceCatalog.SeedsPleaseSowFix, FixErrorTraceCatalog.SeedsPleaseSowFixTipId);
+                FixErrorTraceCatalog.SeedsPleaseSowFix, FixErrorTraceCatalog.SeedsPleaseSowFixTipId,
+                researchLink: FeatureResearchLinkCatalog.SeedsPleaseSowFix);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.TribalLeaderFix".Translate(),
@@ -2332,6 +2345,7 @@ namespace HSK.KebabTweaks
             ResetDominantIngredientStuffFix();
             ResetStartingPawnChildAgeFix();
             ResetStartingPawnNameFix();
+            ResetAndroidEnlightenFix();
             ResetObsoleteFixes();
 #if RIMWORLD_1_6
             ResetMapPreviewRngBaselineFix();
@@ -2561,6 +2575,12 @@ namespace HSK.KebabTweaks
         private static void ResetStartingPawnNameFix()
         {
             EnableStartingPawnNameFix = true;
+        }
+
+        private static void ResetAndroidEnlightenFix()
+        {
+            EnableAndroidEnlightenFix = true;
+            AndroidEnlightenFixFeatures.SyncGivers(force: true);
         }
 
         private static void ResetSaveSettingsLoadFix()
@@ -2796,6 +2816,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableStartingPawnChildAgeFix, "EnableStartingPawnChildAgeFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableStartingPawnNameFix, "EnableStartingPawnNameFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableAndroidEnlightenFix, "EnableAndroidEnlightenFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableSaveSettingsLoadFix, "EnableSaveSettingsLoadFix", defaultValue: true);
             Scribe_Values.Look(ref EnableObsoleteFixes, "EnableObsoleteFixes", defaultValue: false);

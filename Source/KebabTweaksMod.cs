@@ -233,6 +233,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableStartingPawnNameFix, null,
                     "StartingPawnNameFixFeatures",
                     () => StartingPawnNameFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedAndroidEnlightenFix,
+                    KebabTweaksSettings.EnableAndroidEnlightenFix, null,
+                    "AndroidEnlightenFixFeatures",
+                    () => AndroidEnlightenFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedSaveSettingsLoadFix,
                     KebabTweaksSettings.EnableSaveSettingsLoadFix, null,
                     "SaveSettingsLoadFixFeatures",

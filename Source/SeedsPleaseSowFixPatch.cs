@@ -16,23 +16,32 @@ namespace HSK.KebabTweaks
     /// TargetB. When the pawn is carrying anything, TargetB.Thing is null → NullReferenceException
     /// (logged by While You Are Nearby as GrowerSow). JobDriver_PlantSowWithSeeds.MakeNewToils uses
     /// the same unsafe TargetB.def check; MakeNewToils also yields a variable toil count, so on save
-    /// load curToilIndex can exceed the rebuilt list ("only has N toils").
+    /// load curToilIndex can exceed the rebuilt list ("only has N toils"). After a cell is sown,
+    /// GetNearbyPlantingSite searches GenRadial radius 2 via IsCellOpenForSowingPlantOfType,
+    /// which never reads Zone_Growing.allowSow (CanAcceptSowNow on a zone is always true), so
+    /// SowWithSeeds hops into an adjacent same-crop zone where sowing is off.
     ///
     /// Fix: transpiler replaces TargetB.Thing.def with plantDefToSow.blueprintDef in JobOnCell and
     /// MakeNewToils; Finalizer on PlantableCells soft-fails NRE to 0; SetupToils Postfix clamps
-    /// curToilIndex for JobDriver_PlantSowWithSeeds. Soft-skips if SeedsPlease types are absent.
+    /// curToilIndex for JobDriver_PlantSowWithSeeds; Postfix on IsCellOpenForSowingPlantOfType and
+    /// JobOnCell rejects cells in a Zone_Growing with allowSow false. Soft-skips if SeedsPlease
+    /// types are absent.
     ///
     /// Проблема: SeedsPlease WorkGiver_GrowerSowWithSeeds.JobOnCell сравнивает CarriedThing.def с
     /// job.targetB.Thing.def после вызова vanilla WorkGiver_GrowerSow.JobOnCell, где TargetB не
     /// задаётся. Если пешка что-то несёт, TargetB.Thing == null → NullReferenceException (While You
     /// Are Nearby пишет это как ошибку GrowerSow). Тот же небезопасный TargetB.def в
     /// JobDriver_PlantSowWithSeeds.MakeNewToils; число toils зависит от ветки, поэтому при load
-    /// curToilIndex может выйти за длину списка ("only has N toils").
+    /// curToilIndex может выйти за длину списка ("only has N toils"). После клетки
+    /// GetNearbyPlantingSite ищет в GenRadial радиуса 2 через IsCellOpenForSowingPlantOfType,
+    /// который не читает Zone_Growing.allowSow (CanAcceptSowNow у зоны всегда true), и
+    /// SowWithSeeds перескакивает в соседнюю зону той же культуры, где посев выключен.
     ///
     /// Исправление: transpiler подменяет TargetB.Thing.def на plantDefToSow.blueprintDef в
     /// JobOnCell и MakeNewToils; Finalizer PlantableCells при NRE возвращает 0; Postfix SetupToils
-    /// ограничивает curToilIndex для JobDriver_PlantSowWithSeeds. Если SeedsPlease нет — патч
-    /// пропускается.
+    /// ограничивает curToilIndex для JobDriver_PlantSowWithSeeds; Postfix на
+    /// IsCellOpenForSowingPlantOfType и JobOnCell отвергает клетки Zone_Growing с allowSow false.
+    /// Если SeedsPlease нет — патч пропускается.
     /// </summary>
     public static class SeedsPleaseSowFixFeatures
     {
@@ -53,6 +62,9 @@ namespace HSK.KebabTweaks
                 {
                     harmony.Patch(
                         jobOnCell,
+                        postfix: new HarmonyMethod(
+                            typeof(SeedsPleaseSowAllowSowPatch),
+                            nameof(SeedsPleaseSowAllowSowPatch.JobOnCellPostfix)),
                         transpiler: new HarmonyMethod(
                             typeof(TargetBDefToBlueprintDefTranspiler),
                             nameof(TargetBDefToBlueprintDefTranspiler.Transpile)));
@@ -60,6 +72,23 @@ namespace HSK.KebabTweaks
                 else
                 {
                     Log.Warning("[SeedsPleaseSowFixPatch] WorkGiver_GrowerSowWithSeeds.JobOnCell not found.");
+                }
+
+                MethodBase isCellOpen = AccessTools.Method(
+                    driverType,
+                    "IsCellOpenForSowingPlantOfType",
+                    new[] { typeof(IntVec3), typeof(Map), typeof(ThingDef) });
+                if (isCellOpen != null)
+                {
+                    harmony.Patch(
+                        isCellOpen,
+                        postfix: new HarmonyMethod(
+                            typeof(SeedsPleaseSowAllowSowPatch),
+                            nameof(SeedsPleaseSowAllowSowPatch.IsCellOpenPostfix)));
+                }
+                else
+                {
+                    Log.Warning("[SeedsPleaseSowFixPatch] IsCellOpenForSowingPlantOfType not found.");
                 }
 
                 // MakeNewToils is an iterator; the TargetB.Thing.def comparison lives in MoveNext.
@@ -97,7 +126,7 @@ namespace HSK.KebabTweaks
                             nameof(JobDriver_SetupToils_SowWithSeedsClamp_Patch.Postfix)));
                 }
 
-                Log.Message("[SeedsPleaseSowFixPatch] Loaded (SeedsPlease GrowerSow TargetB NRE + SowWithSeeds toil clamp).");
+                Log.Message("[SeedsPleaseSowFixPatch] Loaded (SeedsPlease GrowerSow TargetB NRE + SowWithSeeds toil clamp + allowSow).");
             }
             catch (Exception ex)
             {
@@ -203,6 +232,45 @@ namespace HSK.KebabTweaks
             return instruction != null
                 && (instruction.opcode == OpCodes.Call || instruction.opcode == OpCodes.Callvirt)
                 && instruction.operand as MethodInfo == method;
+        }
+    }
+
+    /// <summary>
+    /// Rejects sow cells in a Zone_Growing with allowSow false. Nearby-site hop skips that check.
+    ///
+    /// Отклоняет клетки в Zone_Growing с allowSow false. Поиск соседней клетки эту проверку не делает.
+    /// </summary>
+    internal static class SeedsPleaseSowAllowSowPatch
+    {
+        public static void IsCellOpenPostfix(IntVec3 cell, Map map, ref bool __result)
+        {
+            if (!__result || !KebabTweaksSettings.EnableSeedsPleaseSowFix)
+            {
+                return;
+            }
+
+            if (ZoneForbidsSow(cell, map))
+            {
+                __result = false;
+            }
+        }
+
+        public static void JobOnCellPostfix(Pawn pawn, IntVec3 c, ref Job __result)
+        {
+            if (__result == null || !KebabTweaksSettings.EnableSeedsPleaseSowFix)
+            {
+                return;
+            }
+
+            if (ZoneForbidsSow(c, pawn?.Map))
+            {
+                __result = null;
+            }
+        }
+
+        private static bool ZoneForbidsSow(IntVec3 cell, Map map)
+        {
+            return map != null && cell.GetZone(map) is Zone_Growing zone && !zone.allowSow;
         }
     }
 
