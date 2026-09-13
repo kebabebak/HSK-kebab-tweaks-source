@@ -24,7 +24,7 @@ namespace HSK.KebabTweaks
     /// На 1.6 overwrite закомментирован; Unified оставляет ванильный RawFungus в PlantFoodRaw.
     /// Рецепты вроде Makeyeast по-прежнему держат RawFungus в fixedIngredientFilter, поэтому
     /// в дереве задания вещь видна (русская подпись «Грибы», как у категории) со складским
-    /// счётом. Слот ингредиентов — категория FungusPlantRaw, поэтому WorkGiver_DoBill и
+    /// счётом. Слот ингредиентов - категория FungusPlantRaw, поэтому WorkGiver_DoBill и
     /// What's Missing эту вещь не берут. Пешка не начнёт задание из неё; другие виды грибов
     /// в этой категории слот по-прежнему закрывают.
     ///

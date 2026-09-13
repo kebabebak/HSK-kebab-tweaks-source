@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -8,25 +9,41 @@ using Verse;
 namespace HSK.KebabTweaks
 {
     /// <summary>
-    /// Runtime leftover vs current for probe-capable Obsolete candidates. Reads known defs or
-    /// original method IL once per launch. Closed → Obsolete default off. Alive or Unknown →
-    /// current, do not force-disable.
+    /// Runtime leftover vs current for probe-capable Obsolete candidates, plus partial
+    /// relevance for Craft Stuff / Fermenter Fill. Reads known defs or original method IL
+    /// once per launch. Closed → Obsolete default off. Partial → current with a suffix.
+    /// Alive or Unknown → current, no suffix, do not force-disable.
     ///
-    /// Рантайм leftover / current для фиксов, которые могут устареть. Читает известные дефы
-    /// или IL оригинала один раз за запуск. Closed → Устаревшие, default off. Alive или
-    /// Unknown → актуальные, принудительно не гасить.
+    /// Рантайм leftover / current для фиксов, которые могут устареть, плюс частичная
+    /// актуальность Craft Stuff / Fermenter Fill. Читает известные дефы или IL оригинала
+    /// один раз за запуск. Closed → Устаревшие, default off. Partial → актуальные с суффиксом.
+    /// Alive или Unknown → актуальные без суффикса, принудительно не гасить.
     /// </summary>
     public static class FixSymptomProbe
     {
         const float BreachAxeMissingWorkToMakeMax = 1.01f;
+        const int CraftStuffPartialRelevancePercent = 25;
+        const int UfFillPartialRelevancePercent = 65;
+        const string SkDominantIngredientPrefixTypeName =
+            "SK.Patch_Toils_Recipe_CalculateDominantIngredient";
+        const string UfFillJobDriverTypeName = "UniversalFermenterSK.JobDriver_FillUF";
+        const string UfFillJobDriverTypeNameAlt = "UniversalFermenter.JobDriver_FillUF";
+        const string UfFillAbortWithoutConsumingMarker =
+            "Aborting job without consuming them";
 
         static bool catCrazyTimeProbed;
         static bool catCrazyTimeLeftover;
+        static bool craftStuffProbed;
+        static bool craftStuffLeftover;
+        static bool craftStuffPartial;
 #if RIMWORLD_1_6
         static bool defsProbed;
         static bool burnWeaponLeftover;
         static bool breachAxeLeftover;
         static bool rawFungusLeftover;
+        static bool ufFillProbed;
+        static bool ufFillLeftover;
+        static bool ufFillPartial;
 #endif
         static bool logged;
 
@@ -38,7 +55,9 @@ namespace HSK.KebabTweaks
         public static void Ensure()
         {
             ProbeCatCrazyTimeIfNeeded();
+            ProbeCraftStuffIfNeeded();
 #if RIMWORLD_1_6
+            ProbeUfFillIfNeeded();
             ProbeDefBackedFixesIfNeeded();
 #endif
             LogOnce();
@@ -48,6 +67,37 @@ namespace HSK.KebabTweaks
         {
             Ensure();
             return catCrazyTimeLeftover;
+        }
+
+        public static bool IsCraftStuffFixLeftover()
+        {
+            Ensure();
+            return craftStuffLeftover;
+        }
+
+        /// <summary>
+        /// Header suffix for Craft Stuff: 0 leftover, 25 when SK already filters CanMake but
+        /// still picks random or ingredients[0], null when the SK Prefix is absent or has no
+        /// CanMake (omit = 100%).
+        ///
+        /// Суффикс Craft Stuff: 0 leftover, 25 если SK уже фильтрует CanMake, но ещё берёт
+        /// random или ingredients[0], null если Prefix SK нет или в нём нет CanMake (без
+        /// суффикса = 100%).
+        /// </summary>
+        public static int? GetCraftStuffRelevancePercent()
+        {
+            Ensure();
+            if (craftStuffLeftover)
+            {
+                return 0;
+            }
+
+            if (craftStuffPartial)
+            {
+                return CraftStuffPartialRelevancePercent;
+            }
+
+            return null;
         }
 
 #if RIMWORLD_1_6
@@ -68,6 +118,37 @@ namespace HSK.KebabTweaks
             Ensure();
             return rawFungusLeftover;
         }
+
+        public static bool IsUfFillFixLeftover()
+        {
+            Ensure();
+            return ufFillLeftover;
+        }
+
+        /// <summary>
+        /// Header suffix for Fermenter Fill: 0 leftover, 65 when CommitIngredients still aborts
+        /// extra stacks after IngredientPortion RemainingCount, null when that abort exists
+        /// without RemainingCount (omit = 100%) or commit/driver is missing.
+        ///
+        /// Суффикс Fermenter Fill: 0 leftover, 65 если CommitIngredients всё ещё рвёт лишние
+        /// стаки после RemainingCount у IngredientPortion, null если abort есть без
+        /// RemainingCount (без суффикса = 100%) или нет commit/драйвера.
+        /// </summary>
+        public static int? GetUfFillRelevancePercent()
+        {
+            Ensure();
+            if (ufFillLeftover)
+            {
+                return 0;
+            }
+
+            if (ufFillPartial)
+            {
+                return UfFillPartialRelevancePercent;
+            }
+
+            return null;
+        }
 #endif
 
         public static bool DefBackedProbesReady
@@ -84,14 +165,14 @@ namespace HSK.KebabTweaks
 
         public static bool HasAnyLeftover()
         {
-            if (IsCatCrazyTimeLeftover())
+            if (IsCatCrazyTimeLeftover() || IsCraftStuffFixLeftover())
             {
                 return true;
             }
 
 #if RIMWORLD_1_6
-            if (IsBurnWeaponBillFixLeftover() || IsBreachAxeWorkAmountFixLeftover() ||
-                IsRawFungusBillFixLeftover())
+            if (IsUfFillFixLeftover() || IsBurnWeaponBillFixLeftover() ||
+                IsBreachAxeWorkAmountFixLeftover() || IsRawFungusBillFixLeftover())
             {
                 return true;
             }
@@ -108,6 +189,19 @@ namespace HSK.KebabTweaks
 
             catCrazyTimeProbed = true;
             catCrazyTimeLeftover = ProbeCatCrazyTimeClosed();
+        }
+
+        static void ProbeCraftStuffIfNeeded()
+        {
+            if (craftStuffProbed)
+            {
+                return;
+            }
+
+            craftStuffProbed = true;
+            craftStuffLeftover = false;
+            craftStuffPartial = false;
+            ProbeCraftStuffBucket();
         }
 
         /// <summary>
@@ -161,7 +255,93 @@ namespace HSK.KebabTweaks
             return MethodCalls(makeNewToils, typeof(Rand), "RangeInclusive");
         }
 
+        /// <summary>
+        /// Closed when SK already keeps stuffed material to CanMake stuff without random or
+        /// ingredients[0]. Partial when that Prefix exists and still uses those picks. Alive
+        /// when the Prefix type is missing or has no CanMake.
+        ///
+        /// Closed, если SK уже оставляет stuffed-материал CanMake stuff без random и
+        /// ingredients[0]. Partial, если Prefix есть и всё ещё так выбирает. Alive, если типа
+        /// Prefix нет или в нём нет CanMake.
+        /// </summary>
+        static void ProbeCraftStuffBucket()
+        {
+            Type prefixType = AccessTools.TypeByName(SkDominantIngredientPrefixTypeName);
+            if (prefixType == null)
+            {
+                return;
+            }
+
+            bool canMake = TypeTreeCalls(prefixType, typeof(StuffProperties), "CanMake");
+            if (!canMake)
+            {
+                return;
+            }
+
+            bool randomWeight = TypeTreeCalls(prefixType, typeof(GenCollection), "RandomElementByWeight")
+                || TypeTreeCallsNamed(prefixType, "RandomElementByWeight");
+            bool listIndexer = TypeTreeCallsListIndexer(prefixType);
+            if (randomWeight || listIndexer)
+            {
+                craftStuffPartial = true;
+                return;
+            }
+
+            craftStuffLeftover = true;
+        }
+
 #if RIMWORLD_1_6
+        static void ProbeUfFillIfNeeded()
+        {
+            if (ufFillProbed)
+            {
+                return;
+            }
+
+            ufFillProbed = true;
+            ufFillLeftover = false;
+            ufFillPartial = false;
+            ProbeUfFillBucket();
+        }
+
+        /// <summary>
+        /// Closed when FillUF.CommitIngredients exists and no longer aborts with the extra-stack
+        /// warning. Partial when that abort remains after IngredientPortion RemainingCount
+        /// accounting. Alive when the abort is present without RemainingCount, or commit/driver
+        /// is missing (Unknown stays current).
+        ///
+        /// Closed, если FillUF.CommitIngredients есть и больше не рвёт работу предупреждением
+        /// про лишние стаки. Partial, если abort остался после учёта RemainingCount у
+        /// IngredientPortion. Alive, если abort есть без RemainingCount, либо нет commit/драйвера
+        /// (Unknown остаётся актуальным).
+        /// </summary>
+        static void ProbeUfFillBucket()
+        {
+            Type fill = AccessTools.TypeByName(UfFillJobDriverTypeName)
+                ?? AccessTools.TypeByName(UfFillJobDriverTypeNameAlt);
+            if (fill == null)
+            {
+                return;
+            }
+
+            MethodInfo commit = AccessTools.Method(fill, "CommitIngredients");
+            if (commit == null)
+            {
+                return;
+            }
+
+            if (!MethodContainsString(commit, UfFillAbortWithoutConsumingMarker))
+            {
+                ufFillLeftover = true;
+                return;
+            }
+
+            if (TypeTreeCallsNamed(fill, "RemainingCount"))
+            {
+                ufFillPartial = true;
+            }
+        }
+
         static void ProbeDefBackedFixesIfNeeded()
         {
             if (defsProbed)
@@ -303,12 +483,12 @@ namespace HSK.KebabTweaks
             }
 
 #if RIMWORLD_1_6
-            if (!catCrazyTimeProbed || !defsProbed)
+            if (!catCrazyTimeProbed || !craftStuffProbed || !ufFillProbed || !defsProbed)
             {
                 return;
             }
 #else
-            if (!catCrazyTimeProbed)
+            if (!catCrazyTimeProbed || !craftStuffProbed)
             {
                 return;
             }
@@ -318,12 +498,18 @@ namespace HSK.KebabTweaks
 #if RIMWORLD_1_6
             Log.Message(
                 "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover +
+                " CraftStuff=" + craftStuffLeftover +
+                " CraftStuffPartial=" + craftStuffPartial +
+                " UfFill=" + ufFillLeftover +
+                " UfFillPartial=" + ufFillPartial +
                 " BurnWeapon=" + burnWeaponLeftover +
                 " BreachAxe=" + breachAxeLeftover +
                 " RawFungus=" + rawFungusLeftover + ".");
 #else
             Log.Message(
-                "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover + ".");
+                "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover +
+                " CraftStuff=" + craftStuffLeftover +
+                " CraftStuffPartial=" + craftStuffPartial + ".");
 #endif
         }
 
@@ -383,6 +569,156 @@ namespace HSK.KebabTweaks
                 {
                     FieldInfo resolved = module.ResolveField(token);
                     if (resolved != null && resolved == field)
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return false;
+        }
+
+        static bool TypeTreeCalls(Type root, Type declaringType, string methodName)
+        {
+            bool found = false;
+            ForEachDeclaredMethod(root, method =>
+            {
+                if (!found && MethodCalls(method, declaringType, methodName))
+                {
+                    found = true;
+                }
+            });
+            return found;
+        }
+
+        static bool TypeTreeCallsNamed(Type root, string methodName)
+        {
+            bool found = false;
+            ForEachDeclaredMethod(root, method =>
+            {
+                if (!found && MethodCallsNamed(method, methodName))
+                {
+                    found = true;
+                }
+            });
+            return found;
+        }
+
+        static bool TypeTreeCallsListIndexer(Type root)
+        {
+            bool found = false;
+            ForEachDeclaredMethod(root, method =>
+            {
+                if (!found && MethodCallsListIndexer(method))
+                {
+                    found = true;
+                }
+            });
+            return found;
+        }
+
+        static void ForEachDeclaredMethod(Type type, Action<MethodInfo> visit)
+        {
+            if (type == null || visit == null)
+            {
+                return;
+            }
+
+            MethodInfo[] methods = type.GetMethods(
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance |
+                BindingFlags.Static | BindingFlags.DeclaredOnly);
+            for (int i = 0; i < methods.Length; i++)
+            {
+                visit(methods[i]);
+            }
+
+            Type[] nested = type.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic);
+            for (int i = 0; i < nested.Length; i++)
+            {
+                ForEachDeclaredMethod(nested[i], visit);
+            }
+        }
+
+        static bool MethodCallsNamed(MethodInfo method, string methodName)
+        {
+            return MethodCallsWhere(method, resolved =>
+                resolved != null && resolved.Name == methodName);
+        }
+
+        static bool MethodCallsListIndexer(MethodInfo method)
+        {
+            return MethodCallsWhere(method, resolved =>
+            {
+                if (resolved == null || resolved.Name != "get_Item")
+                {
+                    return false;
+                }
+
+                Type declaring = resolved.DeclaringType;
+                return declaring != null && declaring.IsGenericType &&
+                    declaring.GetGenericTypeDefinition() == typeof(List<>);
+            });
+        }
+
+        static bool MethodCallsWhere(MethodInfo method, Func<MethodBase, bool> match)
+        {
+            byte[] il = method?.GetMethodBody()?.GetILAsByteArray();
+            if (il == null || match == null)
+            {
+                return false;
+            }
+
+            Module module = method.Module;
+            for (int i = 0; i < il.Length - 4; i++)
+            {
+                byte op = il[i];
+                if (op != 0x28 && op != 0x6F)
+                {
+                    continue;
+                }
+
+                int token = BitConverter.ToInt32(il, i + 1);
+                try
+                {
+                    MethodBase resolved = module.ResolveMethod(token);
+                    if (match(resolved))
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return false;
+        }
+
+        static bool MethodContainsString(MethodInfo method, string marker)
+        {
+            byte[] il = method?.GetMethodBody()?.GetILAsByteArray();
+            if (il == null || string.IsNullOrEmpty(marker))
+            {
+                return false;
+            }
+
+            Module module = method.Module;
+            for (int i = 0; i < il.Length - 4; i++)
+            {
+                if (il[i] != 0x72)
+                {
+                    continue;
+                }
+
+                int token = BitConverter.ToInt32(il, i + 1);
+                try
+                {
+                    string value = module.ResolveString(token);
+                    if (value != null &&
+                        value.IndexOf(marker, StringComparison.Ordinal) >= 0)
                     {
                         return true;
                     }

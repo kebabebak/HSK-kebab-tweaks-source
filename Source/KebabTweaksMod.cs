@@ -15,7 +15,7 @@ namespace HSK.KebabTweaks
     /// Сборный мод kebab tweaks: kebab switches и перечисленные Harmony-фиксы в одном пакете,
     /// один Harmony id, настройки по фичам. Каждый feature остаётся в своём .cs. Выключение
     /// этого мода в списке модов RimWorld отключает все встроенные фичи. Если устаревший
-    /// отдельный package всё ещё активен — Harmony этой фичи тихо пропускается.
+    /// отдельный package всё ещё активен - Harmony этой фичи тихо пропускается.
     /// </summary>
     public class KebabTweaksMod : Mod
     {
@@ -222,7 +222,7 @@ namespace HSK.KebabTweaks
                     "NeanderthalChiefLeaderFixFeatures",
                     () => NeanderthalChiefLeaderFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedDominantIngredientStuffFix,
-                    KebabTweaksSettings.EnableDominantIngredientStuffFix, null,
+                    KebabTweaksSettings.IsDominantIngredientStuffFixEnabled(), null,
                     "DominantIngredientStuffFixFeatures",
                     () => DominantIngredientStuffFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStartingPawnChildAgeFix,
@@ -265,7 +265,7 @@ namespace HSK.KebabTweaks
                     () => RimatomicsGuidancePanelFixFeatures.Apply(harmony));
 
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedUfFillExtraIngredientsFix,
-                    KebabTweaksSettings.EnableUfFillExtraIngredientsFix, null,
+                    KebabTweaksSettings.IsUfFillExtraIngredientsFixEnabled(), null,
                     "UfFillExtraIngredientsFixFeatures",
                     () => UfFillExtraIngredientsFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedBurnWeaponBillFix,
@@ -280,6 +280,14 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.IsRawFungusBillFixEnabled(), null,
                     "RawFungusBillFixFeatures",
                     () => RawFungusBillFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedAnomalyEspFleeFix,
+                    KebabTweaksSettings.EnableAnomalyEspFleeFix, null,
+                    "AnomalyEspFleeFixFeatures",
+                    () => AnomalyEspFleeFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStratumSolarRoofEnergyTabFix,
+                    KebabTweaksSettings.EnableStratumSolarRoofEnergyTabFix, null,
+                    "StratumSolarRoofEnergyTabFixFeatures",
+                    () => StratumSolarRoofEnergyTabFixFeatures.Apply(harmony));
 #endif
 
                 Log.Message("[HSK kebab tweaks] Feature apply pass finished.");
@@ -317,7 +325,7 @@ namespace HSK.KebabTweaks
         /// live patches always install hooks; restart patches install only when enabled.
         ///
         /// Тихо пропускает Harmony, если активен устаревший отдельный package. Иначе live
-        /// всегда ставит хуки; restart — только если enable на загрузке.
+        /// всегда ставит хуки; restart - только если enable на загрузке.
         /// </summary>
         private static void ApplyUnlessSuperseded(
             string supersededPackageId,

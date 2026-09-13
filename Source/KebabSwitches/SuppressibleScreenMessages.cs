@@ -50,11 +50,12 @@ namespace HSK.KebabTweaks.KebabSwitches
 
     /// <summary>
     /// Catalog of repeating upper-left screen Messages the player can mute. Includes Core plant-death
-    /// and storage-rot lines, the HSK fish-trap catch, and Odyssey vacuum plant-death.
+    /// and storage-rot lines, the HSK fish-trap catch, Odyssey vacuum plant-death, and Enemy Self
+    /// Preservation injured-and-fleeing.
     ///
     /// Каталог повторяющихся screen Messages слева сверху, которые игрок может отключить.
-    /// Включает гибель растений и гниение на складе из Core, поимку рыбы в ловушке HSK и гибель
-    /// растений от вакуума Odyssey.
+    /// Включает гибель растений и гниение на складе из Core, поимку рыбы в ловушке HSK, гибель
+    /// растений от вакуума Odyssey и «ранен и бежит» Enemy Self Preservation.
     /// </summary>
     public static class SuppressibleScreenMessages
     {
@@ -286,6 +287,14 @@ namespace HSK.KebabTweaks.KebabSwitches
                 () => KebabTweaksSettings.SuppressWornApparelDeterioratedAway,
                 v => KebabTweaksSettings.SuppressWornApparelDeterioratedAway = v,
                 translationKey: "MessageWornApparelDeterioratedAway"),
+#if RIMWORLD_1_6
+            new SuppressibleScreenMessageEntry(
+                "EspInjured",
+                "KebabSwitches.Ignore.EspInjured",
+                () => KebabTweaksSettings.SuppressEspInjuredMessage,
+                v => KebabTweaksSettings.SuppressEspInjuredMessage = v,
+                translationKey: "ESP.injured"),
+#endif
         };
 
         /// <summary>

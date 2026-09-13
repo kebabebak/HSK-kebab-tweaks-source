@@ -56,6 +56,8 @@
     <Compile Remove="Source\BurnWeaponBillFixPatch.cs" />
     <Compile Remove="Source\BreachAxeWorkAmountFixPatch.cs" />
     <Compile Remove="Source\RawFungusBillFixPatch.cs" />
+    <Compile Remove="Source\AnomalyEspFleeFixPatch.cs" />
+    <Compile Remove="Source\StratumSolarRoofEnergyTabFixPatch.cs" />
   </ItemGroup>
 
 </Project>

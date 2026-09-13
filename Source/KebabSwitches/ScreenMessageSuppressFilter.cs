@@ -157,6 +157,9 @@ namespace HSK.KebabTweaks.KebabSwitches
             AddExact("DeterioratedAway", "{0} {0_gender ? пришёл : пришла : пришло} в негодность на складе.");
             AddExact("WornApparelDeterioratedAway",
                 "{0}, {0_gender ? который : которую : которое} {1_gender ? носил : носила} {1_nameFull}, {0_gender ? износился : износилась : износилось} окончательно и {0_gender ? рассыпался : рассыпалась : рассыпалось} в прах.");
+#if RIMWORLD_1_6
+            AddExact("EspInjured", "{0} is injured and fleeing!");
+#endif
 
             foreach (string id in new List<string>(ExactById.Keys))
             {

@@ -13,7 +13,7 @@ namespace HSK.KebabTweaks
     /// chain corrupts (empty System.Object tail links), every region Register/Deregister during
     /// Thing.set_Position throws InvalidOperationException ("Failed to find parent index" /
     /// "Operation is not valid"), spamming Exception ticking for walking pawns. Surgery timing
-    /// (e.g. RepairScratch) is coincidental — the throw is on pathing Add/Remove, not on
+    /// (e.g. RepairScratch) is coincidental - the throw is on pathing Add/Remove, not on
     /// RemoveHediff.
     ///
     /// Fix: soft-optional Finalizers on AddToTypeList / RemoveFromTypeList swallow
@@ -25,7 +25,7 @@ namespace HSK.KebabTweaks
     /// портится (пустые хвосты System.Object), каждый Register/Deregister региона при
     /// Thing.set_Position бросает InvalidOperationException («Failed to find parent index» /
     /// «Operation is not valid»), спамя Exception ticking у идущих пешек. Операция (напр.
-    /// RepairScratch) совпадает по времени — падение на Add/Remove при pathing, не на RemoveHediff.
+    /// RepairScratch) совпадает по времени - падение на Add/Remove при pathing, не на RemoveHediff.
     ///
     /// Исправление: soft-optional Finalizer на AddToTypeList / RemoveFromTypeList глотает
     /// InvalidOperationException, очищает и пересобирает ThingsByType из listsByDef, один раз
@@ -147,7 +147,7 @@ namespace HSK.KebabTweaks
                 }
                 catch (TargetInvocationException)
                 {
-                    // Still broken after rebuild — keep tick alive; save/reload may still help.
+                    // Still broken after rebuild - keep tick alive; save/reload may still help.
                 }
                 catch (InvalidOperationException)
                 {

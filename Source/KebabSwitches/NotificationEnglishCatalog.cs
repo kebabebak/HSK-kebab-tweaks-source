@@ -70,6 +70,9 @@ namespace HSK.KebabTweaks.KebabSwitches
             map["MessageDeterioratedAway"] = "{0} has deteriorated away in storage.";
             map["MessageWornApparelDeterioratedAway"] =
                 "{0} worn by {1_nameFull} deteriorated away to nothing.";
+#if RIMWORLD_1_6
+            map["ESP.injured"] = "{0} is injured and fleeing!";
+#endif
         }
 
         private static void AddLetterLabels(Dictionary<string, string> map)

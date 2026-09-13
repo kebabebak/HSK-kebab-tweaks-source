@@ -13,7 +13,7 @@ namespace HSK.KebabTweaks
     /// Problem: vanilla LordJob_TradeWithColony.CreateGraph captures FindTrader(lord) into a
     /// Trigger_Custom closure and reads trader.mindState.traderDismissed with no null check. When
     /// FindTrader was null at CreateGraph time (or the capture was lost on load), LordTick throws
-    /// NullReferenceException every tick — while travel/chill toils still run and the caravan can
+    /// NullReferenceException every tick - while travel/chill toils still run and the caravan can
     /// walk to the colony normally. A naive "always false when trader is null" guard stops the NRE
     /// but also blocks JobDriver_DismissTrader: that job sets traderDismissed on the traded pawn,
     /// and the leave transition never fires, so colonists keep standing and dismiss stays unavailable.
@@ -21,38 +21,38 @@ namespace HSK.KebabTweaks
     /// Fix: replace the CreateGraph dismiss predicate with a null-safe check. Prefer the captured
     /// trader / FindTrader pawn; if neither works, treat dismiss as true when any owned pawn has
     /// mindState.traderDismissed (the pawn JobDriver_DismissTrader actually flagged). RemoveLord
-    /// only empty orphan trade lords (no ownedPawns) — never tear down a living caravan because
+    /// only empty orphan trade lords (no ownedPawns) - never tear down a living caravan because
     /// FindTrader returned null.
     ///
     /// Also (narrow): when a TradeWithColony lord has no kindDef.trader pawn but a Guard still carries
     /// GenerateTrader stamps (wantsToTradeWithColony + traderKind), treat that Guard as Trader for
     /// GetTraderCaravanRole/FindTrader. When a kind.trader pawn is present, strip leftover stamps
-    /// from non-trader-kind escorts only — never from the sole stamped trader and never Carrier/Chattel.
+    /// from non-trader-kind escorts only - never from the sole stamped trader and never Carrier/Chattel.
     ///
     /// Verbose logging (mod settings): dump GenerateTrader makers, GeneratePawn KindDef before/after,
     /// set_KindDef mutations, CreateGraph lord composition, ChangeKind, and periodic FindTrader-null
-    /// lord dumps — for diagnosing missing Tribal_Trader / wrong combat kind with wantsToTradeWithColony.
+    /// lord dumps - for diagnosing missing Tribal_Trader / wrong combat kind with wantsToTradeWithColony.
     ///
     /// Проблема: vanilla LordJob_TradeWithColony.CreateGraph сохраняет FindTrader(lord) в замыкании
     /// Trigger_Custom и читает trader.mindState.traderDismissed без null-check. Если FindTrader был
     /// null при CreateGraph (или ссылка потерялась при load), LordTick каждый тик кидает
-    /// NullReferenceException — при этом travel/chill toils работают. Наивный guard «всегда false
+    /// NullReferenceException - при этом travel/chill toils работают. Наивный guard «всегда false
     /// при null trader» убирает NRE, но ломает JobDriver_DismissTrader: job ставит traderDismissed
     /// на торгуемую пешку, переход «уйти» не срабатывает, караван топчется, отказ недоступен.
     ///
     /// Исправление: заменить dismiss-предикат CreateGraph на null-safe проверку. Сначала captured
-    /// trader / FindTrader; если оба недоступны — считать dismiss true, когда у любой owned-пешки
+    /// trader / FindTrader; если оба недоступны - считать dismiss true, когда у любой owned-пешки
     /// traderDismissed (флаг от JobDriver_DismissTrader). RemoveLord только для пустых orphan
-    /// trade-lord — не снимать живой караван из‑за FindTrader == null.
+    /// trade-lord - не снимать живой караван из‑за FindTrader == null.
     ///
     /// Также (узко): если в TradeWithColony lord нет пешки с kindDef.trader, но у Guard остались
-    /// штампы GenerateTrader (wantsToTradeWithColony + traderKind) — считать его Trader для
-    /// GetTraderCaravanRole/FindTrader. Если kind.trader в lord есть — снимать leftover-штампы
+    /// штампы GenerateTrader (wantsToTradeWithColony + traderKind) - считать его Trader для
+    /// GetTraderCaravanRole/FindTrader. Если kind.trader в lord есть - снимать leftover-штампы
     /// только с escorts без kind.trader; единственного stamped-торговца и Carrier/Chattel не трогать.
     ///
     /// Подробный лог (настройки мода): GenerateTrader makers, KindDef до/после GeneratePawn,
     /// мутации set_KindDef, состав lord в CreateGraph, ChangeKind и периодические дампы lord без
-    /// FindTrader — для диагностики отсутствия Tribal_Trader / боевого kind с wantsToTradeWithColony.
+    /// FindTrader - для диагностики отсутствия Tribal_Trader / боевого kind с wantsToTradeWithColony.
     /// </summary>
     public static class TradeCaravanLordFixFeatures
     {

@@ -11,14 +11,14 @@ namespace HSK.KebabTweaks
     /// clears borderDragging only on Event.rawType == MouseUp. Alt+Tab while held
     /// drops the MouseUp; after focus returns the pane still follows the cursor without LMB.
     ///
-    /// Fix: soft Postfix on DoMessageDetails — if borderDragging is set but
+    /// Fix: soft Postfix on DoMessageDetails - if borderDragging is set but
     /// Input.GetMouseButton(0) is false, clear the flag (no synthetic click).
     ///
     /// Проблема: Debug Log начинает drag сплиттера на MouseDown и сбрасывает
     /// borderDragging только на Event.rawType == MouseUp. Alt+Tab при зажатой ЛКМ
     /// теряет MouseUp; после возврата панель едет за курсором без кнопки.
     ///
-    /// Исправление: soft Postfix на DoMessageDetails — если borderDragging и
+    /// Исправление: soft Postfix на DoMessageDetails - если borderDragging и
     /// Input.GetMouseButton(0) == false, сбросить флаг (без автоклика).
     /// </summary>
     public static class DebugLogSplitterDragFixFeatures

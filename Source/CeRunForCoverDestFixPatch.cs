@@ -28,7 +28,7 @@ namespace HSK.KebabTweaks
     /// ErrorOnce «Pawn destination reservation manager failed to clean up properly» и
     /// чистит резервации.
     ///
-    /// Исправление: soft Harmony Postfix на AddSuppression. Если CurJob — RunForCover,
+    /// Исправление: soft Harmony Postfix на AddSuppression. Если CurJob - RunForCover,
     /// вызвать ReleaseAllObsoleteClaimedBy: obsolete-дубликат снимается, активная
     /// резервация Goto остаётся. HunkerDown не трогаем (один Reserve, без Goto). Без
     /// Prefix skip. Без CE AccessTools.Method не находит цель → патч пропускается.

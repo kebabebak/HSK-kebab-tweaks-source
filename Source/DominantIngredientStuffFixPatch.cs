@@ -23,7 +23,7 @@ namespace HSK.KebabTweaks
     /// любого IsStuff ингредиента (случайный вес по stackCount) или из ingredients[0] при
     /// productHasIngredientStuff. Не проверяет stuffProps.CanMake у продукта. В HSK одежда часто
     /// имеет stuffCategories (ткань) плюс costList (компоненты, металлы). MakeUnfinishedThingIfNeeded
-    /// и GenRecipe.MakeRecipeProducts ставят этот выбор в Stuff — и незавершёнка, и готовый
+    /// и GenRecipe.MakeRecipeProducts ставят этот выбор в Stuff - и незавершёнка, и готовый
     /// предмет могут быть футболкой из компонента (или стальной паркой), хотя в задании была
     /// только ткань.
     ///
@@ -75,7 +75,7 @@ namespace HSK.KebabTweaks
     {
         public static void Postfix(Job job, List<Thing> ingredients, ref Thing __result)
         {
-            if (!KebabTweaksSettings.EnableDominantIngredientStuffFix)
+            if (!KebabTweaksSettings.IsDominantIngredientStuffFixEnabled())
             {
                 return;
             }

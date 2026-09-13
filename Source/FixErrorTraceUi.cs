@@ -13,7 +13,7 @@ namespace HSK.KebabTweaks
     ///
     /// Иконки буфера в заголовке (копирование / лупа): панель при наведении и клик в буфер.
     /// Hover запоминается внутри scroll вкладки; панель ставится в конце DrawSettings из
-    /// Event.current.mousePosition (вне scroll group). Неактивные иконки — пониженная альфа
+    /// Event.current.mousePosition (вне scroll group). Неактивные иконки - пониженная альфа
     /// глифа, без тултипа.
     /// </summary>
     public static class FixErrorTraceUi
@@ -46,7 +46,7 @@ namespace HSK.KebabTweaks
         /// Horizontal clip follows settings inRect; vertical expands like vanilla tips
         /// (may cover tabs/reset above and dialog Close below the settings body).
         ///
-        /// Горизонтальный clip — settings inRect; по вертикали как vanilla tips
+        /// Горизонтальный clip - settings inRect; по вертикали как vanilla tips
         /// (можно накрывать вкладки/сброс сверху и Close диалога ниже тела настроек).
         /// </summary>
         public static void SetDrawBounds(Rect settingsInRect)
@@ -58,7 +58,7 @@ namespace HSK.KebabTweaks
         /// <summary>
         /// Kept for call sites in scroll content; clip is settings bounds, not the tab scroll rect.
         ///
-        /// Оставлен для вызовов из scroll; clip — bounds настроек, не rect вкладки.
+        /// Оставлен для вызовов из scroll; clip - bounds настроек, не rect вкладки.
         /// </summary>
         public static void SetScrollContext(Rect tabContentRect, Vector2 tabScrollPosition)
         {
@@ -256,7 +256,7 @@ namespace HSK.KebabTweaks
         /// <summary>
         /// Vanilla ActiveTip-style placement: prefer below-right of mouse; flip left/above at edges.
         ///
-        /// Как ActiveTip: сначала ниже-справа от мыши; у краёв — слева / сверху.
+        /// Как ActiveTip: сначала ниже-справа от мыши; у краёв - слева / сверху.
         /// </summary>
         private static bool TryFindPanelRect(
             float panelWidth,

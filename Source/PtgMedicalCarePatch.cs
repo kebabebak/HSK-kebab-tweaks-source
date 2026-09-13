@@ -15,7 +15,7 @@ namespace HSK.KebabTweaks
     /// Patch (and similar) assigns MedicalCareCategory values &gt;= 5 and expands
     /// MedicalCareUtility.careTextures. Group header DoCell indexes PTG's fixed array →
     /// IndexOutOfRangeException. PTG catches it, logs that the MedicalCare group header cell
-    /// failed, and disables the cell until game restart — so the error appears once after a
+    /// failed, and disables the cell until game restart - so the error appears once after a
     /// full restart, then not again until the next restart.
     ///
     /// Fix: soft Harmony (no hard refs to PTG / MMP). Before DoCell, sync PTG careTextures from
@@ -27,7 +27,7 @@ namespace HSK.KebabTweaks
     /// приватный careTextures длины 5 (vanilla MedicalCareCategory 0..4). Mod Medicine Patch
     /// (и аналоги) задают MedicalCareCategory &gt;= 5 и расширяют MedicalCareUtility.careTextures.
     /// Group header DoCell индексирует фиксированный массив PTG → IndexOutOfRangeException.
-    /// PTG ловит исключение, пишет в лог и отключает ячейку до рестарта игры — поэтому ошибка
+    /// PTG ловит исключение, пишет в лог и отключает ячейку до рестарта игры - поэтому ошибка
     /// видна разово после полного рестарта, пока колонка снова не включится.
     ///
     /// Исправление: soft Harmony (без hard-ref на PTG / MMP). Перед DoCell синхронизировать

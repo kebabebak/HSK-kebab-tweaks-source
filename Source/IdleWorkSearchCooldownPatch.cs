@@ -12,7 +12,7 @@ namespace HSK.KebabTweaks
     /// Problem: Idle colonists repeatedly run vanilla JobGiver_Work.TryIssueJobPackage after
     /// short Wait_Wander / GotoWander jobs. When no work exists, the giver walks the entire
     /// WorkGiversInOrderNormal list (map scans + reachability). Many idle pawns tank TPS.
-    /// Postfix alone cannot avoid that cost — the expensive scan already ran.
+    /// Postfix alone cannot avoid that cost - the expensive scan already ran.
     ///
     /// Fix: after a non-emergency NoJob result, remember GenTicks.TicksGame + configured cooldown
     /// (settings, ticks, max 100000). Prefix skips the original with ThinkResult.NoJob while the
@@ -25,13 +25,13 @@ namespace HSK.KebabTweaks
     /// Проблема: Idle-колонисты снова и снова вызывают vanilla JobGiver_Work.TryIssueJobPackage
     /// после коротких Wait_Wander / GotoWander. Если работы нет, giver проходит весь список
     /// WorkGiversInOrderNormal (сканы карты + reachability). Много idle-пешек роняет TPS.
-    /// Один Postfix не спасает — дорогой scan уже выполнен.
+    /// Один Postfix не спасает - дорогой scan уже выполнен.
     ///
     /// Исправление: после non-emergency NoJob запомнить GenTicks.TicksGame + cooldown из настроек
     /// (тики, макс. 100000). Prefix пропускает оригинал с ThinkResult.NoJob, пока cooldown
     /// активен. Найденная работа сбрасывает stale-состояние; смена приоритетов Work tab или
     /// allowed area сбрасывает cooldown, чтобы следующий wander сделал полный scan с новыми
-    /// правилами. Emergency JobGiver_Work не троттлится. Cooldown — минимальный интервал между
+    /// правилами. Emergency JobGiver_Work не троттлится. Cooldown - минимальный интервал между
     /// полными scan после NoJob; vanilla wander (125–200 тиков) всё равно задаёт частоту think tree.
     /// Prefix return false только в окне cooldown (документировано; Postfix не может пропустить scan).
     /// </summary>
@@ -183,7 +183,7 @@ namespace HSK.KebabTweaks
     /// <summary>
     /// Skips JobGiver_Work while cooldown is armed; records NoJob / clears on success.
     /// Prefix return false is required so the full WorkGiver list is not scanned again.
-    /// __state marks that the original ran — Postfix must not re-arm after a Prefix skip.
+    /// __state marks that the original ran - Postfix must not re-arm after a Prefix skip.
     ///
     /// Пропускает JobGiver_Work при активном cooldown; при NoJob ставит окно, при успехе
     /// сбрасывает. Prefix return false нужен, иначе полный список WorkGiver снова сканируется.

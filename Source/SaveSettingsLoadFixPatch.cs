@@ -21,7 +21,7 @@ namespace HSK.KebabTweaks
     /// Fix: coerce bills to Bill_ProductionWithUft on BillStack.AddBill and before the unfinished
     /// toil when recipe.UsesUnfinishedThing. Soft-optional Save Storage Settings Load* hooks: missing
     /// RecipeDef or ThingDef inside SSS TryCreateBill / TryCreateDrugPolicyEntry use GetNamedSilentFail
-    /// (transpiler on those SSS methods only — DefDatabase.GetNamed is a shared generic and must not
+    /// (transpiler on those SSS methods only - DefDatabase.GetNamed is a shared generic and must not
     /// be prefixed). Original Save Storage Settings Warnings and Errors for a fully failed file
     /// (empty, wrong version, exception) still run unchanged. If some of those GetNamed lookups hit
     /// and some miss, log a separate Warning that not all settings may have been loaded. Filter
@@ -40,11 +40,11 @@ namespace HSK.KebabTweaks
     /// Исправление: приводить задание к Bill_ProductionWithUft в BillStack.AddBill и перед toil
     /// незавершёнки, если recipe.UsesUnfinishedThing. Soft-optional хуки Load* у Save Storage
     /// Settings: отсутствующие RecipeDef или ThingDef в TryCreateBill / TryCreateDrugPolicyEntry
-    /// через GetNamedSilentFail (transpiler только этих методов SSS — DefDatabase.GetNamed общий
+    /// через GetNamedSilentFail (transpiler только этих методов SSS - DefDatabase.GetNamed общий
     /// generic, его Prefix нельзя). Исходные Warning и Error при полной ошибке файла (пустой,
     /// неверная версия, exception) остаются как были. Если часть этих GetNamed попала, а часть
-    /// нет — отдельный Warning, что могли быть загружены не все настройки. Filter allowedDefs /
-    /// disallowedSpecialFilters — пересечение SSS с живыми def: неизвестные имена отбрасываются
+    /// нет - отдельный Warning, что могли быть загружены не все настройки. Filter allowedDefs /
+    /// disallowedSpecialFilters - пересечение SSS с живыми def: неизвестные имена отбрасываются
     /// без GetNamed, этот Warning не пишется. Если Save Storage Settings нет в списке модов, хуки
     /// Load и transpiler GetNamed пропускаются; coerce заданий всё равно действует.
     /// </summary>

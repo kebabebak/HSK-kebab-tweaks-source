@@ -41,7 +41,7 @@ namespace HSK.KebabTweaks
     /// JobOnCell и MakeNewToils; Finalizer PlantableCells при NRE возвращает 0; Postfix SetupToils
     /// ограничивает curToilIndex для JobDriver_PlantSowWithSeeds; Postfix на
     /// IsCellOpenForSowingPlantOfType и JobOnCell отвергает клетки Zone_Growing с allowSow false.
-    /// Если SeedsPlease нет — патч пропускается.
+    /// Если SeedsPlease нет - патч пропускается.
     /// </summary>
     public static class SeedsPleaseSowFixFeatures
     {

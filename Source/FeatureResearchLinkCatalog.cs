@@ -60,5 +60,11 @@ namespace HSK.KebabTweaks
 
         public const string SeedsPleaseSowFix =
             "https://discord.com/channels/272340793174392832/1547522139278807090";
+
+        public const string AnomalyEspFleeFix =
+            "https://discord.com/channels/272340793174392832/1538178019087220766";
+
+        public const string StratumSolarRoofEnergyTabFix =
+            "https://discord.com/channels/272340793174392832/1538384032780386434";
     }
 }

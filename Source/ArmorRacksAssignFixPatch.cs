@@ -36,8 +36,8 @@ namespace HSK.KebabTweaks
     /// рисуются, ломаются Close / GUIClips scroll-view). TryAssignPawn падает так же.
     /// FreeColonistsSpawned таких пешек не включает; Armor Racks этот список не использует.
     ///
-    /// Исправление: soft Harmony Prefix на оба метода. Если pawn.Map задан — идёт оригинал.
-    /// Если null — Prefix return false и та же логика скана / назначения через Map стойки
+    /// Исправление: soft Harmony Prefix на оба метода. Если pawn.Map задан - идёт оригинал.
+    /// Если null - Prefix return false и та же логика скана / назначения через Map стойки
     /// (parent.Map): кандидаты из криптосна остаются видимыми и назначаемыми. Prefix skip
     /// обязателен: оригинал падает до Postfix. Без Armor Racks AccessTools не находит цель →
     /// патч пропускается. Live-gate: EnableArmorRacksAssignFix.
@@ -209,7 +209,7 @@ namespace HSK.KebabTweaks
     /// <summary>
     /// When pawn.Map is null, skip the original AssignedAnything (it NREs) and scan racks on parent.Map.
     ///
-    /// Если pawn.Map null — пропускает оригинал AssignedAnything (NRE) и сканирует стойки на parent.Map.
+    /// Если pawn.Map null - пропускает оригинал AssignedAnything (NRE) и сканирует стойки на parent.Map.
     /// </summary>
     internal static class CompAssignableToPawn_ArmorRacks_AssignedAnything_Patch
     {
@@ -234,7 +234,7 @@ namespace HSK.KebabTweaks
     /// <summary>
     /// When pawn.Map is null, skip the original TryAssignPawn (it NREs) and assign using parent.Map.
     ///
-    /// Если pawn.Map null — пропускает оригинал TryAssignPawn (NRE) и назначает через parent.Map.
+    /// Если pawn.Map null - пропускает оригинал TryAssignPawn (NRE) и назначает через parent.Map.
     /// </summary>
     internal static class CompAssignableToPawn_ArmorRacks_TryAssignPawn_Patch
     {

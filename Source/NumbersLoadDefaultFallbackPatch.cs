@@ -32,15 +32,15 @@ namespace HSK.KebabTweaks
     /// Numbers_MainTable.columns и Default не сохраняют. Стартовые колонки уже лежат в
     /// StaticConstructorOnGameStart.PawnTableDef_Columns (после trainables и RemainingSpace),
     /// кнопка сброса в настройках Numbers этот кэш использует, пункт «Загрузить шаблон по
-    /// умолчанию» в «Шаблоны» — нет.
+    /// умолчанию» в «Шаблоны» - нет.
     /// Игрок получает Numbers_NoDefaultStoredForThisView, пока сам не выберет «Установить
     /// текущий шаблон по умолчанию» или не перезапустит игру.
     ///
-    /// Исправление: если патч включён и сохранённого Default для текущей таблицы нет —
+    /// Исправление: если патч включён и сохранённого Default для текущей таблицы нет -
     /// восстановить колонки из PawnTableDef_Columns, затем UpdateFilter и
     /// RefreshAndStoreSessionInWorldComp. Если игрок уже выбрал «Установить текущий шаблон
     /// по умолчанию», оригинальный LoadDefault не трогаем. Factory в storedPawnTableDefs не
-    /// пишем. Без мода Numbers — тихий пропуск. Prefix return false только на пути fallback:
+    /// пишем. Без мода Numbers - тихий пропуск. Prefix return false только на пути fallback:
     /// Postfix не уберёт Messages.Message из ветки отказа оригинала.
     /// </summary>
     public static class NumbersLoadDefaultFallbackFeatures

@@ -21,7 +21,7 @@ namespace HSK.KebabTweaks
     /// когда экранный счётчик HSK (SK.TicksPerSecond.TPSActual) падает ниже порога.
     ///
     /// Исправление: soft Harmony Postfix на хук overlay SK; при падении TPS ниже порога и
-    /// включённом логе — дамп job-состояния пешек текущей карты (фильтры colonists-only /
+    /// включённом логе - дамп job-состояния пешек текущей карты (фильтры colonists-only /
     /// skip-when-paused и cooldown).
     /// </summary>
     public static class LowTpsPawnDumpFeatures

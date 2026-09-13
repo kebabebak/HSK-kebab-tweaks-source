@@ -18,7 +18,7 @@ namespace HSK.KebabTweaks
     /// LabelCap on dialog open and select all text on first focus. Soft-optional when Improved
     /// Workbenches is absent.
     ///
-    /// Проблема: Better Workbench Management открывает Dialog_RenameBill с пустым curName — нельзя
+    /// Проблема: Better Workbench Management открывает Dialog_RenameBill с пустым curName - нельзя
     /// отредактировать текущее имя работы.
     ///
     /// Исправление: при наличии BWM подставляет curName из ExtendedBillData / связанного

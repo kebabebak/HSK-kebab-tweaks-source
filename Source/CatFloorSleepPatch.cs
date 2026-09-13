@@ -24,7 +24,7 @@ namespace HSK.KebabTweaks
     /// "Could not reserve" / сбои TryMakePreToilReservations. Пустой список соседних клеток у
     /// master-bed может вызвать RandomElement на пустой коллекции.
     ///
-    /// Исправление: Postfix TryGiveJob — проверять floor LayDown и заново выбирать свободную
+    /// Исправление: Postfix TryGiveJob - проверять floor LayDown и заново выбирать свободную
     /// клетку. Finalizer перехватывает пустой RandomElement без спама ошибок.
     /// </summary>
     public static class CatFloorSleepFeatures

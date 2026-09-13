@@ -19,7 +19,7 @@ namespace HSK.KebabTweaks
     /// Проблема: RimWorld-ru Odyssey DefInjected для NamerFactionTradersGuild может оставить
     /// строку [tradeAdj_fem] [tradeNoun_fem] без r_name-> → null keyword → Bad string
     /// pass / ArgumentNullException при именовании Traders Guild. DefInjected в моде должен
-    /// заменить список; этот Prefix — страховка по load order.
+    /// заменить список; этот Prefix - страховка по load order.
     ///
     /// Исправление: Prefix на Rule_String(string) добавляет r_name-> для этой опечатки.
     /// </summary>
@@ -73,7 +73,7 @@ namespace HSK.KebabTweaks
     /// Parameter name must be rawString (RW 1.6 Rule_String ctor).
     ///
     /// Добавляет r_name-> к известной битой строке русского Odyssey Traders Guild.
-    /// Имя параметра — rawString (ctor RW 1.6).
+    /// Имя параметра - rawString (ctor RW 1.6).
     /// </summary>
     internal static class Rule_String_Ctor_OdysseyRuTypo_Patch
     {

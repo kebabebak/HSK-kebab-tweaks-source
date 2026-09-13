@@ -11,14 +11,14 @@ namespace HSK.KebabTweaks
     /// map.designationManager.AllDesignations without null checks. During map transitions or
     /// HugsLib OnFixedUpdate, designationManager can be null → NRE spam via AllowToolController.
     ///
-    /// Fix: soft Prefix on the private method — clear targetList and skip when map,
+    /// Fix: soft Prefix on the private method - clear targetList and skip when map,
     /// targetList, or designationManager is null. No hard ref on AllowTool.dll.
     ///
     /// Проблема: Allow Tool GetHaulUrgentlyDesignatedThings читает
     /// map.designationManager.AllDesignations без null-check. При переходах карты или в
     /// HugsLib OnFixedUpdate designationManager может быть null → NRE через AllowToolController.
     ///
-    /// Исправление: soft Prefix на private-метод — очистить targetList и пропустить, если map,
+    /// Исправление: soft Prefix на private-метод - очистить targetList и пропустить, если map,
     /// targetList или designationManager null. Без hard ref на AllowTool.dll.
     /// </summary>
     public static class AllowToolHaulUrgentlyNreFixFeatures

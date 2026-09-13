@@ -135,7 +135,7 @@ namespace HSK.KebabTweaks
     {
         public static void Prefix(Pawn actor)
         {
-            if (!KebabTweaksSettings.EnableUfFillExtraIngredientsFix)
+            if (!KebabTweaksSettings.IsUfFillExtraIngredientsFixEnabled())
             {
                 return;
             }
@@ -332,7 +332,7 @@ namespace HSK.KebabTweaks
 
         public static bool CapEnabled()
         {
-            return KebabTweaksSettings.EnableUfFillExtraIngredientsFix
+            return KebabTweaksSettings.IsUfFillExtraIngredientsFixEnabled()
                 && KebabTweaksSettings.EnableUfFillCapPickupToBillCount;
         }
 

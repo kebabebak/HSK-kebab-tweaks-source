@@ -7,17 +7,17 @@ namespace HSK.KebabTweaks
 {
     /// <summary>
     /// Problem: Dubs Performance Analyzer ProfileController.BeginUpdate logs CRITICAL when
-    /// midUpdate is still true — previous EndUpdate did not run (exception, nested Update, or
+    /// midUpdate is still true - previous EndUpdate did not run (exception, nested Update, or
     /// opening the analyzer UI between H_RootUpdate Prefix and Postfix on Root_Play.Update).
     ///
-    /// Fix: soft HarmonyBefore Prefix on BeginUpdate — if midUpdate is set, call EndUpdate() to
+    /// Fix: soft HarmonyBefore Prefix on BeginUpdate - if midUpdate is set, call EndUpdate() to
     /// close the stale cycle before Dubs logs CRITICAL. No hard ref on PerformanceAnalyzer.dll.
     ///
-    /// Проблема: Dubs ProfileController.BeginUpdate пишет CRITICAL, если midUpdate ещё true —
+    /// Проблема: Dubs ProfileController.BeginUpdate пишет CRITICAL, если midUpdate ещё true -
     /// прошлый EndUpdate не вызван (исключение, вложенный Update или открытие UI Analyzer между
     /// Prefix и Postfix H_RootUpdate на Root_Play.Update).
     ///
-    /// Исправление: soft HarmonyBefore Prefix на BeginUpdate — если midUpdate установлен,
+    /// Исправление: soft HarmonyBefore Prefix на BeginUpdate - если midUpdate установлен,
     /// вызвать EndUpdate() и закрыть stale-цикл до CRITICAL в Dubs. Без hard ref на Analyzer.dll.
     /// </summary>
     public static class DubsAnalyzerBeginUpdateFixFeatures

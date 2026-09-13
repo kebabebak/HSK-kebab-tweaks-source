@@ -30,7 +30,7 @@ namespace HSK.KebabTweaks
     ///
     /// Исправление: Harmony transpiler на MedicineDefs.Initialize подменяет этот Translate
     /// на keyed-lookup и замену {0}, без Formatted. Ставится в ctor Mod до HugsLib
-    /// OnDefsLoaded. Если Extended Loadout нет — пропуск. Переключение — после рестарта.
+    /// OnDefsLoaded. Если Extended Loadout нет - пропуск. Переключение - после рестарта.
     /// Initialize не пропускается.
     /// </summary>
     public static class CeExtendedLoadoutMedicineLabelFixFeatures
@@ -68,7 +68,7 @@ namespace HSK.KebabTweaks
         /// When the fix is off, uses the original one-argument Translate.
         ///
         /// Собирает подпись CE_Extended.Medicines без GrammarResolverSimple.Formatted.
-        /// Если фикс выключен — исходный Translate с одним аргументом.
+        /// Если фикс выключен - исходный Translate с одним аргументом.
         /// </summary>
         public static TaggedString TranslateMedicinesLoadoutLabel(string key, NamedArgument arg1)
         {

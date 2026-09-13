@@ -77,7 +77,7 @@ namespace HSK.KebabTweaks
         {
             try
             {
-                // Explicit types only — never PatchAll(GetExecutingAssembly()) in the combined mod.
+                // Explicit types only - never PatchAll(GetExecutingAssembly()) in the combined mod.
                 harmony.CreateClassProcessor(typeof(VanillaTryFindBestBillIngredientsPatch)).Patch();
                 harmony.CreateClassProcessor(typeof(MendingTryFindBestBillIngredientsPatch)).Patch();
                 harmony.CreateClassProcessor(typeof(ExtraBillDataExposeDataPatch)).Patch();

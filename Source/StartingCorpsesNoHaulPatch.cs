@@ -19,13 +19,13 @@ namespace HSK.KebabTweaks
     /// SetForbidden. Mode 2 applies both. Does not run when loading a save. Soft-skips
     /// KAU_NoHaulDesignation if that def is missing.
     ///
-    /// Проблема: на карте новой колонии уже могут лежать трупы (HSK StartwithCorpses — животные
+    /// Проблема: на карте новой колонии уже могут лежать трупы (HSK StartwithCorpses - животные
     /// и племенные тела, плюс руины / комнаты Anomaly). Колонисты тащат их с дальних клеток на
     /// стартовый склад.
     ///
     /// Исправление: один раз на карте нового дома игрока помечаются все трупы. По умолчанию
     /// ставится KAU_NoHaulDesignation Keyz Allow Utilities, склады их не берут.
-    /// Режим 1 ставит ванильный SetForbidden. Режим 2 — оба. При загрузке сохранения не
+    /// Режим 1 ставит ванильный SetForbidden. Режим 2 - оба. При загрузке сохранения не
     /// срабатывает. Если KAU_NoHaulDesignation нет, эта часть тихо пропускается.
     /// </summary>
     public static class StartingCorpsesNoHaulFeatures

@@ -20,7 +20,7 @@ namespace HSK.KebabTweaks
     ///
     /// Исправление: Prefix на ParseAndProcessXML_postfix переписывает ./Mods на
     /// GenFilePaths.ModsFolderPath и создаёт каталог. Применение в ctor Mod до LoadAllActiveMods.
-    /// Без UXE — пропуск. Переключение — после рестарта.
+    /// Без UXE - пропуск. Переключение - после рестарта.
     /// </summary>
     public static class UnifiedXmlPathFixFeatures
     {

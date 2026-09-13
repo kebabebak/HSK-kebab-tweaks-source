@@ -14,15 +14,15 @@ namespace HSK.KebabTweaks
     /// sessions/loadouts (observed 32, 58, 7), so a hardcoded rewrite still logs false
     /// accuracy Errors and SkipIterations desyncs previews.
     ///
-    /// Fix: Soft-optional — make the FillComponents_Prefix expected value equal the measured
+    /// Fix: Soft-optional - make the FillComponents_Prefix expected value equal the measured
     /// _prevRandIt (check always passes), capture that delta, and feed it into
     /// ConstructMinimalMapComponents SkipIterations.
     ///
     /// Проблема: Map Preview v1.12.25 ждёт фиксированный burn Rand до FillComponents.
-    /// На RW 1.6 + HSK Alpha baseline плавает (32 / 58 / 7) — константный rewrite снова даёт
+    /// На RW 1.6 + HSK Alpha baseline плавает (32 / 58 / 7) - константный rewrite снова даёт
     /// ложный Error и рассинхрон превью.
     ///
-    /// Исправление: Soft-optional — expected в FillComponents_Prefix = измеренный
+    /// Исправление: Soft-optional - expected в FillComponents_Prefix = измеренный
     /// _prevRandIt, тот же delta идёт в SkipIterations для ConstructMinimal.
     /// </summary>
     public static class MapPreviewRngBaselineFixFeatures
@@ -117,7 +117,7 @@ namespace HSK.KebabTweaks
     /// <summary>
     /// Rewrites expected-baseline ldc.i4.1 to ldsfld _prevRandIt so the check always matches.
     ///
-    /// Меняет expected ldc.i4.1 на ldsfld _prevRandIt — проверка всегда проходит.
+    /// Меняет expected ldc.i4.1 на ldsfld _prevRandIt - проверка всегда проходит.
     /// </summary>
     internal static class MapPreviewFillComponents_Prefix_Transpiler
     {

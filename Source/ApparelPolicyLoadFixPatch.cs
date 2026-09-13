@@ -24,9 +24,9 @@ namespace HSK.KebabTweaks
     /// подхватывается из файла; «Загрузить как новый» для гардероба уже создаёт новую политику.
     ///
     /// Исправление: при включённом фиксе и LoadFilterDialog Apparel_Management для уже именованной
-    /// политики — создать новую ApparelPolicy, выбрать её и загрузить в неё; после загрузки имя
+    /// политики - создать новую ApparelPolicy, выбрать её и загрузить в неё; после загрузки имя
     /// из имени файла. Для свежей «Unnamed» не вмешиваемся («Загрузить как новый»). Без мода
-    /// Save Storage Settings — тихий пропуск.
+    /// Save Storage Settings - тихий пропуск.
     /// </summary>
     public static class ApparelPolicyLoadFixFeatures
     {

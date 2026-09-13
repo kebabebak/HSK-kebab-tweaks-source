@@ -71,7 +71,7 @@ namespace HSK.KebabTweaks
                 GrowerCutPlantsDef = DefDatabase<WorkGiverDef>.GetNamedSilentFail("GrowerCutPlants");
                 WorkTabPriorityHelper.CacheGrowingWorkGivers();
 
-                // Explicit types only — never PatchAll(GetExecutingAssembly()) in the combined mod.
+                // Explicit types only - never PatchAll(GetExecutingAssembly()) in the combined mod.
                 harmony.CreateClassProcessor(typeof(SowWorkCutSuppressionJobOnCellPatch)).Patch();
                 harmony.CreateClassProcessor(typeof(SowWorkCutSuppressionHasJobOnCellPatch)).Patch();
                 harmony.CreateClassProcessor(typeof(SeedsPleaseSowSitePatch)).Patch();
@@ -769,7 +769,7 @@ namespace HSK.KebabTweaks
     /// Хук только для SeedsPlease. Prefix skip намеренный: при блокирующем растении на клетке
     /// посева нужно ветировать auto-designation до IsCellOpenForSowingPlantOfType. Postfix шёл
     /// бы после проверки и не мог бы остановить designation. Skip условный (return true без
-    /// блокера). Цель — helper драйвера SeedsPlease, не общий vanilla / JobDriver API.
+    /// блокера). Цель - helper драйвера SeedsPlease, не общий vanilla / JobDriver API.
     /// </summary>
     [HarmonyPatch]
     public static class SeedsPleaseSowSitePatch
