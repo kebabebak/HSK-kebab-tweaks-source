@@ -213,7 +213,7 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnablePtgMedicalCare, SupersededStandaloneMods.PtgMedicalCare,
                     "PtgMedicalCareFeatures", () => PtgMedicalCareFeatures.Apply(harmony));
                 ApplyRestartUnlessSuperseded(ref KebabTweaksSettings.AppliedSeedsPleaseSowFix,
-                    KebabTweaksSettings.EnableSeedsPleaseSowFix,
+                    KebabTweaksSettings.IsSeedsPleaseSowFixEnabled(),
                     SupersededStandaloneMods.SeedsPleaseSowFix, "SeedsPleaseSowFixFeatures",
                     () => SeedsPleaseSowFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedNeanderthalChiefLeaderFix,
@@ -230,7 +230,7 @@ namespace HSK.KebabTweaks
                     "StartingPawnChildAgeFixFeatures",
                     () => StartingPawnChildAgeFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStartingPawnNameFix,
-                    KebabTweaksSettings.EnableStartingPawnNameFix, null,
+                    KebabTweaksSettings.IsStartingPawnNameFixEnabled(), null,
                     "StartingPawnNameFixFeatures",
                     () => StartingPawnNameFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedAndroidEnlightenFix,
@@ -281,7 +281,7 @@ namespace HSK.KebabTweaks
                     "RawFungusBillFixFeatures",
                     () => RawFungusBillFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedAnomalyEspFleeFix,
-                    KebabTweaksSettings.EnableAnomalyEspFleeFix, null,
+                    KebabTweaksSettings.IsAnomalyEspFleeFixEnabled(), null,
                     "AnomalyEspFleeFixFeatures",
                     () => AnomalyEspFleeFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStratumSolarRoofEnergyTabFix,

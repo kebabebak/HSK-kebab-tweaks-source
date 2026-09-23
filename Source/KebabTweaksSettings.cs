@@ -306,6 +306,25 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// True when SeedsPlease Sow hooks should run: current enable while hop or TargetB NRE
+        /// is still present; Obsolete section plus leftover enable when Seeds.dll already
+        /// closed both.
+        ///
+        /// True, когда хуки SeedsPlease Sow должны работать: обычный enable, пока hop или
+        /// TargetB NRE ещё есть; раздел «Устаревшие» плюс leftover enable, если Seeds.dll уже
+        /// закрыл оба.
+        /// </summary>
+        public static bool IsSeedsPleaseSowFixEnabled()
+        {
+            if (FixSymptomProbe.IsSeedsPleaseSowFixLeftover())
+            {
+                return IsObsoleteFixEnabled(EnableSeedsPleaseSowFix);
+            }
+
+            return EnableSeedsPleaseSowFix;
+        }
+
+        /// <summary>
         /// True when Craft Stuff hooks should run: current enable while SK still lacks a full
         /// CanMake max-stack pick; Obsolete section plus leftover enable when SK already closed
         /// that remainder.
@@ -322,6 +341,25 @@ namespace HSK.KebabTweaks
             }
 
             return EnableDominantIngredientStuffFix;
+        }
+
+        /// <summary>
+        /// True when Starting Pawn Name hooks should run: current enable while
+        /// NamerPersonCorunanEN still has a single-token r_name/name rule; Obsolete section
+        /// plus leftover enable when every such rule already has a space or quotes.
+        ///
+        /// True, когда хуки Starting Pawn Name должны работать: обычный enable, пока у
+        /// NamerPersonCorunanEN ещё есть однословное r_name/name; раздел «Устаревшие» плюс
+        /// leftover enable, если у всех таких правил уже есть пробел или кавычки.
+        /// </summary>
+        public static bool IsStartingPawnNameFixEnabled()
+        {
+            if (FixSymptomProbe.IsStartingPawnNameFixLeftover())
+            {
+                return IsObsoleteFixEnabled(EnableStartingPawnNameFix);
+            }
+
+            return EnableStartingPawnNameFix;
         }
 
 #if RIMWORLD_1_6
@@ -353,6 +391,25 @@ namespace HSK.KebabTweaks
             }
 
             return EnableRawFungusBillFix;
+        }
+
+        /// <summary>
+        /// True when Anomaly Injured Fleeing hooks should run: current enable while ESP still
+        /// starts SelfPreservation on mutants that prevent mental breaks; Obsolete section plus
+        /// leftover enable when Core_SK or ESP already skip those pawns.
+        ///
+        /// True, когда хуки Anomaly Injured Fleeing должны работать: обычный enable, пока ESP ещё
+        /// стартует SelfPreservation на мутантах без mental breaks; раздел «Устаревшие» плюс
+        /// leftover enable, если Core_SK или ESP уже пропускают этих пешек.
+        /// </summary>
+        public static bool IsAnomalyEspFleeFixEnabled()
+        {
+            if (FixSymptomProbe.IsAnomalyEspFleeFixLeftover())
+            {
+                return IsObsoleteFixEnabled(EnableAnomalyEspFleeFix);
+            }
+
+            return EnableAnomalyEspFleeFix;
         }
 
         /// <summary>
@@ -977,14 +1034,10 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.PtgMedicalCare, FixErrorTraceCatalog.PtgMedicalCareTipId);
 
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.SeedsPleaseSowFix".Translate(),
-                "KebabTweaks.Patch.SeedsPleaseSowFix.Tooltip".Translate(),
-                SupersededStandaloneMods.SeedsPleaseSowFix,
-                ref EnableSeedsPleaseSowFix, AppliedSeedsPleaseSowFix, true, true, ResetSeedsPleaseSowFix,
-                null,
-                FixErrorTraceCatalog.SeedsPleaseSowFix, FixErrorTraceCatalog.SeedsPleaseSowFixTipId,
-                researchLink: FeatureResearchLinkCatalog.SeedsPleaseSowFix);
+            if (!FixSymptomProbe.IsSeedsPleaseSowFixLeftover())
+            {
+                DrawSeedsPleaseSowFixPatchBlock(listing, fullWidth, leftover: false);
+            }
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.TribalLeaderFix".Translate(),
@@ -1013,24 +1066,16 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.StartingPawnChildAgeFixTipId,
                 researchLink: FeatureResearchLinkCatalog.StartingPawnChildAgeFix);
 
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.StartingPawnNameFix".Translate(),
-                "KebabTweaks.Patch.StartingPawnNameFix.Tooltip".Translate(),
-                null,
-                ref EnableStartingPawnNameFix, AppliedStartingPawnNameFix,
-                true, false, ResetStartingPawnNameFix,
-                null,
-                researchLink: FeatureResearchLinkCatalog.StartingPawnNameFix);
+            if (!FixSymptomProbe.IsStartingPawnNameFixLeftover())
+            {
+                DrawStartingPawnNameFixPatchBlock(listing, fullWidth, leftover: false);
+            }
 
 #if RIMWORLD_1_6
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.AnomalyEspFleeFix".Translate(),
-                "KebabTweaks.Patch.AnomalyEspFleeFix.Tooltip".Translate(),
-                null,
-                ref EnableAnomalyEspFleeFix, AppliedAnomalyEspFleeFix,
-                true, false, ResetAnomalyEspFleeFix,
-                null,
-                researchLink: FeatureResearchLinkCatalog.AnomalyEspFleeFix);
+            if (!FixSymptomProbe.IsAnomalyEspFleeFixLeftover())
+            {
+                DrawAnomalyEspFleeFixPatchBlock(listing, fullWidth, leftover: false);
+            }
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.StratumSolarRoofEnergyTabFix".Translate(),
@@ -1272,6 +1317,16 @@ namespace HSK.KebabTweaks
                 DrawCraftStuffFixPatchBlock(listing, fullWidth, leftover: true);
             }
 
+            if (FixSymptomProbe.IsStartingPawnNameFixLeftover())
+            {
+                DrawStartingPawnNameFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsSeedsPleaseSowFixLeftover())
+            {
+                DrawSeedsPleaseSowFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
 #if RIMWORLD_1_6
             if (FixSymptomProbe.IsBurnWeaponBillFixLeftover())
             {
@@ -1286,6 +1341,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsRawFungusBillFixLeftover())
             {
                 DrawRawFungusBillFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsAnomalyEspFleeFixLeftover())
+            {
+                DrawAnomalyEspFleeFixPatchBlock(listing, fullWidth, leftover: true);
             }
 #endif
 
@@ -1349,6 +1409,41 @@ namespace HSK.KebabTweaks
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: FixSymptomProbe.GetCraftStuffRelevancePercent(),
                 researchLink: FeatureResearchLinkCatalog.DominantIngredientStuffFix);
+        }
+
+        private void DrawStartingPawnNameFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.StartingPawnNameFix".Translate(),
+                "KebabTweaks.Patch.StartingPawnNameFix.Tooltip".Translate(),
+                null,
+                ref EnableStartingPawnNameFix, AppliedStartingPawnNameFix,
+                !leftover, false, ResetStartingPawnNameFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? 0 : (int?)null,
+                researchLink: FeatureResearchLinkCatalog.StartingPawnNameFix);
+        }
+
+        private void DrawSeedsPleaseSowFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.SeedsPleaseSowFix".Translate(),
+                "KebabTweaks.Patch.SeedsPleaseSowFix.Tooltip".Translate(),
+                SupersededStandaloneMods.SeedsPleaseSowFix,
+                ref EnableSeedsPleaseSowFix, AppliedSeedsPleaseSowFix,
+                !leftover, true, ResetSeedsPleaseSowFix,
+                null,
+                FixErrorTraceCatalog.SeedsPleaseSowFix, FixErrorTraceCatalog.SeedsPleaseSowFixTipId,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: FixSymptomProbe.GetSeedsPleaseSowRelevancePercent(),
+                researchLink: FeatureResearchLinkCatalog.SeedsPleaseSowFix);
         }
 
 #if RIMWORLD_1_6
@@ -1437,6 +1532,23 @@ namespace HSK.KebabTweaks
                 relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
                 researchLink: FeatureResearchLinkCatalog.RawFungusBillFix);
             RawFungusBillFixFeatures.SyncCategory();
+        }
+
+        private void DrawAnomalyEspFleeFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.AnomalyEspFleeFix".Translate(),
+                "KebabTweaks.Patch.AnomalyEspFleeFix.Tooltip".Translate(),
+                null,
+                ref EnableAnomalyEspFleeFix, AppliedAnomalyEspFleeFix,
+                !leftover, false, ResetAnomalyEspFleeFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                researchLink: FeatureResearchLinkCatalog.AnomalyEspFleeFix);
         }
 #endif
 
@@ -2748,7 +2860,7 @@ namespace HSK.KebabTweaks
 
         private static void ResetSeedsPleaseSowFix()
         {
-            EnableSeedsPleaseSowFix = true;
+            EnableSeedsPleaseSowFix = !FixSymptomProbe.IsSeedsPleaseSowFixLeftover();
         }
 
         private static void ResetTakeFromMending()
@@ -2822,7 +2934,7 @@ namespace HSK.KebabTweaks
 
         private static void ResetStartingPawnNameFix()
         {
-            EnableStartingPawnNameFix = true;
+            EnableStartingPawnNameFix = !FixSymptomProbe.IsStartingPawnNameFixLeftover();
         }
 
         private static void ResetAndroidEnlightenFix()
@@ -2854,6 +2966,16 @@ namespace HSK.KebabTweaks
             {
                 ResetDominantIngredientStuffFix();
             }
+
+            if (FixSymptomProbe.IsStartingPawnNameFixLeftover())
+            {
+                ResetStartingPawnNameFix();
+            }
+
+            if (FixSymptomProbe.IsSeedsPleaseSowFixLeftover())
+            {
+                ResetSeedsPleaseSowFix();
+            }
 #if RIMWORLD_1_6
             if (FixSymptomProbe.IsUfFillFixLeftover())
             {
@@ -2873,6 +2995,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsRawFungusBillFixLeftover())
             {
                 ResetRawFungusBillFix();
+            }
+
+            if (FixSymptomProbe.IsAnomalyEspFleeFixLeftover())
+            {
+                ResetAnomalyEspFleeFix();
             }
 #endif
         }
@@ -2928,6 +3055,16 @@ namespace HSK.KebabTweaks
                 EnableDominantIngredientStuffFix = true;
             }
 
+            if (!FixSymptomProbe.IsStartingPawnNameFixLeftover())
+            {
+                EnableStartingPawnNameFix = true;
+            }
+
+            if (!FixSymptomProbe.IsSeedsPleaseSowFixLeftover())
+            {
+                EnableSeedsPleaseSowFix = true;
+            }
+
             if (!FixSymptomProbe.IsUfFillFixLeftover())
             {
                 EnableUfFillExtraIngredientsFix = true;
@@ -2946,6 +3083,11 @@ namespace HSK.KebabTweaks
             if (!FixSymptomProbe.IsRawFungusBillFixLeftover())
             {
                 EnableRawFungusBillFix = true;
+            }
+
+            if (!FixSymptomProbe.IsAnomalyEspFleeFixLeftover())
+            {
+                EnableAnomalyEspFleeFix = true;
             }
 
             Mod mod = LoadedModManager.GetMod<KebabTweaksMod>();
@@ -2968,6 +3110,16 @@ namespace HSK.KebabTweaks
             {
                 EnableDominantIngredientStuffFix = false;
             }
+
+            if (FixSymptomProbe.IsStartingPawnNameFixLeftover())
+            {
+                EnableStartingPawnNameFix = false;
+            }
+
+            if (FixSymptomProbe.IsSeedsPleaseSowFixLeftover())
+            {
+                EnableSeedsPleaseSowFix = false;
+            }
 #if RIMWORLD_1_6
             if (FixSymptomProbe.IsUfFillFixLeftover())
             {
@@ -2987,6 +3139,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsRawFungusBillFixLeftover())
             {
                 EnableRawFungusBillFix = false;
+            }
+
+            if (FixSymptomProbe.IsAnomalyEspFleeFixLeftover())
+            {
+                EnableAnomalyEspFleeFix = false;
             }
 #endif
         }
@@ -3039,7 +3196,7 @@ namespace HSK.KebabTweaks
 
         private static void ResetAnomalyEspFleeFix()
         {
-            EnableAnomalyEspFleeFix = true;
+            EnableAnomalyEspFleeFix = !FixSymptomProbe.IsAnomalyEspFleeFixLeftover();
         }
 
         private static void ResetStratumSolarRoofEnergyTabFix()

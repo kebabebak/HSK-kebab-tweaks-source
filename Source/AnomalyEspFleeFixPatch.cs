@@ -18,6 +18,8 @@ namespace HSK.KebabTweaks
     /// skip only that ESP postfix (vanilla damage and other PostApplyDamage patches still run).
     /// Does not mute Messages.Message. Notifications Ignore for ESP.injured stays a separate
     /// global mute and still hides every matching toast, including real raider flees.
+    /// Leftover when Core_SK EnemySelfPreservationPatch or ESP postfix already loads
+    /// MutantDef.preventsMentalBreaks.
     ///
     /// Проблема: Enemy Self Preservation в Postfix Pawn.PostApplyDamage запускает
     /// SelfPreservation на любом Humanlike, в том числе на мутантах Anomaly с
@@ -29,7 +31,8 @@ namespace HSK.KebabTweaks
     /// применяется, пропускается только этот postfix ESP (ванильный урон и чужие патчи
     /// PostApplyDamage идут как обычно). Messages.Message не глушится. Ignore в Уведомлениях
     /// для ESP.injured остаётся отдельным глобальным mute и по-прежнему скрывает все такие
-    /// тосты, включая настоящее бегство рейдеров.
+    /// тосты, включая настоящее бегство рейдеров. Leftover, если Core_SK
+    /// EnemySelfPreservationPatch или postfix ESP уже грузит MutantDef.preventsMentalBreaks.
     /// </summary>
     public static class AnomalyEspFleeFixFeatures
     {
@@ -108,7 +111,7 @@ namespace HSK.KebabTweaks
         [HarmonyPriority(Priority.First)]
         public static bool Prefix(ref Pawn __0)
         {
-            if (!KebabTweaksSettings.EnableAnomalyEspFleeFix)
+            if (!KebabTweaksSettings.IsAnomalyEspFleeFixEnabled())
             {
                 return true;
             }

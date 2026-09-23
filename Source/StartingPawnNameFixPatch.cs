@@ -17,6 +17,7 @@ namespace HSK.KebabTweaks
     /// (and wrap a NameSingle as a triple). Hooks: FromString and GeneratePawnName while
     /// GameInitData exists, GiveAppropriateBioAndNameTo, NewGeneratedStartingPawn,
     /// CanDoNext Prefix on the full list. Prefix does not skip CanDoNext.
+    /// Leftover when NamerPersonCorunanEN r_name/name rules already have a space or quotes.
     ///
     /// Проблема: Page_ConfigureStartingPawns.CanDoNext не даёт основать колонию, если у любой
     /// пешки в startingAndOptionalPawns (выбранные и оставленные) Name.IsValid ложно.
@@ -28,7 +29,8 @@ namespace HSK.KebabTweaks
     /// Исправление: после генерации имени копирует непустую часть в пустые First и Last
     /// (NameSingle превращает в тройку). Хуки: FromString и GeneratePawnName пока есть
     /// GameInitData, GiveAppropriateBioAndNameTo, NewGeneratedStartingPawn, Prefix CanDoNext
-    /// по всему списку. Prefix не пропускает CanDoNext.
+    /// по всему списку. Prefix не пропускает CanDoNext. Leftover, если правила
+    /// r_name/name у NamerPersonCorunanEN уже с пробелом или кавычками.
     /// </summary>
     public static class StartingPawnNameFixFeatures
     {
@@ -66,7 +68,7 @@ namespace HSK.KebabTweaks
 
         internal static bool InNewGameNameGen()
         {
-            return KebabTweaksSettings.EnableStartingPawnNameFix && Find.GameInitData != null;
+            return KebabTweaksSettings.IsStartingPawnNameFixEnabled() && Find.GameInitData != null;
         }
 
         /// <summary>
@@ -100,7 +102,7 @@ namespace HSK.KebabTweaks
 
         internal static void EnsureValidName(Pawn pawn)
         {
-            if (!KebabTweaksSettings.EnableStartingPawnNameFix || pawn == null)
+            if (!KebabTweaksSettings.IsStartingPawnNameFixEnabled() || pawn == null)
             {
                 return;
             }
@@ -114,7 +116,7 @@ namespace HSK.KebabTweaks
 
         internal static void EnsureStartingAndOptionalPawnNames()
         {
-            if (!KebabTweaksSettings.EnableStartingPawnNameFix)
+            if (!KebabTweaksSettings.IsStartingPawnNameFixEnabled())
             {
                 return;
             }

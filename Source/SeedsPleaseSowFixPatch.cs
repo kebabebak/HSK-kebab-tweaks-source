@@ -25,7 +25,9 @@ namespace HSK.KebabTweaks
     /// MakeNewToils; Finalizer on PlantableCells soft-fails NRE to 0; SetupToils Postfix clamps
     /// curToilIndex for JobDriver_PlantSowWithSeeds; Postfix on IsCellOpenForSowingPlantOfType and
     /// JobOnCell rejects cells in a Zone_Growing with allowSow false. Soft-skips if SeedsPlease
-    /// types are absent.
+    /// types are absent. allowSow postfix no-ops when original IsCellOpen already loads
+    /// Zone_Growing.allowSow. Leftover when that hop is closed and MakeNewToils no longer
+    /// loads Job.targetB.
     ///
     /// Проблема: SeedsPlease WorkGiver_GrowerSowWithSeeds.JobOnCell сравнивает CarriedThing.def с
     /// job.targetB.Thing.def после вызова vanilla WorkGiver_GrowerSow.JobOnCell, где TargetB не
@@ -41,7 +43,9 @@ namespace HSK.KebabTweaks
     /// JobOnCell и MakeNewToils; Finalizer PlantableCells при NRE возвращает 0; Postfix SetupToils
     /// ограничивает curToilIndex для JobDriver_PlantSowWithSeeds; Postfix на
     /// IsCellOpenForSowingPlantOfType и JobOnCell отвергает клетки Zone_Growing с allowSow false.
-    /// Если SeedsPlease нет - патч пропускается.
+    /// Если SeedsPlease нет - патч пропускается. Postfix allowSow молчит, если оригинал IsCellOpen
+    /// уже грузит Zone_Growing.allowSow. Leftover, когда hop закрыт и MakeNewToils больше не
+    /// грузит Job.targetB.
     /// </summary>
     public static class SeedsPleaseSowFixFeatures
     {
@@ -244,7 +248,12 @@ namespace HSK.KebabTweaks
     {
         public static void IsCellOpenPostfix(IntVec3 cell, Map map, ref bool __result)
         {
-            if (!__result || !KebabTweaksSettings.EnableSeedsPleaseSowFix)
+            if (!__result || !KebabTweaksSettings.IsSeedsPleaseSowFixEnabled())
+            {
+                return;
+            }
+
+            if (FixSymptomProbe.IsSeedsPleaseSowHopClosed())
             {
                 return;
             }
@@ -257,7 +266,12 @@ namespace HSK.KebabTweaks
 
         public static void JobOnCellPostfix(Pawn pawn, IntVec3 c, ref Job __result)
         {
-            if (__result == null || !KebabTweaksSettings.EnableSeedsPleaseSowFix)
+            if (__result == null || !KebabTweaksSettings.IsSeedsPleaseSowFixEnabled())
+            {
+                return;
+            }
+
+            if (FixSymptomProbe.IsSeedsPleaseSowHopClosed())
             {
                 return;
             }
@@ -283,7 +297,7 @@ namespace HSK.KebabTweaks
     {
         public static Exception Finalizer(Exception __exception, ref int __result)
         {
-            if (!KebabTweaksSettings.EnableSeedsPleaseSowFix)
+            if (!KebabTweaksSettings.IsSeedsPleaseSowFixEnabled())
             {
                 return __exception;
             }
@@ -316,7 +330,7 @@ namespace HSK.KebabTweaks
 
         public static void Postfix(JobDriver __instance)
         {
-            if (!KebabTweaksSettings.EnableSeedsPleaseSowFix)
+            if (!KebabTweaksSettings.IsSeedsPleaseSowFixEnabled())
             {
                 return;
             }

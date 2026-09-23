@@ -5,37 +5,52 @@ using HarmonyLib;
 using RimWorld;
 using SK;
 using Verse;
+using Verse.AI;
 
 namespace HSK.KebabTweaks
 {
     /// <summary>
     /// Runtime leftover vs current for probe-capable Obsolete candidates, plus partial
-    /// relevance for Craft Stuff / Fermenter Fill. Reads known defs or original method IL
-    /// once per launch. Closed → Obsolete default off. Partial → current with a suffix.
-    /// Alive or Unknown → current, no suffix, do not force-disable.
+    /// relevance for Craft Stuff / Fermenter Fill / SeedsPlease Sow. Reads known defs or
+    /// original method IL once per launch. Closed → Obsolete default off. Partial → current
+    /// with a suffix. Alive or Unknown → current, no suffix, do not force-disable.
     ///
     /// Рантайм leftover / current для фиксов, которые могут устареть, плюс частичная
-    /// актуальность Craft Stuff / Fermenter Fill. Читает известные дефы или IL оригинала
-    /// один раз за запуск. Closed → Устаревшие, default off. Partial → актуальные с суффиксом.
-    /// Alive или Unknown → актуальные без суффикса, принудительно не гасить.
+    /// актуальность Craft Stuff / Fermenter Fill / SeedsPlease Sow. Читает известные дефы
+    /// или IL оригинала один раз за запуск. Closed → Устаревшие, default off. Partial →
+    /// актуальные с суффиксом. Alive или Unknown → актуальные без суффикса, принудительно
+    /// не гасить.
     /// </summary>
     public static class FixSymptomProbe
     {
         const float BreachAxeMissingWorkToMakeMax = 1.01f;
         const int CraftStuffPartialRelevancePercent = 25;
         const int UfFillPartialRelevancePercent = 65;
+        const int SeedsPleaseSowPartialRelevancePercent = 40;
+        const string SeedsPleaseDriverTypeName =
+            "SeedsPlease.JobDriver_PlantSowWithSeeds";
         const string SkDominantIngredientPrefixTypeName =
             "SK.Patch_Toils_Recipe_CalculateDominantIngredient";
         const string UfFillJobDriverTypeName = "UniversalFermenterSK.JobDriver_FillUF";
         const string UfFillJobDriverTypeNameAlt = "UniversalFermenter.JobDriver_FillUF";
         const string UfFillAbortWithoutConsumingMarker =
             "Aborting job without consuming them";
+        const string SkEnemySelfPreservationPatchTypeName =
+            "SK.EnemySelfPreservationPatch";
+        const string EspPawnPostApplyDamageTypeName =
+            "MUR_ESP.Pawn_PostApplyDamage";
+        const string CorunanPersonNamerDefName = "NamerPersonCorunanEN";
 
         static bool catCrazyTimeProbed;
         static bool catCrazyTimeLeftover;
+        static bool startingPawnNameProbed;
+        static bool startingPawnNameLeftover;
         static bool craftStuffProbed;
         static bool craftStuffLeftover;
         static bool craftStuffPartial;
+        static bool seedsPleaseSowProbed;
+        static bool seedsPleaseSowLeftover;
+        static bool seedsPleaseSowPartial;
 #if RIMWORLD_1_6
         static bool defsProbed;
         static bool burnWeaponLeftover;
@@ -44,6 +59,8 @@ namespace HSK.KebabTweaks
         static bool ufFillProbed;
         static bool ufFillLeftover;
         static bool ufFillPartial;
+        static bool anomalyEspProbed;
+        static bool anomalyEspLeftover;
 #endif
         static bool logged;
 
@@ -56,8 +73,11 @@ namespace HSK.KebabTweaks
         {
             ProbeCatCrazyTimeIfNeeded();
             ProbeCraftStuffIfNeeded();
+            ProbeSeedsPleaseSowIfNeeded();
+            ProbeStartingPawnNameIfNeeded();
 #if RIMWORLD_1_6
             ProbeUfFillIfNeeded();
+            ProbeAnomalyEspFleeIfNeeded();
             ProbeDefBackedFixesIfNeeded();
 #endif
             LogOnce();
@@ -100,6 +120,56 @@ namespace HSK.KebabTweaks
             return null;
         }
 
+        public static bool IsSeedsPleaseSowFixLeftover()
+        {
+            Ensure();
+            return seedsPleaseSowLeftover;
+        }
+
+        public static bool IsStartingPawnNameFixLeftover()
+        {
+            Ensure();
+            return startingPawnNameLeftover;
+        }
+
+        /// <summary>
+        /// True when SeedsPlease IsCellOpenForSowingPlantOfType already loads Zone_Growing.allowSow
+        /// (hop Closed or leftover). allowSow postfix should no-op; TargetB transpilers still run
+        /// while leftover is false.
+        ///
+        /// True, если IsCellOpenForSowingPlantOfType уже грузит Zone_Growing.allowSow (hop Closed
+        /// или leftover). Postfix allowSow должен молчать; транспайлеры TargetB ещё работают,
+        /// пока leftover false.
+        /// </summary>
+        public static bool IsSeedsPleaseSowHopClosed()
+        {
+            Ensure();
+            return seedsPleaseSowLeftover || seedsPleaseSowPartial;
+        }
+
+        /// <summary>
+        /// Header suffix for SeedsPlease Sow: 0 leftover, 40 when hop already reads allowSow but
+        /// MakeNewToils still loads Job.targetB, null when hop is still open (omit = 100%).
+        ///
+        /// Суффикс SeedsPlease Sow: 0 leftover, 40 если hop уже читает allowSow, но MakeNewToils
+        /// ещё грузит Job.targetB, null если hop ещё открыт (без суффикса = 100%).
+        /// </summary>
+        public static int? GetSeedsPleaseSowRelevancePercent()
+        {
+            Ensure();
+            if (seedsPleaseSowLeftover)
+            {
+                return 0;
+            }
+
+            if (seedsPleaseSowPartial)
+            {
+                return SeedsPleaseSowPartialRelevancePercent;
+            }
+
+            return null;
+        }
+
 #if RIMWORLD_1_6
         public static bool IsBurnWeaponBillFixLeftover()
         {
@@ -125,14 +195,20 @@ namespace HSK.KebabTweaks
             return ufFillLeftover;
         }
 
+        public static bool IsAnomalyEspFleeFixLeftover()
+        {
+            Ensure();
+            return anomalyEspLeftover;
+        }
+
         /// <summary>
         /// Header suffix for Fermenter Fill: 0 leftover, 65 when CommitIngredients still aborts
-        /// extra stacks after IngredientPortion RemainingCount, null when that abort exists
-        /// without RemainingCount (omit = 100%) or commit/driver is missing.
+        /// extra stacks after IngredientPortion RemainingCount or get_RemainingCount, null when
+        /// that abort exists without that call (omit = 100%) or commit/driver is missing.
         ///
         /// Суффикс Fermenter Fill: 0 leftover, 65 если CommitIngredients всё ещё рвёт лишние
-        /// стаки после RemainingCount у IngredientPortion, null если abort есть без
-        /// RemainingCount (без суффикса = 100%) или нет commit/драйвера.
+        /// стаки после RemainingCount или get_RemainingCount у IngredientPortion, null если abort
+        /// есть без этого вызова (без суффикса = 100%) или нет commit/драйвера.
         /// </summary>
         public static int? GetUfFillRelevancePercent()
         {
@@ -165,14 +241,16 @@ namespace HSK.KebabTweaks
 
         public static bool HasAnyLeftover()
         {
-            if (IsCatCrazyTimeLeftover() || IsCraftStuffFixLeftover())
+            if (IsCatCrazyTimeLeftover() || IsCraftStuffFixLeftover() ||
+                IsSeedsPleaseSowFixLeftover() || IsStartingPawnNameFixLeftover())
             {
                 return true;
             }
 
 #if RIMWORLD_1_6
             if (IsUfFillFixLeftover() || IsBurnWeaponBillFixLeftover() ||
-                IsBreachAxeWorkAmountFixLeftover() || IsRawFungusBillFixLeftover())
+                IsBreachAxeWorkAmountFixLeftover() || IsRawFungusBillFixLeftover() ||
+                IsAnomalyEspFleeFixLeftover())
             {
                 return true;
             }
@@ -204,6 +282,125 @@ namespace HSK.KebabTweaks
             ProbeCraftStuffBucket();
         }
 
+        static void ProbeSeedsPleaseSowIfNeeded()
+        {
+            if (seedsPleaseSowProbed)
+            {
+                return;
+            }
+
+            seedsPleaseSowProbed = true;
+            seedsPleaseSowLeftover = false;
+            seedsPleaseSowPartial = false;
+            ProbeSeedsPleaseSowBucket();
+        }
+
+        static void ProbeStartingPawnNameIfNeeded()
+        {
+            if (startingPawnNameProbed)
+            {
+                return;
+            }
+
+            if (DefDatabase<RulePackDef>.DefCount == 0)
+            {
+                return;
+            }
+
+            startingPawnNameProbed = true;
+            startingPawnNameLeftover = ProbeStartingPawnNameClosed();
+        }
+
+        /// <summary>
+        /// Closed when NamerPersonCorunanEN has person-name rules and none of them is a
+        /// single token (space or quotes in the body). Alive when any r_name/name rule is
+        /// one token. Unknown (not leftover) if the def or those rules are missing.
+        ///
+        /// Closed, если у NamerPersonCorunanEN есть правила имени и ни одно не однословное
+        /// (в теле пробел или кавычки). Alive, если любое r_name/name - один токен. Unknown
+        /// (не leftover), если дефа или этих правил нет.
+        /// </summary>
+        static bool ProbeStartingPawnNameClosed()
+        {
+            RulePackDef def = DefDatabase<RulePackDef>.GetNamedSilentFail(CorunanPersonNamerDefName);
+            if (def == null)
+            {
+                return false;
+            }
+
+            List<string> rules = GetRulePackStrings(def);
+            if (rules == null)
+            {
+                return false;
+            }
+
+            bool sawNameRule = false;
+            for (int i = 0; i < rules.Count; i++)
+            {
+                string rule = rules[i];
+                if (!IsPersonNameMakerRule(rule))
+                {
+                    continue;
+                }
+
+                sawNameRule = true;
+                if (IsSingleTokenNameRuleBody(rule))
+                {
+                    return false;
+                }
+            }
+
+            return sawNameRule;
+        }
+
+        static List<string> GetRulePackStrings(RulePackDef def)
+        {
+            FieldInfo packField = AccessTools.Field(typeof(RulePackDef), "rulePack");
+            object pack = packField == null ? null : packField.GetValue(def);
+            if (pack == null)
+            {
+                return null;
+            }
+
+            FieldInfo stringsField = AccessTools.Field(pack.GetType(), "rulesStrings");
+            return stringsField == null ? null : stringsField.GetValue(pack) as List<string>;
+        }
+
+        static bool IsPersonNameMakerRule(string rule)
+        {
+            if (string.IsNullOrEmpty(rule))
+            {
+                return false;
+            }
+
+            int arrow = rule.IndexOf("->", StringComparison.Ordinal);
+            if (arrow <= 0)
+            {
+                return false;
+            }
+
+            string key = rule.Substring(0, arrow);
+            return key.StartsWith("r_name", StringComparison.Ordinal) ||
+                string.Equals(key, "name", StringComparison.Ordinal);
+        }
+
+        static bool IsSingleTokenNameRuleBody(string rule)
+        {
+            int arrow = rule.IndexOf("->", StringComparison.Ordinal);
+            if (arrow < 0)
+            {
+                return false;
+            }
+
+            string body = rule.Substring(arrow + 2).Trim();
+            if (body.Length == 0)
+            {
+                return true;
+            }
+
+            return body.IndexOf(' ') < 0 && body.IndexOf('\'') < 0;
+        }
+
         /// <summary>
         /// Closed when SK no longer re-rolls CrazyTime num on toil rebuild. Alive when
         /// MakeNewToils still calls Rand.RangeInclusive.
@@ -232,6 +429,84 @@ namespace HSK.KebabTweaks
 
             FieldInfo numField = AccessTools.Field(driver, "num");
             return numField != null && MethodLoadsField(tryMake, numField);
+        }
+
+        /// <summary>
+        /// Leftover when IsCellOpen already loads Zone_Growing.allowSow and MakeNewToils no
+        /// longer loads Job.targetB. Partial when hop is closed but targetB is still loaded.
+        /// Alive when hop is still open or SeedsPlease types are missing.
+        ///
+        /// Leftover, если IsCellOpen уже грузит Zone_Growing.allowSow и MakeNewToils больше
+        /// не грузит Job.targetB. Partial, если hop закрыт, но targetB ещё грузится. Alive,
+        /// если hop ещё открыт или типов SeedsPlease нет.
+        /// </summary>
+        static void ProbeSeedsPleaseSowBucket()
+        {
+            Type driver = AccessTools.TypeByName(SeedsPleaseDriverTypeName);
+            if (driver == null)
+            {
+                return;
+            }
+
+            MethodInfo isCellOpen = AccessTools.Method(
+                driver,
+                "IsCellOpenForSowingPlantOfType",
+                new[] { typeof(IntVec3), typeof(Map), typeof(ThingDef) });
+            FieldInfo allowSow = AccessTools.Field(typeof(Zone_Growing), "allowSow");
+            if (isCellOpen == null || allowSow == null)
+            {
+                return;
+            }
+
+            if (!MethodLoadsField(isCellOpen, allowSow))
+            {
+                return;
+            }
+
+            FieldInfo targetB = AccessTools.Field(typeof(Job), nameof(Job.targetB));
+            bool sawIterator = false;
+            bool nreStillAlive = targetB != null &&
+                IteratorLoadsField(driver, targetB, out sawIterator);
+            if (targetB == null || !sawIterator || nreStillAlive)
+            {
+                seedsPleaseSowPartial = true;
+                return;
+            }
+
+            seedsPleaseSowLeftover = true;
+        }
+
+        static bool IteratorLoadsField(Type driver, FieldInfo field, out bool sawIterator)
+        {
+            sawIterator = false;
+            if (driver == null || field == null)
+            {
+                return false;
+            }
+
+            bool loaded = false;
+            foreach (Type nested in driver.GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (nested == null || nested.Name == null ||
+                    nested.Name.IndexOf("MakeNewToils", StringComparison.Ordinal) < 0)
+                {
+                    continue;
+                }
+
+                MethodInfo moveNext = AccessTools.Method(nested, "MoveNext");
+                if (moveNext == null)
+                {
+                    continue;
+                }
+
+                sawIterator = true;
+                if (MethodLoadsField(moveNext, field))
+                {
+                    loaded = true;
+                }
+            }
+
+            return loaded;
         }
 
         static bool IteratorCallsRangeInclusive(Type driver)
@@ -306,14 +581,14 @@ namespace HSK.KebabTweaks
 
         /// <summary>
         /// Closed when FillUF.CommitIngredients exists and no longer aborts with the extra-stack
-        /// warning. Partial when that abort remains after IngredientPortion RemainingCount
-        /// accounting. Alive when the abort is present without RemainingCount, or commit/driver
-        /// is missing (Unknown stays current).
+        /// warning. Partial when that abort remains and the type tree calls RemainingCount or
+        /// get_RemainingCount (the IngredientPortion property getter). Alive when the abort is
+        /// present without that accounting, or commit/driver is missing (Unknown stays current).
         ///
         /// Closed, если FillUF.CommitIngredients есть и больше не рвёт работу предупреждением
-        /// про лишние стаки. Partial, если abort остался после учёта RemainingCount у
-        /// IngredientPortion. Alive, если abort есть без RemainingCount, либо нет commit/драйвера
-        /// (Unknown остаётся актуальным).
+        /// про лишние стаки. Partial, если abort остался и дерево типа зовёт RemainingCount или
+        /// get_RemainingCount (геттер свойства IngredientPortion). Alive, если abort есть без
+        /// этого учёта, либо нет commit/драйвера (Unknown остаётся актуальным).
         /// </summary>
         static void ProbeUfFillBucket()
         {
@@ -336,10 +611,53 @@ namespace HSK.KebabTweaks
                 return;
             }
 
-            if (TypeTreeCallsNamed(fill, "RemainingCount"))
+            if (TypeTreeCallsNamed(fill, "RemainingCount") ||
+                TypeTreeCallsNamed(fill, "get_RemainingCount"))
             {
                 ufFillPartial = true;
             }
+        }
+
+        static void ProbeAnomalyEspFleeIfNeeded()
+        {
+            if (anomalyEspProbed)
+            {
+                return;
+            }
+
+            anomalyEspProbed = true;
+            anomalyEspLeftover = ProbeAnomalyEspFleeClosed();
+        }
+
+        /// <summary>
+        /// Closed when Core_SK EnemySelfPreservationPatch or ESP PostApplyDamage postfix already
+        /// loads MutantDef.preventsMentalBreaks. Alive when that field is absent from both.
+        ///
+        /// Closed, если Core_SK EnemySelfPreservationPatch или postfix ESP PostApplyDamage уже
+        /// грузит MutantDef.preventsMentalBreaks. Alive, если поля нет ни там ни там.
+        /// </summary>
+        static bool ProbeAnomalyEspFleeClosed()
+        {
+            FieldInfo preventsMentalBreaks = AccessTools.Field(typeof(MutantDef), "preventsMentalBreaks");
+            if (preventsMentalBreaks == null)
+            {
+                return false;
+            }
+
+            Type sk = AccessTools.TypeByName(SkEnemySelfPreservationPatchTypeName);
+            if (sk != null && TypeTreeLoadsField(sk, preventsMentalBreaks))
+            {
+                return true;
+            }
+
+            Type esp = AccessTools.TypeByName(EspPawnPostApplyDamageTypeName);
+            if (esp == null)
+            {
+                return false;
+            }
+
+            MethodInfo postfix = AccessTools.Method(esp, "Postfix");
+            return MethodLoadsField(postfix, preventsMentalBreaks);
         }
 
         static void ProbeDefBackedFixesIfNeeded()
@@ -483,12 +801,15 @@ namespace HSK.KebabTweaks
             }
 
 #if RIMWORLD_1_6
-            if (!catCrazyTimeProbed || !craftStuffProbed || !ufFillProbed || !defsProbed)
+            if (!catCrazyTimeProbed || !craftStuffProbed || !seedsPleaseSowProbed ||
+                !startingPawnNameProbed ||
+                !ufFillProbed || !defsProbed || !anomalyEspProbed)
             {
                 return;
             }
 #else
-            if (!catCrazyTimeProbed || !craftStuffProbed)
+            if (!catCrazyTimeProbed || !craftStuffProbed || !seedsPleaseSowProbed ||
+                !startingPawnNameProbed)
             {
                 return;
             }
@@ -500,16 +821,23 @@ namespace HSK.KebabTweaks
                 "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover +
                 " CraftStuff=" + craftStuffLeftover +
                 " CraftStuffPartial=" + craftStuffPartial +
+                " SeedsPleaseSow=" + seedsPleaseSowLeftover +
+                " SeedsPleaseSowPartial=" + seedsPleaseSowPartial +
+                " StartingPawnName=" + startingPawnNameLeftover +
                 " UfFill=" + ufFillLeftover +
                 " UfFillPartial=" + ufFillPartial +
                 " BurnWeapon=" + burnWeaponLeftover +
                 " BreachAxe=" + breachAxeLeftover +
-                " RawFungus=" + rawFungusLeftover + ".");
+                " RawFungus=" + rawFungusLeftover +
+                " AnomalyEspFlee=" + anomalyEspLeftover + ".");
 #else
             Log.Message(
                 "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover +
                 " CraftStuff=" + craftStuffLeftover +
-                " CraftStuffPartial=" + craftStuffPartial + ".");
+                " CraftStuffPartial=" + craftStuffPartial +
+                " SeedsPleaseSow=" + seedsPleaseSowLeftover +
+                " SeedsPleaseSowPartial=" + seedsPleaseSowPartial +
+                " StartingPawnName=" + startingPawnNameLeftover + ".");
 #endif
         }
 
@@ -559,7 +887,8 @@ namespace HSK.KebabTweaks
             Module module = method.Module;
             for (int i = 0; i < il.Length - 4; i++)
             {
-                if (il[i] != 0x7B)
+                byte op = il[i];
+                if (op != 0x7B && op != 0x7C)
                 {
                     continue;
                 }
@@ -568,7 +897,7 @@ namespace HSK.KebabTweaks
                 try
                 {
                     FieldInfo resolved = module.ResolveField(token);
-                    if (resolved != null && resolved == field)
+                    if (FieldMatches(resolved, field))
                     {
                         return true;
                     }
@@ -581,12 +910,40 @@ namespace HSK.KebabTweaks
             return false;
         }
 
+        static bool FieldMatches(FieldInfo resolved, FieldInfo field)
+        {
+            if (resolved == null || field == null)
+            {
+                return false;
+            }
+
+            if (resolved == field)
+            {
+                return true;
+            }
+
+            return resolved.Name == field.Name && resolved.DeclaringType == field.DeclaringType;
+        }
+
         static bool TypeTreeCalls(Type root, Type declaringType, string methodName)
         {
             bool found = false;
             ForEachDeclaredMethod(root, method =>
             {
                 if (!found && MethodCalls(method, declaringType, methodName))
+                {
+                    found = true;
+                }
+            });
+            return found;
+        }
+
+        static bool TypeTreeLoadsField(Type root, FieldInfo field)
+        {
+            bool found = false;
+            ForEachDeclaredMethod(root, method =>
+            {
+                if (!found && MethodLoadsField(method, field))
                 {
                     found = true;
                 }
