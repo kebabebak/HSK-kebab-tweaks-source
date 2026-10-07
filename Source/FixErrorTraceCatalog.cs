@@ -34,6 +34,7 @@ namespace HSK.KebabTweaks
         public const int UfFillExtraIngredientsFixTipId = 23;
         public const int CompressibleOverlapFixTipId = 24;
         public const int StartingPawnChildAgeFixTipId = 25;
+        public const int RatkinMercenaryAgeFixTipId = 27;
 
         public const string TakeFromMending = @"Doio threw exception in WorkGiver DoBillsMakeWeapons: System.NullReferenceException: Object reference not set to an instance of an object
 [Ref 79A5B8F5]
@@ -474,6 +475,12 @@ System.InvalidCastException: Specified cast is not valid.
 This version of save files is not supported Please create a new one. File: 
 Problem loading storage settings file 'example.txt'.
 Trying to read from an empty file";
+
+        public const string RatkinMercenaryAgeFix =
+@"This PawnGenerationRequest was not created through the correct constructor.
+Should not generate pawns with context 'All'
+Tried 300 times to generate age for ratkin mercenary
+ExamplePawn tried to wear RK_WoolenHat but is not allowed to.";
 
     }
 }

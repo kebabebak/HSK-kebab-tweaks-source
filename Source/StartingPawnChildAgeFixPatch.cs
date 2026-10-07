@@ -72,7 +72,7 @@ namespace HSK.KebabTweaks
     {
         public static void Prefix(Pawn pawn, ref PawnGenerationRequest request)
         {
-            if (!KebabTweaksSettings.EnableStartingPawnChildAgeFix)
+            if (!KebabTweaksSettings.IsStartingPawnChildAgeFixEnabled())
             {
                 return;
             }

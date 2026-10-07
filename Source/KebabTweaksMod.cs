@@ -163,6 +163,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableIdleWorkSearchCooldown, null,
                     "IdleWorkSearchCooldownFeatures",
                     () => IdleWorkSearchCooldownFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedDrillLimitPatch,
+                    KebabTweaksSettings.EnableDrillLimitPatch, null,
+                    "DrillLimitFeatures",
+                    () => DrillLimitFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStartingCorpsesNoHaul,
                     KebabTweaksSettings.EnableStartingCorpsesNoHaul, null,
                     "StartingCorpsesNoHaulFeatures",
@@ -191,6 +195,14 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableTradeCaravanLordFix,
                     SupersededStandaloneMods.TradeCaravanLordFix, "TradeCaravanLordFixFeatures",
                     () => TradeCaravanLordFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedTraderCaravanStayFix,
+                    KebabTweaksSettings.EnableTraderCaravanStayFix, null,
+                    "TraderCaravanStayFixFeatures",
+                    () => TraderCaravanStayFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedRatkinMercenaryAgeFix,
+                    KebabTweaksSettings.EnableRatkinMercenaryAgeFix, null,
+                    "RatkinMercenaryAgeFixFeatures",
+                    () => RatkinMercenaryAgeFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedCompressibleOverlapFix,
                     KebabTweaksSettings.EnableCompressibleOverlapFix, null,
                     "CompressibleOverlapFixFeatures",
@@ -226,7 +238,7 @@ namespace HSK.KebabTweaks
                     "DominantIngredientStuffFixFeatures",
                     () => DominantIngredientStuffFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStartingPawnChildAgeFix,
-                    KebabTweaksSettings.EnableStartingPawnChildAgeFix, null,
+                    KebabTweaksSettings.IsStartingPawnChildAgeFixEnabled(), null,
                     "StartingPawnChildAgeFixFeatures",
                     () => StartingPawnChildAgeFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedStartingPawnNameFix,
@@ -237,6 +249,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableAndroidEnlightenFix, null,
                     "AndroidEnlightenFixFeatures",
                     () => AndroidEnlightenFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedWikiRimCompat,
+                    KebabTweaksSettings.EnableWikiRimCompat, null,
+                    "WikiRimCompatFeatures",
+                    () => WikiRimCompatFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedSaveSettingsLoadFix,
                     KebabTweaksSettings.EnableSaveSettingsLoadFix, null,
                     "SaveSettingsLoadFixFeatures",
@@ -253,7 +269,7 @@ namespace HSK.KebabTweaks
                     () => MapPreviewRngBaselineFixFeatures.Apply(harmony));
 
                 ApplyRestartUnlessSuperseded(ref KebabTweaksSettings.AppliedMainMenuBgFitFix,
-                    KebabTweaksSettings.EnableMainMenuBgFitFix,
+                    KebabTweaksSettings.IsMainMenuBgFitFixEnabled(),
                     SupersededStandaloneMods.MainMenuBgFitFix,
                     "MainMenuBgFitFixFeatures",
                     () => MainMenuBgFitFixFeatures.Apply(harmony));

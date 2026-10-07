@@ -40,11 +40,18 @@ namespace HSK.KebabTweaks
         const string EspPawnPostApplyDamageTypeName =
             "MUR_ESP.Pawn_PostApplyDamage";
         const string CorunanPersonNamerDefName = "NamerPersonCorunanEN";
+        const string SkPawnGeneratorPatchesTypeName = "SK.PawnGeneratorPatches";
+        const string SkPawnGeneratorChildAgeMethodName = "PawnGenerator_GenerateRandomAge";
+#if RIMWORLD_1_6
+        const string RimThemesBackgroundPatchTypeName = "RimThemesLite.UI_BackgroundMain_Patch";
+#endif
 
         static bool catCrazyTimeProbed;
         static bool catCrazyTimeLeftover;
         static bool startingPawnNameProbed;
         static bool startingPawnNameLeftover;
+        static bool startingPawnChildAgeProbed;
+        static bool startingPawnChildAgeLeftover;
         static bool craftStuffProbed;
         static bool craftStuffLeftover;
         static bool craftStuffPartial;
@@ -61,6 +68,8 @@ namespace HSK.KebabTweaks
         static bool ufFillPartial;
         static bool anomalyEspProbed;
         static bool anomalyEspLeftover;
+        static bool mainMenuBgFitProbed;
+        static bool mainMenuBgFitLeftover;
 #endif
         static bool logged;
 
@@ -75,9 +84,11 @@ namespace HSK.KebabTweaks
             ProbeCraftStuffIfNeeded();
             ProbeSeedsPleaseSowIfNeeded();
             ProbeStartingPawnNameIfNeeded();
+            ProbeStartingPawnChildAgeIfNeeded();
 #if RIMWORLD_1_6
             ProbeUfFillIfNeeded();
             ProbeAnomalyEspFleeIfNeeded();
+            ProbeMainMenuBgFitIfNeeded();
             ProbeDefBackedFixesIfNeeded();
 #endif
             LogOnce();
@@ -130,6 +141,12 @@ namespace HSK.KebabTweaks
         {
             Ensure();
             return startingPawnNameLeftover;
+        }
+
+        public static bool IsStartingPawnChildAgeFixLeftover()
+        {
+            Ensure();
+            return startingPawnChildAgeLeftover;
         }
 
         /// <summary>
@@ -201,6 +218,12 @@ namespace HSK.KebabTweaks
             return anomalyEspLeftover;
         }
 
+        public static bool IsMainMenuBgFitFixLeftover()
+        {
+            Ensure();
+            return mainMenuBgFitLeftover;
+        }
+
         /// <summary>
         /// Header suffix for Fermenter Fill: 0 leftover, 65 when CommitIngredients still aborts
         /// extra stacks after IngredientPortion RemainingCount or get_RemainingCount, null when
@@ -242,7 +265,8 @@ namespace HSK.KebabTweaks
         public static bool HasAnyLeftover()
         {
             if (IsCatCrazyTimeLeftover() || IsCraftStuffFixLeftover() ||
-                IsSeedsPleaseSowFixLeftover() || IsStartingPawnNameFixLeftover())
+                IsSeedsPleaseSowFixLeftover() || IsStartingPawnNameFixLeftover() ||
+                IsStartingPawnChildAgeFixLeftover())
             {
                 return true;
             }
@@ -250,7 +274,7 @@ namespace HSK.KebabTweaks
 #if RIMWORLD_1_6
             if (IsUfFillFixLeftover() || IsBurnWeaponBillFixLeftover() ||
                 IsBreachAxeWorkAmountFixLeftover() || IsRawFungusBillFixLeftover() ||
-                IsAnomalyEspFleeFixLeftover())
+                IsAnomalyEspFleeFixLeftover() || IsMainMenuBgFitFixLeftover())
             {
                 return true;
             }
@@ -309,6 +333,38 @@ namespace HSK.KebabTweaks
 
             startingPawnNameProbed = true;
             startingPawnNameLeftover = ProbeStartingPawnNameClosed();
+        }
+
+        static void ProbeStartingPawnChildAgeIfNeeded()
+        {
+            if (startingPawnChildAgeProbed)
+            {
+                return;
+            }
+
+            startingPawnChildAgeProbed = true;
+            startingPawnChildAgeLeftover = ProbeStartingPawnChildAgeClosed();
+        }
+
+        /// <summary>
+        /// Closed when SK.PawnGeneratorPatches.PawnGenerator_GenerateRandomAge stores
+        /// PawnGenerationRequest.FixedBiologicalAge. Alive or Unknown when that type or
+        /// setter call is absent (1.5, or an Alpha that still leaves Child age to the kind floor).
+        ///
+        /// Closed, если SK.PawnGeneratorPatches.PawnGenerator_GenerateRandomAge пишет
+        /// PawnGenerationRequest.FixedBiologicalAge. Alive или Unknown, если типа или вызова
+        /// сеттера нет (1.5 или Alpha, где возраст Child всё ещё упирается в пол kind).
+        /// </summary>
+        static bool ProbeStartingPawnChildAgeClosed()
+        {
+            Type sk = AccessTools.TypeByName(SkPawnGeneratorPatchesTypeName);
+            if (sk == null)
+            {
+                return false;
+            }
+
+            MethodInfo method = AccessTools.Method(sk, SkPawnGeneratorChildAgeMethodName);
+            return MethodCallsNamed(method, "set_FixedBiologicalAge");
         }
 
         /// <summary>
@@ -629,6 +685,40 @@ namespace HSK.KebabTweaks
             anomalyEspLeftover = ProbeAnomalyEspFleeClosed();
         }
 
+        static void ProbeMainMenuBgFitIfNeeded()
+        {
+            if (mainMenuBgFitProbed)
+            {
+                return;
+            }
+
+            mainMenuBgFitProbed = true;
+            mainMenuBgFitLeftover = ProbeMainMenuBgFitClosed();
+        }
+
+        /// <summary>
+        /// Closed when RimThemesLite UI_BackgroundMain_Patch.Prefix exists and no longer calls
+        /// UnityEngine.Screen width or height. Alive when that Prefix still calls them. Unknown
+        /// (not leftover) when RimThemesLite or the Prefix is absent.
+        ///
+        /// Closed, если Prefix RimThemesLite UI_BackgroundMain_Patch есть и больше не вызывает
+        /// ширину или высоту UnityEngine.Screen. Alive, если Prefix всё ещё их вызывает.
+        /// Unknown (не leftover), если RimThemesLite или Prefix нет.
+        /// </summary>
+        static bool ProbeMainMenuBgFitClosed()
+        {
+            Type patchType = AccessTools.TypeByName(RimThemesBackgroundPatchTypeName);
+            MethodInfo prefix = patchType == null
+                ? null
+                : AccessTools.Method(patchType, "Prefix");
+            if (prefix == null)
+            {
+                return false;
+            }
+
+            return !MainMenuBgFit_RimThemesVideoBgRect_Transpiler.PrefixUsesScreenDimensions(prefix);
+        }
+
         /// <summary>
         /// Closed when Core_SK EnemySelfPreservationPatch or ESP PostApplyDamage postfix already
         /// loads MutantDef.preventsMentalBreaks. Alive when that field is absent from both.
@@ -802,14 +892,14 @@ namespace HSK.KebabTweaks
 
 #if RIMWORLD_1_6
             if (!catCrazyTimeProbed || !craftStuffProbed || !seedsPleaseSowProbed ||
-                !startingPawnNameProbed ||
-                !ufFillProbed || !defsProbed || !anomalyEspProbed)
+                !startingPawnNameProbed || !startingPawnChildAgeProbed ||
+                !ufFillProbed || !defsProbed || !anomalyEspProbed || !mainMenuBgFitProbed)
             {
                 return;
             }
 #else
             if (!catCrazyTimeProbed || !craftStuffProbed || !seedsPleaseSowProbed ||
-                !startingPawnNameProbed)
+                !startingPawnNameProbed || !startingPawnChildAgeProbed)
             {
                 return;
             }
@@ -824,12 +914,14 @@ namespace HSK.KebabTweaks
                 " SeedsPleaseSow=" + seedsPleaseSowLeftover +
                 " SeedsPleaseSowPartial=" + seedsPleaseSowPartial +
                 " StartingPawnName=" + startingPawnNameLeftover +
+                " StartingPawnChildAge=" + startingPawnChildAgeLeftover +
                 " UfFill=" + ufFillLeftover +
                 " UfFillPartial=" + ufFillPartial +
                 " BurnWeapon=" + burnWeaponLeftover +
                 " BreachAxe=" + breachAxeLeftover +
                 " RawFungus=" + rawFungusLeftover +
-                " AnomalyEspFlee=" + anomalyEspLeftover + ".");
+                " AnomalyEspFlee=" + anomalyEspLeftover +
+                " MainMenuBgFit=" + mainMenuBgFitLeftover + ".");
 #else
             Log.Message(
                 "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover +
@@ -837,7 +929,8 @@ namespace HSK.KebabTweaks
                 " CraftStuffPartial=" + craftStuffPartial +
                 " SeedsPleaseSow=" + seedsPleaseSowLeftover +
                 " SeedsPleaseSowPartial=" + seedsPleaseSowPartial +
-                " StartingPawnName=" + startingPawnNameLeftover + ".");
+                " StartingPawnName=" + startingPawnNameLeftover +
+                " StartingPawnChildAge=" + startingPawnChildAgeLeftover + ".");
 #endif
         }
 

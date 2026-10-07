@@ -106,7 +106,7 @@ namespace HSK.KebabTweaks.KebabSwitches
         ///
         /// Раскрывает numCase-грамматику и нормализует остальные плейсхолдеры в {0}, {1}, … для настроек.
         /// </summary>
-        private static string FormatTemplateForSettingsQuote(string text)
+        public static string FormatTemplateForSettingsQuote(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
