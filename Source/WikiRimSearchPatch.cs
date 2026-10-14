@@ -38,7 +38,10 @@ namespace HSK.KebabTweaks
         {
             if (!IsPackageActive())
             {
-                Log.Message("[HSK kebab tweaks] WikiRimCompat skipped (mlie.wikirim is not active).");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.WikiRim,
+                    "WikiRim Compat",
+                    "WikiRim (mlie.wikirim)");
                 return;
             }
 
@@ -46,7 +49,10 @@ namespace HSK.KebabTweaks
             MethodInfo method = type == null ? null : AccessTools.Method(type, "MatchesFilter");
             if (method == null || !AssemblyIsThisMod(type))
             {
-                Log.Message("[HSK kebab tweaks] WikiRimCompat skipped (HelpTab.HelpDef is not from mlie.wikirim).");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.WikiRim,
+                    "WikiRim Compat",
+                    "HelpTab.HelpDef is not from mlie.wikirim.");
                 return;
             }
 

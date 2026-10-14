@@ -32,11 +32,10 @@ namespace HSK.KebabTweaks
             {
                 if (!TpsMonitor.TryApplyHskCounterPatch(harmony))
                 {
-                    if (KebabTweaksSettings.LowTpsLogStartupMessage)
-                    {
-                        Log.Warning("[LowTpsPawnDump] SK.TicksPerSecond overlay hook not found; TPS monitor disabled.");
-                    }
-
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.LowTps,
+                        "Low TPS Patch",
+                        FeatureAvailability.CoreSk);
                     return;
                 }
 

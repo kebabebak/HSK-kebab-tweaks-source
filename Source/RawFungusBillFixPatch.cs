@@ -77,6 +77,10 @@ namespace HSK.KebabTweaks
             ThingCategoryDef fungusCat = DefDatabase<ThingCategoryDef>.GetNamedSilentFail(FungusCategoryDefName);
             if (rawFungus == null || fungusCat == null)
             {
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.RawFungus,
+                    "Raw Fungus Bill Fix",
+                    FeatureAvailability.CoreSk);
                 return;
             }
 

@@ -39,8 +39,10 @@ namespace HSK.KebabTweaks
             {
                 if (!TypeListRepair.Resolve())
                 {
-                    Log.Message(
-                        "[FishTableTypeListFixPatch] Performance Fish ThingsPrepatches not found; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.FishTable,
+                        "Fish Table Type List Fix",
+                        "Performance Fish (bs.performance)");
                     return;
                 }
 

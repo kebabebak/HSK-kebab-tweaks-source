@@ -69,7 +69,10 @@ namespace HSK.KebabTweaks
             Type optionsMakerType = AccessTools.TypeByName(OptionsMakerTypeName);
             if (optionsMakerType == null)
             {
-                Log.Message("[NumbersLoadDefaultFallbackPatch] Numbers not loaded; patch skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.Numbers,
+                    "Numbers Load Default Patch",
+                    "Numbers (Mehni.Numbers)");
                 return;
             }
 
@@ -79,7 +82,10 @@ namespace HSK.KebabTweaks
             Type numbersWindowType = AccessTools.TypeByName("Numbers.MainTabWindow_Numbers");
             if (loadDefault == null || settingsType == null || staticCtorType == null || numbersWindowType == null)
             {
-                Log.Warning("[NumbersLoadDefaultFallbackPatch] Numbers LoadDefault members missing; patch skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.Numbers,
+                    "Numbers Load Default Patch",
+                    "Numbers LoadDefault members were not found.");
                 return;
             }
 
@@ -94,7 +100,10 @@ namespace HSK.KebabTweaks
                 || pawnTableDefField == null || pawnTableDefColumnsProperty == null
                 || updateFilterMethod == null || refreshSessionMethod == null)
             {
-                Log.Warning("[NumbersLoadDefaultFallbackPatch] Numbers reflection targets missing; patch skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.Numbers,
+                    "Numbers Load Default Patch",
+                    "Numbers reflection targets were not found.");
                 return;
             }
 

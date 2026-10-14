@@ -290,6 +290,14 @@ namespace HSK.KebabTweaks
             }
 
             catCrazyTimeProbed = true;
+            // typeof(JobDriver_CrazyTime) is only in ProbeCatCrazyTimeClosed. Calling it when
+            // Core SK is absent JIT-fails the whole apply pass.
+            if (AccessTools.TypeByName("SK.JobDriver_CrazyTime") == null)
+            {
+                catCrazyTimeLeftover = false;
+                return;
+            }
+
             catCrazyTimeLeftover = ProbeCatCrazyTimeClosed();
         }
 

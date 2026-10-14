@@ -84,14 +84,20 @@ namespace HSK.KebabTweaks
             ThingDef thing = DefDatabase<ThingDef>.GetNamedSilentFail(ThingDefName);
             if (thing == null)
             {
-                Log.Message("[BreachAxeWorkAmountFixPatch] MeleeWeapon_BreachAxe not found; skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.BreachAxe,
+                    "Breach Axe Work Amount Fix",
+                    FeatureAvailability.CoreSk);
                 return false;
             }
 
             RecipeDef recipe = FindMakeRecipe(thing);
             if (recipe == null)
             {
-                Log.Message("[BreachAxeWorkAmountFixPatch] Make recipe for MeleeWeapon_BreachAxe not found; skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.BreachAxe,
+                    "Breach Axe Work Amount Fix",
+                    "Make recipe for MeleeWeapon_BreachAxe was not found.");
                 return false;
             }
 

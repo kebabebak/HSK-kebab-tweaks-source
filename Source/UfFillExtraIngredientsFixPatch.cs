@@ -42,15 +42,20 @@ namespace HSK.KebabTweaks
             Type driverType = AccessTools.TypeByName("UniversalFermenterSK.JobDriver_FillUF");
             if (driverType == null)
             {
-                Log.Message("[HSK kebab tweaks] Universal Fermenter not loaded; fermenter fill amounts fix skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.UfFill,
+                    "Fermenter Fill Amounts Fix",
+                    FeatureAvailability.CoreSk);
                 return;
             }
 
             MethodInfo commit = AccessTools.Method(driverType, "CommitIngredients", new[] { typeof(Pawn) });
             if (commit == null)
             {
-                Log.Message(
-                    "[HSK kebab tweaks] JobDriver_FillUF.CommitIngredients not found; fermenter fill amounts fix skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.UfFill,
+                    "Fermenter Fill Amounts Fix",
+                    "JobDriver_FillUF.CommitIngredients was not found.");
                 return;
             }
 
@@ -77,8 +82,9 @@ namespace HSK.KebabTweaks
             }
             else
             {
-                Log.Message(
-                    "[HSK kebab tweaks] Pawn_CarryTracker.TryStartCarry(Thing, int, bool) not found; fermenter fill pickup cap skipped.");
+                FeatureAvailability.WarnOnce(
+                    "UfFillTryStartCarry",
+                    "[HSK kebab tweaks] Fermenter Fill Amounts Fix: Pawn_CarryTracker.TryStartCarry(Thing, int, bool) was not found; pickup cap skipped.");
             }
 
             MethodInfo startCarryThing = AccessTools.Method(typeof(Toils_Haul), nameof(Toils_Haul.StartCarryThing));

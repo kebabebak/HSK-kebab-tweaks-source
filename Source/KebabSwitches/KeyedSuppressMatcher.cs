@@ -7,8 +7,12 @@ namespace HSK.KebabTweaks.KebabSwitches
 {
     /// <summary>
     /// Shared RimWorld keyed-template matching: strip rich text, turn {0} / gender branches into regex.
+    /// A placeholder may contain nested braces ({lookup: {FOOD_labelShort}; Case; 4}); the whole
+    /// brace group is one wildcard. NBSP and em dash are folded so the template matches the live line.
     ///
     /// Общее сопоставление keyed-шаблонов RimWorld: снятие rich text, regex из {0} и gender-веток.
+    /// Плейсхолдер может содержать вложенные скобки ({lookup: {FOOD_labelShort}; Case; 4}); вся
+    /// группа скобок - один wildcard. NBSP и длинное тире схлопываются, чтобы шаблон совпал с живой строкой.
     /// </summary>
     public static class KeyedSuppressMatcher
     {
@@ -20,10 +24,6 @@ namespace HSK.KebabTweaks.KebabSwitches
             @"\{[A-Za-z0-9_]+_gender\s*\?\s*([^:}]+)\s*:\s*([^:}]+)(?:\s*:\s*([^}]+))?\}",
             RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-        private static readonly Regex PlaceholderPattern = new Regex(
-            @"\{[^}]+\}",
-            RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
         public static string Normalize(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -31,7 +31,26 @@ namespace HSK.KebabTweaks.KebabSwitches
                 return string.Empty;
             }
 
-            return RichTextPattern.Replace(text, string.Empty).Trim();
+            string stripped = RichTextPattern.Replace(text, string.Empty);
+            var sb = new StringBuilder(stripped.Length);
+            for (int i = 0; i < stripped.Length; i++)
+            {
+                char c = stripped[i];
+                if (c == '\u00A0' || c == '\u202F' || c == '\u2009')
+                {
+                    sb.Append(' ');
+                }
+                else if (c == '\u2014' || c == '\u2013' || c == '\u2212')
+                {
+                    sb.Append('-');
+                }
+                else
+                {
+                    sb.Append(c);
+                }
+            }
+
+            return sb.ToString().Trim();
         }
 
         public static Regex TemplateToRegex(string template)
@@ -71,12 +90,15 @@ namespace HSK.KebabTweaks.KebabSwitches
                     continue;
                 }
 
-                Match placeholder = PlaceholderPattern.Match(normalized, i);
-                if (placeholder.Success && placeholder.Index == i)
+                if (normalized[i] == '{')
                 {
-                    sb.Append(".+?");
-                    i = placeholder.Index + placeholder.Length;
-                    continue;
+                    int end = BalancedClose(normalized, i);
+                    if (end > i)
+                    {
+                        sb.Append(".+?");
+                        i = end + 1;
+                        continue;
+                    }
                 }
 
                 sb.Append(Regex.Escape(normalized[i].ToString()));
@@ -94,6 +116,29 @@ namespace HSK.KebabTweaks.KebabSwitches
             {
                 return null;
             }
+        }
+
+        private static int BalancedClose(string text, int open)
+        {
+            int depth = 0;
+            for (int i = open; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c == '{')
+                {
+                    depth++;
+                }
+                else if (c == '}')
+                {
+                    depth--;
+                    if (depth == 0)
+                    {
+                        return i;
+                    }
+                }
+            }
+
+            return -1;
         }
     }
 }

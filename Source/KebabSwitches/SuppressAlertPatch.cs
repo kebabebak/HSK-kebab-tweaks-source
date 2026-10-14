@@ -1,3 +1,4 @@
+using System;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -21,6 +22,13 @@ namespace HSK.KebabTweaks.KebabSwitches
                 prefix: new HarmonyMethod(typeof(SuppressAlertPatch), nameof(Prefix)));
         }
 
+        /// <summary>
+        /// Removes a suppressed alert. The label is read only while logging is on, because
+        /// some alerts throw from GetLabel when their timer or list is empty.
+        ///
+        /// Убирает подавленный alert. Подпись читается только при включённом логе: часть
+        /// alert бросает исключение из GetLabel, когда таймер или список пуст.
+        /// </summary>
         public static void Prefix(Alert alert, ref bool forceRemove)
         {
             if (forceRemove || alert == null)
@@ -35,7 +43,21 @@ namespace HSK.KebabTweaks.KebabSwitches
             }
 
             forceRemove = true;
-            string label = alert.GetLabel();
+            if (!KebabTweaksSettings.KebabSwitchesEnableLogging)
+            {
+                return;
+            }
+
+            string label;
+            try
+            {
+                label = alert.GetLabel();
+            }
+            catch (Exception)
+            {
+                label = alert.GetType().Name;
+            }
+
             SwitchLog.Message(
                 $"[HSK kebab tweaks][kebab switches] Suppressed alert ({suffix}): \"{label}\"");
         }

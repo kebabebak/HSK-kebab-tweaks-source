@@ -43,16 +43,20 @@ namespace HSK.KebabTweaks
                 Type targetType = AccessTools.TypeByName("MUR_ESP.Pawn_PostApplyDamage");
                 if (targetType == null)
                 {
-                    Log.Message(
-                        "[AnomalyEspFleeFixPatch] MUR_ESP.Pawn_PostApplyDamage not found; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.AnomalyEsp,
+                        "Anomaly Injured Fleeing Fix",
+                        "Enemy Self Preservation (Mlie.EnemySelfPreservation)");
                     return;
                 }
 
                 MethodBase target = AccessTools.Method(targetType, "Postfix");
                 if (target == null)
                 {
-                    Log.Message(
-                        "[AnomalyEspFleeFixPatch] MUR_ESP.Pawn_PostApplyDamage.Postfix not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.AnomalyEsp,
+                        "Anomaly Injured Fleeing Fix",
+                        "MUR_ESP.Pawn_PostApplyDamage.Postfix was not found.");
                     return;
                 }
 

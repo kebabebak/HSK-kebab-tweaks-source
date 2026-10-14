@@ -57,7 +57,10 @@ namespace HSK.KebabTweaks
                 Type driverType = AccessTools.TypeByName("SeedsPlease.JobDriver_PlantSowWithSeeds");
                 if (workGiverType == null || driverType == null)
                 {
-                    Log.Message("[SeedsPleaseSowFixPatch] SeedsPlease types not found; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.SeedsPlease,
+                        "SeedsPlease Sow Fix",
+                        "SeedsPlease (notfood.SeedsPlease)");
                     return;
                 }
 

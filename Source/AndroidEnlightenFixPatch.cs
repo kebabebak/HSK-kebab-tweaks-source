@@ -31,8 +31,6 @@ namespace HSK.KebabTweaks
 
         static readonly List<HediffGiver> injected = new List<HediffGiver>();
         static bool lastEnabled;
-        static bool loggedMissingAndroidSet;
-
         public static void Apply(Harmony harmony)
         {
             try
@@ -64,21 +62,23 @@ namespace HSK.KebabTweaks
             Type giverType = AccessTools.TypeByName(GiverTypeName);
             HediffGiverSetDef organic = DefDatabase<HediffGiverSetDef>.GetNamedSilentFail(OrganicSetDefName);
             HediffGiverSetDef android = DefDatabase<HediffGiverSetDef>.GetNamedSilentFail(AndroidSetDefName);
+            var missingMods = new System.Collections.Generic.List<string>();
             if (giverType == null || organic == null || organic.hediffGivers == null)
             {
-                lastEnabled = enable;
-                return;
+                missingMods.Add(FeatureAvailability.CoreSk);
             }
 
             if (android == null || android.hediffGivers == null)
             {
-                if (!loggedMissingAndroidSet)
-                {
-                    loggedMissingAndroidSet = true;
-                    Log.Message(
-                        "[AndroidEnlightenFixPatch] ChjAndroidStandard not loaded; patch skipped.");
-                }
+                missingMods.Add("Androids (ChJees.Androids)");
+            }
 
+            if (missingMods.Count > 0)
+            {
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.AndroidEnlighten,
+                    "Android Lighting Environment Patch",
+                    missingMods.ToArray());
                 lastEnabled = enable;
                 return;
             }

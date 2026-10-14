@@ -32,7 +32,10 @@ namespace HSK.KebabTweaks
                     new[] { typeof(Thing) });
                 if (target == null)
                 {
-                    Log.Message("[StorageSettingsAllowedToAcceptFixPatch] StorageSettings.AllowedToAccept(Thing) not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.StorageSettings,
+                        "Storage Settings Allowed To Accept Fix",
+                        "StorageSettings.AllowedToAccept(Thing) was not found.");
                     return;
                 }
 

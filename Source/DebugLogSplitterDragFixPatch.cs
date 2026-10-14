@@ -32,7 +32,10 @@ namespace HSK.KebabTweaks
                 Type logType = AccessTools.TypeByName("LudeonTK.EditWindow_Log");
                 if (logType == null)
                 {
-                    Log.Message("[DebugLogSplitterDragFix] LudeonTK.EditWindow_Log not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.DebugLog,
+                        "Debug Log Splitter Drag Fix",
+                        "LudeonTK.EditWindow_Log was not found.");
                     return;
                 }
 
@@ -40,8 +43,10 @@ namespace HSK.KebabTweaks
                 borderDraggingField = AccessTools.Field(logType, "borderDragging");
                 if (target == null || borderDraggingField == null || borderDraggingField.FieldType != typeof(bool))
                 {
-                    Log.Warning(
-                        "[DebugLogSplitterDragFix] DoMessageDetails/borderDragging not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.DebugLog,
+                        "Debug Log Splitter Drag Fix",
+                        "DoMessageDetails or borderDragging was not found.");
                     return;
                 }
 

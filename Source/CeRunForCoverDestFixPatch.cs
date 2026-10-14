@@ -42,7 +42,10 @@ namespace HSK.KebabTweaks
                 MethodBase target = AccessTools.Method("CombatExtended.CompSuppressable:AddSuppression");
                 if (target == null)
                 {
-                    Log.Message("[CeRunForCoverDestFixPatch] Combat Extended CompSuppressable.AddSuppression not found; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.CeRunForCover,
+                        "CE Run For Cover Destination Fix",
+                        "Combat Extended (CETeam.CombatExtended)");
                     return;
                 }
 

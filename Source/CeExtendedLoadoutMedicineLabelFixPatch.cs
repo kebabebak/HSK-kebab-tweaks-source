@@ -40,16 +40,20 @@ namespace HSK.KebabTweaks
             Type medicineDefsType = AccessTools.TypeByName("CombatExtended.ExtendedLoadout.MedicineDefs");
             if (medicineDefsType == null)
             {
-                Log.Message(
-                    "[HSK kebab tweaks] Combat Extended Extended Loadout not loaded; medicine label fix skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.CeExtendedLoadout,
+                    "CE Extended Loadout Medicine Label Fix",
+                    "Combat Extended Extended Loadout (pirateby.ce.extendedloadout)");
                 return;
             }
 
             MethodInfo target = AccessTools.Method(medicineDefsType, "Initialize");
             if (target == null)
             {
-                Log.Warning(
-                    "[HSK kebab tweaks] CombatExtended.ExtendedLoadout.MedicineDefs.Initialize not found; medicine label fix skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.CeExtendedLoadout,
+                    "CE Extended Loadout Medicine Label Fix",
+                    "CombatExtended.ExtendedLoadout.MedicineDefs.Initialize was not found.");
                 return;
             }
 

@@ -43,13 +43,19 @@ namespace HSK.KebabTweaks
                 Type workerType = AccessTools.TypeByName("PawnTableGrouped.GroupColumnWorker_MedicalCare");
                 if (workerType == null)
                 {
-                    Log.Message("[PtgMedicalCarePatch] Grouped Pawns Lists not loaded; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.PtgMedical,
+                        "Grouped Pawns Medical Care Fix",
+                        "Grouped Pawns Lists (name.krypt.rimworld.pawntablegrouped)");
                     return;
                 }
 
                 if (!CareTextureSync.TryBind(workerType))
                 {
-                    Log.Warning("[PtgMedicalCarePatch] Could not bind PTG careTextures field; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.PtgMedical,
+                        "Grouped Pawns Medical Care Fix",
+                        "PTG careTextures field was not bound.");
                     return;
                 }
 
@@ -57,7 +63,10 @@ namespace HSK.KebabTweaks
                 MethodBase generateMenu = AccessTools.Method(workerType, "MedicalCareSelectButton_GenerateMenu");
                 if (doCell == null)
                 {
-                    Log.Warning("[PtgMedicalCarePatch] GroupColumnWorker_MedicalCare.DoCell not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.PtgMedical,
+                        "Grouped Pawns Medical Care Fix",
+                        "GroupColumnWorker_MedicalCare.DoCell was not found.");
                     return;
                 }
 

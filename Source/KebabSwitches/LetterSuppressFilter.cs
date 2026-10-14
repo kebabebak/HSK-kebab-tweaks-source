@@ -6,11 +6,13 @@ using Verse;
 namespace HSK.KebabTweaks.KebabSwitches
 {
     /// <summary>
-    /// Matches live LetterStack label text against suppressible catalog entries (keyed templates and
-    /// surgery-failure regex). Rebuilds regex/exact caches after language load.
+    /// Matches live letter label or body text against suppressible catalog entries (keyed templates and
+    /// surgery-failure regex). A long-range mineral lump on 1.7 is a quest whose title is not
+    /// LetterLabelFoundPreciousLump; its body is matched by the scanner phrase. Rebuilds after language load.
     ///
-    /// Сопоставляет label LetterStack с каталогом (keyed-шаблоны и regex провала хирургии).
-    /// Кэш regex/exact пересобирается после загрузки языка.
+    /// Сопоставляет label или текст письма с каталогом (keyed-шаблоны и regex провала хирургии).
+    /// Далёкие залежи в 1.7 - квест, заголовок которого не LetterLabelFoundPreciousLump; текст ловится
+    /// фразой про сканер. Кэш пересобирается после загрузки языка.
     /// </summary>
     public static class LetterSuppressFilter
     {
@@ -25,6 +27,22 @@ namespace HSK.KebabTweaks.KebabSwitches
         private static readonly Regex SurgeryFailedRussianSterilizedPattern = new Regex(
             @"^Операция провалилась:",
             RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private static readonly Regex LongRangeScannerEnglishPattern = new Regex(
+            "long-range mineral scanner",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private static readonly Regex LongRangeScannerRussianPattern = new Regex(
+            "сканера дальнего действия",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private static readonly Regex DeepScannerEnglishPattern = new Regex(
+            "ground-penetrating scanner",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private static readonly Regex DeepScannerRussianPattern = new Regex(
+            "глубинного сканера",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         private static readonly Dictionary<string, List<Regex>> PatternsById =
             new Dictionary<string, List<Regex>>(StringComparer.Ordinal);
@@ -63,7 +81,28 @@ namespace HSK.KebabTweaks.KebabSwitches
                 if (!string.IsNullOrEmpty(entry.TranslationKey))
                 {
                     AddFromTranslationKey(entry.Id, entry.TranslationKey);
+                    foreach (string bodyKey in BodyKeys(entry.TranslationKey))
+                    {
+                        if (IsLongerBody(entry.TranslationKey, bodyKey))
+                        {
+                            AddFromTranslationKey(entry.Id, bodyKey);
+                        }
+                    }
                 }
+
+                if (string.Equals(entry.Id, "FoundPreciousLump", StringComparison.Ordinal))
+                {
+                    AddPattern(entry.Id, LongRangeScannerEnglishPattern);
+                    AddPattern(entry.Id, LongRangeScannerRussianPattern);
+                }
+
+                if (string.Equals(entry.Id, "DeepScannerFoundLump", StringComparison.Ordinal))
+                {
+                    AddPattern(entry.Id, DeepScannerEnglishPattern);
+                    AddPattern(entry.Id, DeepScannerRussianPattern);
+                }
+
+                NotificationStoredGameText.AppendDefLetterLabels(entry.Id, text => AddExact(entry.Id, text));
 
                 if (entry.IsSurgeryFailed)
                 {
@@ -87,9 +126,9 @@ namespace HSK.KebabTweaks.KebabSwitches
         }
 
         /// <summary>
-        /// Returns the catalog entry id that matches this live letter label, or null.
+        /// Returns the catalog entry id that matches this live letter label or body, or null.
         ///
-        /// Id записи каталога, совпавшей с label письма, либо null.
+        /// Id записи каталога, совпавшей с label или текстом письма, либо null.
         /// </summary>
         public static string MatchEntryId(string label)
         {
@@ -123,6 +162,22 @@ namespace HSK.KebabTweaks.KebabSwitches
             return null;
         }
 
+        public static void CollectExact(string id, List<string> target)
+        {
+            if (target == null || string.IsNullOrEmpty(id))
+            {
+                return;
+            }
+
+            if (ExactById.TryGetValue(id, out HashSet<string> exact))
+            {
+                foreach (string text in exact)
+                {
+                    target.Add(text);
+                }
+            }
+        }
+
         public static SuppressibleLetterEntry FindEntry(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -139,6 +194,68 @@ namespace HSK.KebabTweaks.KebabSwitches
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Body key next to a LetterLabel* title: RoofCollapsed, or Letter + the rest of the name.
+        ///
+        /// Ключ текста рядом с заголовком LetterLabel*: RoofCollapsed либо Letter + хвост имени.
+        /// </summary>
+        internal static IEnumerable<string> BodyKeys(string labelKey)
+        {
+            const string prefix = "LetterLabel";
+            if (string.IsNullOrEmpty(labelKey) || !labelKey.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                yield break;
+            }
+
+            string rest = labelKey.Substring(prefix.Length);
+            if (rest.Length == 0)
+            {
+                yield break;
+            }
+
+            yield return rest;
+            yield return "Letter" + rest;
+        }
+
+        private static bool IsLongerBody(string labelKey, string bodyKey)
+        {
+            if (string.IsNullOrEmpty(bodyKey) || !bodyKey.CanTranslate())
+            {
+                return false;
+            }
+
+            string body;
+            try
+            {
+                body = bodyKey.Translate().ToString();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(body)
+                || string.Equals(body, bodyKey, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            string label = labelKey;
+            if (labelKey.CanTranslate())
+            {
+                try
+                {
+                    label = labelKey.Translate().ToString();
+                }
+                catch (Exception)
+                {
+                    label = labelKey;
+                }
+            }
+
+            return !string.Equals(body, label, StringComparison.Ordinal) && body.Length > label.Length;
         }
 
         private static void AddFromTranslationKey(string entryId, string key)

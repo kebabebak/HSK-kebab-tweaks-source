@@ -36,12 +36,34 @@ namespace HSK.KebabTweaks
     {
         public static void Apply(Harmony harmony)
         {
+            if (AccessTools.TypeByName("SK.JobDriver_CrazyTime") == null)
+            {
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.CatCrazyTime,
+                    "Cat Crazy Time Fix",
+                    FeatureAvailability.CoreSk);
+                return;
+            }
+
+            ApplyWhenCoreSkPresent(harmony);
+        }
+
+        /// <summary>
+        /// Harmony hooks for JobDriver_CrazyTime. Called only after that type has loaded.
+        ///
+        /// Хуки Harmony для JobDriver_CrazyTime. Вызывается только после загрузки этого типа.
+        /// </summary>
+        static void ApplyWhenCoreSkPresent(Harmony harmony)
+        {
             try
             {
                 MethodBase makeNewToils = AccessTools.Method(typeof(JobDriver_CrazyTime), "MakeNewToils");
                 if (makeNewToils == null)
                 {
-                    Log.Warning("[CatCrazyTimePatch] SK.JobDriver_CrazyTime.MakeNewToils not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.CatCrazyTime,
+                        "Cat Crazy Time Fix",
+                        "SK.JobDriver_CrazyTime.MakeNewToils was not found.");
                     return;
                 }
 

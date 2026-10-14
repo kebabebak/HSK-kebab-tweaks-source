@@ -32,14 +32,28 @@ namespace HSK.KebabTweaks
     {
         public const string NoHaulDesignationDefName = "KAU_NoHaulDesignation";
 
-        private static bool loggedMissingNoHaulDef;
-
         public static void Apply(Harmony harmony)
         {
             try
             {
-                harmony.CreateClassProcessor(typeof(AnimalCorpsesGenerator_GenerateAnimalCorpses_Patch)).Patch();
-                harmony.CreateClassProcessor(typeof(VillagerCorpsesGenerator_GenerateVillagerCorpses_Patch)).Patch();
+                bool animalGenerator = AccessTools.TypeByName("SK.Events.AnimalCorpsesGenerator") != null;
+                bool villagerGenerator = AccessTools.TypeByName("SK.Events.VillagerCorpsesGenerator") != null;
+                if (animalGenerator)
+                {
+                    harmony.CreateClassProcessor(typeof(AnimalCorpsesGenerator_GenerateAnimalCorpses_Patch)).Patch();
+                }
+
+                if (villagerGenerator)
+                {
+                    harmony.CreateClassProcessor(typeof(VillagerCorpsesGenerator_GenerateVillagerCorpses_Patch)).Patch();
+                }
+
+                if (!animalGenerator || !villagerGenerator)
+                {
+                    FeatureAvailability.WarnOnce(
+                        "StartingCorpsesGenerators",
+                        "[HSK kebab tweaks] Starting Corpses No Haul: Core SK (skyarkhangel.HSK) corpse generators are not loaded; scatter hooks skipped. Haul marking still applies.");
+                }
 
                 MethodInfo haulFast = AccessTools.Method(
                     typeof(HaulAIUtility),
@@ -134,13 +148,10 @@ namespace HSK.KebabTweaks
             DesignationDef def = DefDatabase<DesignationDef>.GetNamedSilentFail(NoHaulDesignationDefName);
             if (def == null)
             {
-                if (!loggedMissingNoHaulDef)
-                {
-                    loggedMissingNoHaulDef = true;
-                    Log.Message(
-                        "[StartingCorpsesNoHaulPatch] " + NoHaulDesignationDefName +
-                        " not found; designation skipped (Keyz Allow Utilities missing).");
-                }
+                FeatureAvailability.WarnOnce(
+                    "StartingCorpsesNoHaulDef",
+                    "[HSK kebab tweaks] Starting Corpses No Haul: " + NoHaulDesignationDefName +
+                    " was not found; designation skipped (Keyz Allow Utilities missing). Haul marking still applies.");
 
                 return;
             }

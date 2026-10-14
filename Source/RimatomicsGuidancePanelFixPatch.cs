@@ -39,14 +39,20 @@ namespace HSK.KebabTweaks
             Type windowType = AccessTools.TypeByName("Rimatomics.MainTabWindow_Rimatomics");
             if (windowType == null)
             {
-                Log.Message("[HSK kebab tweaks] Rimatomics not loaded; guidance panel fix skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.Rimatomics,
+                    "Rimatomics Guidance Panel Fix",
+                    "Rimatomics (Dubwise.Rimatomics)");
                 return;
             }
 
             MethodInfo drawPanel = AccessTools.Method(windowType, "DrawPanel");
             if (drawPanel == null)
             {
-                Log.Warning("[HSK kebab tweaks] Rimatomics DrawPanel not found; guidance panel fix skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.Rimatomics,
+                    "Rimatomics Guidance Panel Fix",
+                    "Rimatomics DrawPanel was not found.");
                 return;
             }
 

@@ -30,8 +30,10 @@ namespace HSK.KebabTweaks
                 Type handlerType = AccessTools.TypeByName("AllowTool.HaulUrgentlyCacheHandler");
                 if (handlerType == null)
                 {
-                    Log.Message(
-                        "[AllowToolHaulUrgentlyNreFixPatch] AllowTool.HaulUrgentlyCacheHandler not found; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.AllowTool,
+                        "Allow Tool Haul Urgently Fix",
+                        "Allow Tool (UnlimitedHugs.AllowTool)");
                     return;
                 }
 
@@ -41,8 +43,10 @@ namespace HSK.KebabTweaks
                     new[] { typeof(Map), typeof(ICollection<Thing>) });
                 if (target == null)
                 {
-                    Log.Warning(
-                        "[AllowToolHaulUrgentlyNreFixPatch] GetHaulUrgentlyDesignatedThings not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.AllowTool,
+                        "Allow Tool Haul Urgently Fix",
+                        "GetHaulUrgentlyDesignatedThings was not found.");
                     return;
                 }
 

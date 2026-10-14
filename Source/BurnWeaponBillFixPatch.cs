@@ -65,6 +65,10 @@ namespace HSK.KebabTweaks
             EnsureOriginalsCaptured();
             if (originalGiverWorkTypes == null || originalGiverWorkTypes.Count == 0)
             {
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.BurnWeapon,
+                    "Burn Weapon Bill Fix",
+                    FeatureAvailability.CoreSk);
                 return;
             }
 

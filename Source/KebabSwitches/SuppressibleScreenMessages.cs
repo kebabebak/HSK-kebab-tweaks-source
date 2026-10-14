@@ -50,12 +50,13 @@ namespace HSK.KebabTweaks.KebabSwitches
 
     /// <summary>
     /// Catalog of repeating upper-left screen Messages the player can mute. Includes Core plant-death
-    /// and storage-rot lines, the HSK fish-trap catch, Odyssey vacuum plant-death, and Enemy Self
-    /// Preservation injured-and-fleeing.
+    /// and storage-rot lines, ship chunks, bed assignment, mental-break recoveries, the HSK fish-trap
+    /// catch, Odyssey vacuum plant-death, and Enemy Self Preservation injured-and-fleeing.
     ///
     /// Каталог повторяющихся screen Messages слева сверху, которые игрок может отключить.
-    /// Включает гибель растений и гниение на складе из Core, поимку рыбы в ловушке HSK, гибель
-    /// растений от вакуума Odyssey и «ранен и бежит» Enemy Self Preservation.
+    /// Включает гибель растений и гниение на складе из Core, обломки корабля, назначение кровати,
+    /// окончание нервных срывов, поимку рыбы в ловушке HSK, гибель растений от вакуума Odyssey
+    /// и «ранен и бежит» Enemy Self Preservation.
     /// </summary>
     public static class SuppressibleScreenMessages
     {
@@ -125,6 +126,194 @@ namespace HSK.KebabTweaks.KebabSwitches
                 () => KebabTweaksSettings.SuppressSocialFightMessage,
                 v => KebabTweaksSettings.SuppressSocialFightMessage = v,
                 translationKey: "MessageSocialFight"),
+
+            new SuppressibleScreenMessageEntry(
+                "ShipChunkDrop",
+                "KebabSwitches.Ignore.ShipChunkDrop",
+                () => KebabTweaksSettings.SuppressShipChunkDropMessage,
+                v => KebabTweaksSettings.SuppressShipChunkDropMessage = v,
+                translationKey: "MessageShipChunkDrop"),
+
+            new SuppressibleScreenMessageEntry(
+                "StruckMineable",
+                "KebabSwitches.Ignore.StruckMineable",
+                () => KebabTweaksSettings.SuppressStruckMineableMessage,
+                v => KebabTweaksSettings.SuppressStruckMineableMessage = v,
+                translationKey: "StruckMineable"),
+
+            new SuppressibleScreenMessageEntry(
+                "BedLostAssignment",
+                "KebabSwitches.Ignore.BedLostAssignment",
+                () => KebabTweaksSettings.SuppressBedLostAssignmentMessage,
+                v => KebabTweaksSettings.SuppressBedLostAssignmentMessage = v,
+                translationKey: "MessageBedLostAssignment"),
+
+            new SuppressibleScreenMessageEntry(
+                "BedDestroyed",
+                "KebabSwitches.Ignore.BedDestroyed",
+                () => KebabTweaksSettings.SuppressBedDestroyedMessage,
+                v => KebabTweaksSettings.SuppressBedDestroyedMessage = v,
+                translationKey: "MessageBedDestroyed"),
+
+            new SuppressibleScreenMessageEntry(
+                "SleepingPawnsWokenUp",
+                "KebabSwitches.Ignore.SleepingPawnsWokenUp",
+                () => KebabTweaksSettings.SuppressSleepingPawnsWokenUpMessage,
+                v => KebabTweaksSettings.SuppressSleepingPawnsWokenUpMessage = v,
+                translationKey: "MessageSleepingPawnsWokenUp"),
+
+            new SuppressibleScreenMessageEntry(
+                "NoLongerSocialFighting",
+                "KebabSwitches.Ignore.NoLongerSocialFighting",
+                () => KebabTweaksSettings.SuppressNoLongerSocialFightingMessage,
+                v => KebabTweaksSettings.SuppressNoLongerSocialFightingMessage = v,
+                translationKey: "MessageNoLongerSocialFighting"),
+
+            new SuppressibleScreenMessageEntry(
+                "NoLongerTargetedInsult",
+                "KebabSwitches.Ignore.NoLongerTargetedInsult",
+                () => KebabTweaksSettings.SuppressNoLongerTargetedInsultMessage,
+                v => KebabTweaksSettings.SuppressNoLongerTargetedInsultMessage = v,
+                translationKey: "MessageNoLongerOnTargetedInsultingSpree"),
+
+            new SuppressibleScreenMessageEntry(
+                "InsultingSpreeEnded",
+                "KebabSwitches.Ignore.InsultingSpreeEnded",
+                () => KebabTweaksSettings.SuppressInsultingSpreeEndedMessage,
+                v => KebabTweaksSettings.SuppressInsultingSpreeEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer on an insulting spree."),
+
+            new SuppressibleScreenMessageEntry(
+                "TargetedInsultStreamEnded",
+                "KebabSwitches.Ignore.TargetedInsultStreamEnded",
+                () => KebabTweaksSettings.SuppressTargetedInsultStreamEndedMessage,
+                v => KebabTweaksSettings.SuppressTargetedInsultStreamEndedMessage = v),
+
+            new SuppressibleScreenMessageEntry(
+                "FoodBingeEnded",
+                "KebabSwitches.Ignore.FoodBingeEnded",
+                () => KebabTweaksSettings.SuppressFoodBingeEndedMessage,
+                v => KebabTweaksSettings.SuppressFoodBingeEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer pigging out on food."),
+
+            new SuppressibleScreenMessageEntry(
+                "NoLongerBingingOnDrug",
+                "KebabSwitches.Ignore.NoLongerBingingOnDrug",
+                () => KebabTweaksSettings.SuppressNoLongerBingingOnDrugMessage,
+                v => KebabTweaksSettings.SuppressNoLongerBingingOnDrugMessage = v,
+                translationKey: "MessageNoLongerBingingOnDrug"),
+
+            new SuppressibleScreenMessageEntry(
+                "BerserkEnded",
+                "KebabSwitches.Ignore.BerserkEnded",
+                () => KebabTweaksSettings.SuppressBerserkEndedMessage,
+                v => KebabTweaksSettings.SuppressBerserkEndedMessage = v,
+                hardcodedEnglish: "{0}'s berserk rage has come to an end."),
+
+            new SuppressibleScreenMessageEntry(
+                "FireStartingEnded",
+                "KebabSwitches.Ignore.FireStartingEnded",
+                () => KebabTweaksSettings.SuppressFireStartingEndedMessage,
+                v => KebabTweaksSettings.SuppressFireStartingEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer on a fire starting spree."),
+
+            new SuppressibleScreenMessageEntry(
+                "JailbreakerEnded",
+                "KebabSwitches.Ignore.JailbreakerEnded",
+                () => KebabTweaksSettings.SuppressJailbreakerEndedMessage,
+                v => KebabTweaksSettings.SuppressJailbreakerEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer inducing prisoners to escape."),
+
+            new SuppressibleScreenMessageEntry(
+                "SlaughtererEnded",
+                "KebabSwitches.Ignore.SlaughtererEnded",
+                () => KebabTweaksSettings.SuppressSlaughtererEndedMessage,
+                v => KebabTweaksSettings.SuppressSlaughtererEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer slaughtering random animals."),
+
+            new SuppressibleScreenMessageEntry(
+                "MurderousRageEnded",
+                "KebabSwitches.Ignore.MurderousRageEnded",
+                () => KebabTweaksSettings.SuppressMurderousRageEndedMessage,
+                v => KebabTweaksSettings.SuppressMurderousRageEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer in a murderous rage."),
+
+            new SuppressibleScreenMessageEntry(
+                "GiveUpReturned",
+                "KebabSwitches.Ignore.GiveUpReturned",
+                () => KebabTweaksSettings.SuppressGiveUpReturnedMessage,
+                v => KebabTweaksSettings.SuppressGiveUpReturnedMessage = v,
+                hardcodedEnglish: "{0} has had a change of heart and is coming back to the colony."),
+
+            new SuppressibleScreenMessageEntry(
+                "TantrumEnded",
+                "KebabSwitches.Ignore.TantrumEnded",
+                () => KebabTweaksSettings.SuppressTantrumEndedMessage,
+                v => KebabTweaksSettings.SuppressTantrumEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer having a tantrum."),
+
+            new SuppressibleScreenMessageEntry(
+                "RedirectedAnger",
+                "KebabSwitches.Ignore.RedirectedAnger",
+                () => KebabTweaksSettings.SuppressRedirectedAngerMessage,
+                v => KebabTweaksSettings.SuppressRedirectedAngerMessage = v,
+                translationKey: "MessageTargetedTantrumChangedTarget"),
+
+            new SuppressibleScreenMessageEntry(
+                "SadisticRageEnded",
+                "KebabSwitches.Ignore.SadisticRageEnded",
+                () => KebabTweaksSettings.SuppressSadisticRageEndedMessage,
+                v => KebabTweaksSettings.SuppressSadisticRageEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer in a sadistic rage."),
+
+            new SuppressibleScreenMessageEntry(
+                "CorpseObsessionEnded",
+                "KebabSwitches.Ignore.CorpseObsessionEnded",
+                () => KebabTweaksSettings.SuppressCorpseObsessionEndedMessage,
+                v => KebabTweaksSettings.SuppressCorpseObsessionEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer having a corpse obsession."),
+
+            new SuppressibleScreenMessageEntry(
+                "WanderSadEnded",
+                "KebabSwitches.Ignore.WanderSadEnded",
+                () => KebabTweaksSettings.SuppressWanderSadEndedMessage,
+                v => KebabTweaksSettings.SuppressWanderSadEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer wandering in sadness."),
+
+            new SuppressibleScreenMessageEntry(
+                "HideInRoomEnded",
+                "KebabSwitches.Ignore.HideInRoomEnded",
+                () => KebabTweaksSettings.SuppressHideInRoomEndedMessage,
+                v => KebabTweaksSettings.SuppressHideInRoomEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer hiding in {room} room."),
+
+            new SuppressibleScreenMessageEntry(
+                "PsychoticWanderEnded",
+                "KebabSwitches.Ignore.PsychoticWanderEnded",
+                () => KebabTweaksSettings.SuppressPsychoticWanderEndedMessage,
+                v => KebabTweaksSettings.SuppressPsychoticWanderEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer wandering in a psychotic state."),
+
+            new SuppressibleScreenMessageEntry(
+                "ConfusedEnded",
+                "KebabSwitches.Ignore.ConfusedEnded",
+                () => KebabTweaksSettings.SuppressConfusedEndedMessage,
+                v => KebabTweaksSettings.SuppressConfusedEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer confused."),
+
+            new SuppressibleScreenMessageEntry(
+                "PanicFleeEnded",
+                "KebabSwitches.Ignore.PanicFleeEnded",
+                () => KebabTweaksSettings.SuppressPanicFleeEndedMessage,
+                v => KebabTweaksSettings.SuppressPanicFleeEndedMessage = v,
+                hardcodedEnglish: "{0} is no longer fleeing in panic."),
+
+            new SuppressibleScreenMessageEntry(
+                "ManhunterEnded",
+                "KebabSwitches.Ignore.ManhunterEnded",
+                () => KebabTweaksSettings.SuppressManhunterEndedMessage,
+                v => KebabTweaksSettings.SuppressManhunterEndedMessage = v,
+                hardcodedEnglish: "{0}'s manhunting bloodlust has come to an end."),
 
             new SuppressibleScreenMessageEntry(
                 "NewBondRelation",

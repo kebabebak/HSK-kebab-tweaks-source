@@ -44,8 +44,10 @@ namespace HSK.KebabTweaks
                     new[] { typeof(Job), typeof(List<Thing>) });
                 if (target == null)
                 {
-                    Log.Message(
-                        "[DominantIngredientStuffFixPatch] Toils_Recipe.CalculateDominantIngredient not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.CraftStuff,
+                        "Craft Stuff Fix",
+                        "Toils_Recipe.CalculateDominantIngredient was not found.");
                     return;
                 }
 

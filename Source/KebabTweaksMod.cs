@@ -10,12 +10,12 @@ namespace HSK.KebabTweaks
     /// Combined kebab tweaks mod: kebab switches and the listed Harmony fixes in one package,
     /// one Harmony id, per-feature settings. Each feature keeps its own source file. Disabling
     /// this mod in the RimWorld mod list disables every bundled feature. If a superseded
-    /// standalone package is still active, that feature's Harmony is silently skipped.
+    /// standalone package is still active, that feature's Harmony is skipped and a warning is logged.
     ///
     /// Сборный мод kebab tweaks: kebab switches и перечисленные Harmony-фиксы в одном пакете,
     /// один Harmony id, настройки по фичам. Каждый feature остаётся в своём .cs. Выключение
     /// этого мода в списке модов RimWorld отключает все встроенные фичи. Если устаревший
-    /// отдельный package всё ещё активен - Harmony этой фичи тихо пропускается.
+    /// отдельный package всё ещё активен - Harmony этой фичи пропускается и пишется предупреждение.
     /// </summary>
     public class KebabTweaksMod : Mod
     {
@@ -105,9 +105,10 @@ namespace HSK.KebabTweaks
 
                 if (SupersededStandaloneMods.IsActive(SupersededStandaloneMods.KebabSwitches))
                 {
-                    Log.Message(
-                        "[HSK kebab tweaks] KebabSwitchesFeatures silent-skipped (standalone still active: " +
-                        SupersededStandaloneMods.KebabSwitches + ").");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.KebabSwitches,
+                        "Notifications",
+                        "standalone mod still active: " + SupersededStandaloneMods.KebabSwitches);
                 }
                 else
                 {
@@ -337,11 +338,11 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Silent-skips Harmony when the superseded standalone package is active. Otherwise
-        /// live patches always install hooks; restart patches install only when enabled.
+        /// Skips Harmony when the superseded standalone package is active and logs one warning.
+        /// Otherwise live patches always install hooks; restart patches install only when enabled.
         ///
-        /// Тихо пропускает Harmony, если активен устаревший отдельный package. Иначе live
-        /// всегда ставит хуки; restart - только если enable на загрузке.
+        /// Пропускает Harmony, если активен устаревший отдельный package, и пишет одно
+        /// предупреждение. Иначе live всегда ставит хуки; restart - только если enable на загрузке.
         /// </summary>
         private static void ApplyUnlessSuperseded(
             string supersededPackageId,
@@ -355,8 +356,10 @@ namespace HSK.KebabTweaks
             {
                 // Keep Applied* aligned with Enable* so yellow restart outline does not fire.
                 appliedAtLoad = enabled;
-                Log.Message(
-                    $"[HSK kebab tweaks] {name} silent-skipped (standalone still active: {supersededPackageId}).");
+                FeatureAvailability.SkipHandled(
+                    name,
+                    name,
+                    "standalone mod still active: " + supersededPackageId);
                 return;
             }
 
@@ -369,13 +372,27 @@ namespace HSK.KebabTweaks
                         $"[HSK kebab tweaks] {name} skipped (disabled in settings; restart to enable).");
                     return;
                 }
-
-                apply();
-                return;
+            }
+            else
+            {
+                appliedAtLoad = enabled;
             }
 
-            appliedAtLoad = enabled;
-            apply();
+            try
+            {
+                apply();
+            }
+            catch (TypeLoadException ex)
+            {
+                FeatureAvailability.SkipHandled(
+                    name,
+                    name,
+                    "required type was not loaded (" + ex.TypeName + ")");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[HSK kebab tweaks] " + name + " failed to apply: " + ex);
+            }
         }
 
         public override string SettingsCategory()

@@ -16,6 +16,7 @@ namespace HSK.KebabTweaks
     /// Event.current.mousePosition (вне scroll group). Неактивные иконки - пониженная альфа
     /// глифа, без тултипа.
     /// </summary>
+    [StaticConstructorOnStartup]
     public static class FixErrorTraceUi
     {
         public const float CopyButtonSize = 24f;

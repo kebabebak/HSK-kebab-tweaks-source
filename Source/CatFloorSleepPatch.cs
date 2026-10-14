@@ -31,12 +31,34 @@ namespace HSK.KebabTweaks
     {
         public static void Apply(Harmony harmony)
         {
+            if (AccessTools.TypeByName("SK.JobGiver_GetRestPawnBedOK") == null)
+            {
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.CatFloorSleep,
+                    "Cat Floor Sleep Fix",
+                    FeatureAvailability.CoreSk);
+                return;
+            }
+
+            ApplyWhenCoreSkPresent(harmony);
+        }
+
+        /// <summary>
+        /// Harmony hooks for JobGiver_GetRestPawnBedOK. Called only after that type has loaded.
+        ///
+        /// Хуки Harmony для JobGiver_GetRestPawnBedOK. Вызывается только после загрузки этого типа.
+        /// </summary>
+        static void ApplyWhenCoreSkPresent(Harmony harmony)
+        {
             try
             {
                 MethodBase tryGiveJob = AccessTools.Method(typeof(JobGiver_GetRestPawnBedOK), "TryGiveJob");
                 if (tryGiveJob == null)
                 {
-                    Log.Warning("[CatFloorSleepPatch] SK.JobGiver_GetRestPawnBedOK.TryGiveJob not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.CatFloorSleep,
+                        "Cat Floor Sleep Fix",
+                        "SK.JobGiver_GetRestPawnBedOK.TryGiveJob was not found.");
                     return;
                 }
 

@@ -44,8 +44,10 @@ namespace HSK.KebabTweaks
                     || AccessTools.Method(typeof(StartingPawnUtility), "NewGeneratedStartingPawn") == null
                     || AccessTools.Method(typeof(Page_ConfigureStartingPawns), "CanDoNext") == null)
                 {
-                    Log.Message(
-                        "[StartingPawnNameFixPatch] Name or starting-pawn APIs not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.StartingPawnName,
+                        "Starting Pawn Name Fix",
+                        "Name or starting-pawn APIs were not found.");
                     return;
                 }
 

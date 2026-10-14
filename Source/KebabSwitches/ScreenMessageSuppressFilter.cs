@@ -55,7 +55,10 @@ namespace HSK.KebabTweaks.KebabSwitches
                 if (!string.IsNullOrEmpty(entry.HardcodedEnglish))
                 {
                     AddExact(entry.Id, entry.HardcodedEnglish);
-                    AddPattern(entry.Id, FilledMapEnglishPattern);
+                    if (entry.Id == "FilledTheMap")
+                    {
+                        AddPattern(entry.Id, FilledMapEnglishPattern);
+                    }
                 }
 
                 if (!string.IsNullOrEmpty(entry.TranslationKey))
@@ -87,6 +90,54 @@ namespace HSK.KebabTweaks.KebabSwitches
 
             AddExact("SocialFight", "{PAWN1_labelShort} started a social fight with {PAWN2_labelShort}.");
             AddExact("SocialFight", "{PAWN1_labelShort} и {PAWN2_labelShort} повздорили.");
+
+            AddExact("ShipChunkDrop", "Chunks of a spacecraft have impacted nearby. You can deconstruct them to yield resources.");
+            AddExact("ShipChunkDrop", "Несколько обломков космического корабля упали с неба неподалёку. Их можно разобрать для получения ценных ресурсов.");
+
+            AddExact("StruckMineable", "We have struck {0}!");
+            AddExact("StruckMineable", "Мы обнаружили {lookup: {0}; Case; 3}!");
+
+            AddExact("BedLostAssignment", "{0} is no longer assigned to {1_nameDef}.");
+            AddExact("BedLostAssignment", "{0} более не назначена {1_nameDef}");
+
+            AddExact("BedDestroyed", "{0} assigned to {1_nameDef} was destroyed.");
+            AddExact("BedDestroyed", "{0}, назначенная {1_nameDef}, уничтожена.");
+
+            AddExact("SleepingPawnsWokenUp", "{0} have woken up.");
+            AddExact("SleepingPawnsWokenUp", "{0} пробудились.");
+
+            AddExact("NoLongerSocialFighting", "{PAWN1_labelShort} and {PAWN2_labelShort} are no longer social fighting.");
+            AddExact("NoLongerSocialFighting", "{PAWN1_labelShort} и {PAWN2_labelShort} прекратили драку.");
+
+            AddExact("NoLongerTargetedInsult", "{PAWN_labelShort} is no longer on an insulting spree against {TARGET_label}.");
+            AddExact("NoLongerTargetedInsult", "{PAWN_labelShort} больше не оскорбляет {TARGET_label}.");
+
+            AddExact("InsultingSpreeEnded", "{0} больше не оскорбляет всех подряд.");
+            AddExact("TargetedInsultStreamEnded", "{0} прекращает свой поток оскорблений.");
+            AddExact("FoodBingeEnded", "{0} перестаёт объедаться.");
+
+            AddExact("NoLongerBingingOnDrug", "{2_labelShort} is no longer binging on {1}.");
+            AddExact("NoLongerBingingOnDrug", "{2_labelShort} {2_gender ? прекратил : прекратила} бесконтрольно употреблять {lookup: {1}; Case; 3}.");
+
+            AddExact("BerserkEnded", "{0} успокаивается.");
+            AddExact("FireStartingEnded", "{0} больше не поджигает всё подряд.");
+            AddExact("JailbreakerEnded", "{0} больше не подстрекает пленников к побегу.");
+            AddExact("SlaughtererEnded", "{0} больше не убивает животных.");
+            AddExact("MurderousRageEnded", "{0} больше не испытывает гнев.");
+            AddExact("GiveUpReturned", "{0} меняет своё мнение и возвращается в поселение.");
+            AddExact("TantrumEnded", "{0} больше не бьётся в истерике.");
+            AddExact("RedirectedAnger",
+                "{PAWN_labelShort} couldn't reach {OLDTARGET_label} so {PAWN_pronoun} decided to redirect {PAWN_possessive} anger at {TARGET_label}.");
+            AddExact("RedirectedAnger",
+                "{PAWN_labelShort} не может добраться до {lookup: {OLDTARGET_label}; Case; 1} и направляет свою ярость на {lookup: {TARGET_label}; Case; 3}.");
+            AddExact("SadisticRageEnded", "{0} прекращает издеваться над пленниками.");
+            AddExact("CorpseObsessionEnded", "{0} больше не разоряет могилы.");
+            AddExact("WanderSadEnded", "{0} больше не грустит.");
+            AddExact("HideInRoomEnded", "{0} больше не прячется в своей комнате.");
+            AddExact("PsychoticWanderEnded", "{0} больше не испытывает растерянность.");
+            AddExact("ConfusedEnded", "{0} оправляется и возвращается.");
+            AddExact("PanicFleeEnded", "{0} больше не паникует.");
+            AddExact("ManhunterEnded", "{0} успокаивается, агрессия проходит.");
 
             AddExact("NewBondRelation", "{HUMAN_labelShort} and {ANIMAL_labelShort} have formed a bond.");
             AddExact("NewBondRelation", "{HUMAN_labelShort} и {ANIMAL_labelShort} привязались друг к другу.");
@@ -160,6 +211,7 @@ namespace HSK.KebabTweaks.KebabSwitches
 #if RIMWORLD_1_6
             AddExact("EspInjured", "{0} is injured and fleeing!");
 #endif
+            AddFromTranslationKey("RedirectedAnger", "MessageTargetedInsultingSpreeChangedTarget");
 
             foreach (string id in new List<string>(ExactById.Keys))
             {
@@ -246,6 +298,22 @@ namespace HSK.KebabTweaks.KebabSwitches
             catch (Exception)
             {
                 // Format-only keys still covered by hardcoded EN/RU templates.
+            }
+        }
+
+        public static void CollectExact(string id, List<string> target)
+        {
+            if (target == null || string.IsNullOrEmpty(id))
+            {
+                return;
+            }
+
+            if (ExactById.TryGetValue(id, out HashSet<string> exact))
+            {
+                foreach (string text in exact)
+                {
+                    target.Add(text);
+                }
             }
         }
 

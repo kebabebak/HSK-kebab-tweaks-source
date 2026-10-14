@@ -8,13 +8,17 @@ namespace HSK.KebabTweaks.KebabSwitches
     /// <summary>
     /// Problem: HSK / vanilla spam screen Messages, routine Letters, and HUD Alerts cannot be toggled off individually.
     ///
-    /// Fix: Harmony prefixes on Messages.Message, LetterStack.ReceiveLetter, and AlertsReadout.CheckAddOrRemoveAlert
-    /// suppress selected catalog entries when matching kebab-switch checkboxes are enabled.
+    /// Fix: Harmony prefixes on Messages.Message, LetterStack.ReceiveLetter (label and body, including a
+    /// letter object), and AlertsReadout.CheckAddOrRemoveAlert suppress selected catalog entries.
+    /// A message that repeats a letter body follows that letter checkbox. LettersOnGUI drops letters
+    /// the save already put on the stack.
     ///
     /// Проблема: spam screen Messages HSK/vanilla, рутинные Letters и HUD Alerts нельзя отключать по отдельности.
     ///
-    /// Исправление: Harmony Prefix на Messages.Message, LetterStack.ReceiveLetter и
-    /// AlertsReadout.CheckAddOrRemoveAlert подавляет выбранные записи каталога при включённых чекбоксах.
+    /// Исправление: Harmony Prefix на Messages.Message, LetterStack.ReceiveLetter (label и текст, в том
+    /// числе объект письма) и AlertsReadout.CheckAddOrRemoveAlert подавляет выбранные записи каталога.
+    /// Сообщение, повторяющее текст письма, слушает чекбокс этого письма. LettersOnGUI снимает письма,
+    /// которые сохранение уже положило в стопку.
     /// </summary>
     public static class KebabSwitchesFeatures
     {

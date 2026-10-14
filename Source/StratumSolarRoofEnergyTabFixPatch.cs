@@ -18,9 +18,10 @@ namespace HSK.KebabTweaks
     ///
     /// Fix: soft Postfix on Energy Tab GetTraderDefs / GetCurrentTrade plus Tick and
     /// History.UpdateThingCountAndMax. Adds one generation row using the kebab marker
-    /// ThingDef and watts from GetAdditionalPowerFor. Does not spawn a fake generator
-    /// or change Stratum PowerNet injection. Rooftop solar plants already have
-    /// CompPowerPlant. Soft skip if Energy Tab or Stratum is missing.
+    /// ThingDef and watts from GetAdditionalPowerFor. Tick aligns that row only on
+    /// Energy Tab chart samples, and skips once the row is already present. Does not
+    /// spawn a fake generator or change Stratum PowerNet injection. Rooftop solar
+    /// plants already have CompPowerPlant. Soft skip if Energy Tab or Stratum is missing.
     ///
     /// Проблема: плитки солнечной крыши Stratum кормят PowerNet.CurrentEnergyGainRate из
     /// SolarRoofMapComponent, батареи заряжаются, но Energy Tab суммирует только здания
@@ -28,9 +29,10 @@ namespace HSK.KebabTweaks
     ///
     /// Исправление: soft Postfix GetTraderDefs / GetCurrentTrade плюс Tick и
     /// History.UpdateThingCountAndMax. Одна строка легенды на маркерном ThingDef kebab
-    /// и ватты из GetAdditionalPowerFor. Фейковый генератор не спавнится, впрыск Stratum
-    /// в PowerNet не меняется. Крышные панели-здания с CompPowerPlant уже есть. Skip,
-    /// если нет Energy Tab или Stratum.
+    /// и ватты из GetAdditionalPowerFor. Tick выравнивает строку только в точках
+    /// графика Energy Tab и пропускает её, когда строка уже есть. Фейковый генератор
+    /// не спавнится, впрыск Stratum в PowerNet не меняется. Крышные панели-здания с
+    /// CompPowerPlant уже есть. Skip, если нет Energy Tab или Stratum.
     /// </summary>
     public static class StratumSolarRoofEnergyTabFixFeatures
     {
@@ -50,6 +52,12 @@ namespace HSK.KebabTweaks
         private static MethodInfo addShownChapterMethod;
         private static ConstructorInfo chapterCtor;
         private static Map lastTickMap;
+        private static object chapterReadyTab;
+        private static FieldInfo chartUpdateRateField;
+        private static FieldInfo chartUpdatesEnabledField;
+        private static int chartUpdateRate = 200;
+        private static bool chartUpdatesEnabled = true;
+        private static int nextChartSettingsReadTick;
 
         public static void Apply(Harmony harmony)
         {
@@ -59,17 +67,23 @@ namespace HSK.KebabTweaks
                 historyType = AccessTools.TypeByName("EnergyTab.History");
                 solarRoofMapComponentType =
                     AccessTools.TypeByName("SolarWeb.Stratum.MapComponents.SolarRoofMapComponent");
+                var missingMods = new System.Collections.Generic.List<string>();
                 if (tabType == null || historyType == null)
                 {
-                    Log.Message(
-                        "[StratumSolarRoofEnergyTabFixPatch] Energy Tab not loaded; patch skipped.");
-                    return;
+                    missingMods.Add("Energy Tab (glucocorticoid.energytab)");
                 }
 
                 if (solarRoofMapComponentType == null)
                 {
-                    Log.Message(
-                        "[StratumSolarRoofEnergyTabFixPatch] Stratum solar roof component not loaded; patch skipped.");
+                    missingMods.Add("Stratum (SolarWeb.Stratum)");
+                }
+
+                if (missingMods.Count > 0)
+                {
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.StratumSolar,
+                        "Stratum Solar Roof Energy Tab Fix",
+                        missingMods.ToArray());
                     return;
                 }
 
@@ -109,8 +123,10 @@ namespace HSK.KebabTweaks
                     || traderDefsField == null || tradingHistoryField == null || chaptersField == null
                     || getAdditionalPowerForMethod == null)
                 {
-                    Log.Message(
-                        "[StratumSolarRoofEnergyTabFixPatch] Energy Tab power members missing; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.StratumSolar,
+                        "Stratum Solar Roof Energy Tab Fix",
+                        "Energy Tab power members were not found.");
                     return;
                 }
 
@@ -144,15 +160,51 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// True on ticks when Energy Tab records a chart point. Settings are reread
+        /// every 200 ticks so a slider change still applies.
+        ///
+        /// Истина в те тики, когда Energy Tab пишет точку графика. Настройки
+        /// перечитываются каждые 200 тиков, чтобы сдвиг ползунка применился.
+        /// </summary>
+        internal static bool ChartSampleDue()
+        {
+            int tick = Find.TickManager?.TicksGame ?? -1;
+            if (tick < 0)
+            {
+                return false;
+            }
+
+            if (tick >= nextChartSettingsReadTick)
+            {
+                ReadChartSettings();
+                nextChartSettingsReadTick = tick + 200;
+            }
+
+            if (!chartUpdatesEnabled || chartUpdateRate < 1)
+            {
+                return false;
+            }
+
+            return tick % chartUpdateRate == 0;
+        }
+
+        /// <summary>
         /// Keeps the Energy Tab trader list and history chapters aligned with the solar roof
         /// marker so a loaded save whose History was scribed without that chapter does not
-        /// mismatch Update array lengths.
+        /// mismatch Update array lengths. Once that chapter is on this tab, later calls return
+        /// without reading fields.
         ///
         /// Держит список трейдеров Energy Tab и главы истории на маркере солнечной крыши,
-        /// чтобы сейв без этой главы не расходился по длине массива Update.
+        /// чтобы сейв без этой главы не расходился по длине массива Update. Когда глава
+        /// уже есть на этой вкладке, следующие вызовы поля не читают.
         /// </summary>
         internal static void EnsureSolarRoofChapter(object tab)
         {
+            if (tab != null && ReferenceEquals(chapterReadyTab, tab))
+            {
+                return;
+            }
+
             try
             {
                 ThingDef marker = MarkerDef();
@@ -190,6 +242,7 @@ namespace HSK.KebabTweaks
 
                 if (FindChapterIndex(history, marker) >= 0)
                 {
+                    chapterReadyTab = tab;
                     return;
                 }
 
@@ -206,6 +259,8 @@ namespace HSK.KebabTweaks
                 {
                     addShownChapterMethod.Invoke(history, new[] { chapter });
                 }
+
+                chapterReadyTab = tab;
             }
             catch (Exception e)
             {
@@ -329,6 +384,49 @@ namespace HSK.KebabTweaks
             return -1;
         }
 
+        /// <summary>
+        /// Reads Energy Tab chart interval and the updates toggle. Missing fields fall
+        /// back to sampling every tick.
+        ///
+        /// Читает интервал графика Energy Tab и переключатель обновлений. Если полей
+        /// нет, точка берётся каждый тик.
+        /// </summary>
+        private static void ReadChartSettings()
+        {
+            if (chartUpdateRateField == null || chartUpdatesEnabledField == null)
+            {
+                Type settingsType = AccessTools.TypeByName("EnergyTab.EnergyTab_Settings");
+                chartUpdateRateField = AccessTools.Field(settingsType, "chartsUpdateRatePerTicks");
+                chartUpdatesEnabledField = AccessTools.Field(settingsType, "enableUpdates");
+            }
+
+            if (chartUpdateRateField == null || chartUpdatesEnabledField == null)
+            {
+                chartUpdatesEnabled = true;
+                chartUpdateRate = 1;
+                return;
+            }
+
+            try
+            {
+                if (chartUpdatesEnabledField.GetValue(null) is bool enabled)
+                {
+                    chartUpdatesEnabled = enabled;
+                }
+
+                if (chartUpdateRateField.GetValue(null) is int rate && rate > 0)
+                {
+                    chartUpdateRate = rate;
+                }
+            }
+            catch (Exception e)
+            {
+                Log.ErrorOnce(
+                    "[StratumSolarRoofEnergyTabFixPatch] Failed to read Energy Tab chart interval: " + e,
+                    "StratumSolarRoofEnergyTabFix_Chart".GetHashCode());
+            }
+        }
+
         private static object SolarComp(Map map)
         {
             if (map == null || solarRoofMapComponentType == null)
@@ -364,8 +462,21 @@ namespace HSK.KebabTweaks
             __result = list;
         }
 
+        /// <summary>
+        /// Aligns the roof row only on Energy Tab chart samples. Other ticks return
+        /// without reading the tab. A sample whose row is already present does not
+        /// walk the history.
+        ///
+        /// Выравнивает строку крыши только в точках графика Energy Tab. В остальные
+        /// тики вкладка не читается. Если строка уже есть, история не обходится.
+        /// </summary>
         public static void Tick_Prefix(object __instance)
         {
+            if (!StratumSolarRoofEnergyTabFixFeatures.ChartSampleDue())
+            {
+                return;
+            }
+
             StratumSolarRoofEnergyTabFixFeatures.RememberTickMap(__instance);
             StratumSolarRoofEnergyTabFixFeatures.EnsureSolarRoofChapter(__instance);
         }

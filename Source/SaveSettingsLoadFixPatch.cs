@@ -287,7 +287,9 @@ namespace HSK.KebabTweaks
             Type ioUtil = AccessTools.TypeByName(IoUtilTypeName);
             if (ioUtil == null)
             {
-                Log.Message("[SaveSettingsLoadFixPatch] Save Storage Settings not loaded; IOUtil guards skipped.");
+                FeatureAvailability.WarnOnce(
+                    "SaveSettingsIoUtil",
+                    "[HSK kebab tweaks] Save Settings Load Fix: Save Storage Settings (savestoragesettings.kv.rw.fishtmp) is not loaded; IOUtil guards skipped.");
                 return;
             }
 

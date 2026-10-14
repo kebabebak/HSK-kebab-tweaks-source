@@ -33,8 +33,10 @@ namespace HSK.KebabTweaks
                 profileControllerType = AccessTools.TypeByName("Analyzer.Profiling.ProfileController");
                 if (profileControllerType == null)
                 {
-                    Log.Message(
-                        "[DubsAnalyzerBeginUpdateFixPatch] ProfileController not found; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.DubsAnalyzer,
+                        "Dubs Analyzer Begin Update Fix",
+                        "Dubs Performance Analyzer (Dubwise.DubsPerformanceAnalyzer.steam)");
                     return;
                 }
 
@@ -43,8 +45,10 @@ namespace HSK.KebabTweaks
                 midUpdateField = AccessTools.Field(profileControllerType, "midUpdate");
                 if (beginUpdate == null || endUpdateMethod == null || midUpdateField == null)
                 {
-                    Log.Warning(
-                        "[DubsAnalyzerBeginUpdateFixPatch] BeginUpdate/EndUpdate/midUpdate not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.DubsAnalyzer,
+                        "Dubs Analyzer Begin Update Fix",
+                        "BeginUpdate, EndUpdate, or midUpdate was not found.");
                     return;
                 }
 

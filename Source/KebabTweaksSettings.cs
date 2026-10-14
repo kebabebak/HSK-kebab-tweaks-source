@@ -177,6 +177,33 @@ namespace HSK.KebabTweaks
         public static bool SuppressBillCompleteMessage;
         public static bool SuppressFullyHealedMessage;
         public static bool SuppressSocialFightMessage;
+        public static bool SuppressShipChunkDropMessage;
+        public static bool SuppressStruckMineableMessage;
+        public static bool SuppressBedLostAssignmentMessage;
+        public static bool SuppressBedDestroyedMessage;
+        public static bool SuppressSleepingPawnsWokenUpMessage;
+        public static bool SuppressNoLongerSocialFightingMessage;
+        public static bool SuppressNoLongerTargetedInsultMessage;
+        public static bool SuppressInsultingSpreeEndedMessage;
+        public static bool SuppressTargetedInsultStreamEndedMessage;
+        public static bool SuppressFoodBingeEndedMessage;
+        public static bool SuppressNoLongerBingingOnDrugMessage;
+        public static bool SuppressBerserkEndedMessage;
+        public static bool SuppressFireStartingEndedMessage;
+        public static bool SuppressJailbreakerEndedMessage;
+        public static bool SuppressSlaughtererEndedMessage;
+        public static bool SuppressMurderousRageEndedMessage;
+        public static bool SuppressGiveUpReturnedMessage;
+        public static bool SuppressTantrumEndedMessage;
+        public static bool SuppressRedirectedAngerMessage;
+        public static bool SuppressSadisticRageEndedMessage;
+        public static bool SuppressCorpseObsessionEndedMessage;
+        public static bool SuppressWanderSadEndedMessage;
+        public static bool SuppressHideInRoomEndedMessage;
+        public static bool SuppressPsychoticWanderEndedMessage;
+        public static bool SuppressConfusedEndedMessage;
+        public static bool SuppressPanicFleeEndedMessage;
+        public static bool SuppressManhunterEndedMessage;
         public static bool SuppressNewBondRelationMessage;
         public static bool SuppressNewBondRelationNewNameMessage;
         public static bool SuppressFoodPoisoningMessage;
@@ -304,6 +331,30 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// True when the fix may change the game. A missing dependency blocks it even when
+        /// the Obsolete section is on and the leftover checkbox is on. The row stays under
+        /// Obsolete.
+        ///
+        /// True, когда фикс может менять игру. Недостающая зависимость блокирует его, даже
+        /// если раздел «Устаревшие» включён и leftover-чекбокс тоже. Строка остаётся в
+        /// «Устаревших».
+        /// </summary>
+        static bool IsFixRunning(bool enableFlag, bool leftover, string availabilityId)
+        {
+            if (FeatureAvailability.IsBlocked(availabilityId))
+            {
+                return false;
+            }
+
+            if (leftover)
+            {
+                return IsObsoleteFixEnabled(enableFlag);
+            }
+
+            return enableFlag;
+        }
+
+        /// <summary>
         /// True when Cat Crazy Time hooks should run: current enable when the load-reroll
         /// symptom is still present; Obsolete section plus leftover enable when SK already
         /// keeps saved num.
@@ -313,12 +364,10 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static bool IsCatCrazyTimeEnabled()
         {
-            if (FixSymptomProbe.IsCatCrazyTimeLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableCatCrazyTime);
-            }
-
-            return EnableCatCrazyTime;
+            return IsFixRunning(
+                EnableCatCrazyTime,
+                FixSymptomProbe.IsCatCrazyTimeLeftover(),
+                FeatureAvailability.CatCrazyTime);
         }
 
         /// <summary>
@@ -332,12 +381,10 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static bool IsSeedsPleaseSowFixEnabled()
         {
-            if (FixSymptomProbe.IsSeedsPleaseSowFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableSeedsPleaseSowFix);
-            }
-
-            return EnableSeedsPleaseSowFix;
+            return IsFixRunning(
+                EnableSeedsPleaseSowFix,
+                FixSymptomProbe.IsSeedsPleaseSowFixLeftover(),
+                FeatureAvailability.SeedsPlease);
         }
 
         /// <summary>
@@ -351,12 +398,10 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static bool IsDominantIngredientStuffFixEnabled()
         {
-            if (FixSymptomProbe.IsCraftStuffFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableDominantIngredientStuffFix);
-            }
-
-            return EnableDominantIngredientStuffFix;
+            return IsFixRunning(
+                EnableDominantIngredientStuffFix,
+                FixSymptomProbe.IsCraftStuffFixLeftover(),
+                FeatureAvailability.CraftStuff);
         }
 
         /// <summary>
@@ -370,12 +415,10 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static bool IsStartingPawnNameFixEnabled()
         {
-            if (FixSymptomProbe.IsStartingPawnNameFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableStartingPawnNameFix);
-            }
-
-            return EnableStartingPawnNameFix;
+            return IsFixRunning(
+                EnableStartingPawnNameFix,
+                FixSymptomProbe.IsStartingPawnNameFixLeftover(),
+                FeatureAvailability.StartingPawnName);
         }
 
         /// <summary>
@@ -389,43 +432,35 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static bool IsStartingPawnChildAgeFixEnabled()
         {
-            if (FixSymptomProbe.IsStartingPawnChildAgeFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableStartingPawnChildAgeFix);
-            }
-
-            return EnableStartingPawnChildAgeFix;
+            return IsFixRunning(
+                EnableStartingPawnChildAgeFix,
+                FixSymptomProbe.IsStartingPawnChildAgeFixLeftover(),
+                FeatureAvailability.StartingPawnChildAge);
         }
 
 #if RIMWORLD_1_6
         public static bool IsBurnWeaponBillFixEnabled()
         {
-            if (FixSymptomProbe.IsBurnWeaponBillFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableBurnWeaponBillFix);
-            }
-
-            return EnableBurnWeaponBillFix;
+            return IsFixRunning(
+                EnableBurnWeaponBillFix,
+                FixSymptomProbe.IsBurnWeaponBillFixLeftover(),
+                FeatureAvailability.BurnWeapon);
         }
 
         public static bool IsBreachAxeWorkAmountFixEnabled()
         {
-            if (FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableBreachAxeWorkAmountFix);
-            }
-
-            return EnableBreachAxeWorkAmountFix;
+            return IsFixRunning(
+                EnableBreachAxeWorkAmountFix,
+                FixSymptomProbe.IsBreachAxeWorkAmountFixLeftover(),
+                FeatureAvailability.BreachAxe);
         }
 
         public static bool IsRawFungusBillFixEnabled()
         {
-            if (FixSymptomProbe.IsRawFungusBillFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableRawFungusBillFix);
-            }
-
-            return EnableRawFungusBillFix;
+            return IsFixRunning(
+                EnableRawFungusBillFix,
+                FixSymptomProbe.IsRawFungusBillFixLeftover(),
+                FeatureAvailability.RawFungus);
         }
 
         /// <summary>
@@ -439,12 +474,10 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static bool IsAnomalyEspFleeFixEnabled()
         {
-            if (FixSymptomProbe.IsAnomalyEspFleeFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableAnomalyEspFleeFix);
-            }
-
-            return EnableAnomalyEspFleeFix;
+            return IsFixRunning(
+                EnableAnomalyEspFleeFix,
+                FixSymptomProbe.IsAnomalyEspFleeFixLeftover(),
+                FeatureAvailability.AnomalyEsp);
         }
 
         /// <summary>
@@ -458,12 +491,10 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static bool IsMainMenuBgFitFixEnabled()
         {
-            if (FixSymptomProbe.IsMainMenuBgFitFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableMainMenuBgFitFix);
-            }
-
-            return EnableMainMenuBgFitFix;
+            return IsFixRunning(
+                EnableMainMenuBgFitFix,
+                FixSymptomProbe.IsMainMenuBgFitFixLeftover(),
+                FeatureAvailability.MainMenuBg);
         }
 
         /// <summary>
@@ -475,12 +506,10 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static bool IsUfFillExtraIngredientsFixEnabled()
         {
-            if (FixSymptomProbe.IsUfFillFixLeftover())
-            {
-                return IsObsoleteFixEnabled(EnableUfFillExtraIngredientsFix);
-            }
-
-            return EnableUfFillExtraIngredientsFix;
+            return IsFixRunning(
+                EnableUfFillExtraIngredientsFix,
+                FixSymptomProbe.IsUfFillFixLeftover(),
+                FeatureAvailability.UfFill);
         }
 #endif
 
@@ -572,6 +601,7 @@ namespace HSK.KebabTweaks
 
         public void DrawSettings(Rect inRect)
         {
+            ClearAlwaysInteractiveRects();
             FixErrorTraceUi.BeginHoverFrame();
             FixErrorTraceUi.SetDrawBounds(inRect);
             Text.Font = GameFont.Small;
@@ -781,7 +811,8 @@ namespace HSK.KebabTweaks
                         DefaultLowTpsLogCooldownSeconds);
                     listing.Gap(SettingsCheckboxRowGap);
                 },
-                leadingSpacer: false);
+                leadingSpacer: false,
+                availabilityId: FeatureAvailability.LowTps);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.DrillLimit".Translate(),
@@ -822,7 +853,8 @@ namespace HSK.KebabTweaks
                         DefaultDrillLimitMax);
 
                     listing.Gap(SettingsCheckboxRowGap);
-                });
+                },
+                availabilityId: FeatureAvailability.DrillLimit);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.IdleWorkSearchCooldown".Translate(),
@@ -848,7 +880,8 @@ namespace HSK.KebabTweaks
                         MaxIdleWorkSearchCooldownTicks,
                         DefaultIdleWorkSearchCooldownTicks);
                     listing.Gap(SettingsCheckboxRowGap);
-                });
+                },
+                availabilityId: FeatureAvailability.IdleWorkSearch);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.GrowerCutTrees".Translate(),
@@ -859,7 +892,8 @@ namespace HSK.KebabTweaks
                 {
                     DrawSettingsEnableLoggingCheckboxRow(listing, "GrowerCutTreesPatch.EnableLogging".Translate(),
                         () => GrowerCutTreesEnableLogging, v => GrowerCutTreesEnableLogging = v);
-                });
+                },
+                availabilityId: FeatureAvailability.Grower);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.StartingCorpsesNoHaul".Translate(),
@@ -871,7 +905,8 @@ namespace HSK.KebabTweaks
                 {
                     DrawStartingCorpseMarkModeRow(listing);
                 },
-                researchLink: FeatureResearchLinkCatalog.StartingCorpsesNoHaul);
+                researchLink: FeatureResearchLinkCatalog.StartingCorpsesNoHaul,
+                availabilityId: FeatureAvailability.StartingCorpses);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.ApparelPolicyLoad".Translate(),
@@ -879,14 +914,16 @@ namespace HSK.KebabTweaks
                 null,
                 ref EnableApparelPolicyLoadFix, AppliedApparelPolicyLoadFix, true, false, ResetApparelPolicyLoadFix,
                 null,
-                researchLink: FeatureResearchLinkCatalog.ApparelPolicyLoadFix);
+                researchLink: FeatureResearchLinkCatalog.ApparelPolicyLoadFix,
+                availabilityId: FeatureAvailability.ApparelPolicy);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.BillRenamePrefill".Translate(),
                 "KebabTweaks.Patch.BillRenamePrefill.Tooltip".Translate(),
                 null,
                 ref EnableBillRenamePrefill, AppliedBillRenamePrefill, true, false, ResetBillRenamePrefill,
-                null);
+                null,
+                availabilityId: FeatureAvailability.BillRename);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.RecipeProductDropLostLog".Translate(),
@@ -894,7 +931,8 @@ namespace HSK.KebabTweaks
                 null,
                 ref EnableRecipeProductDropLostLog, AppliedRecipeProductDropLostLog, true, false,
                 ResetRecipeProductDropLostLog,
-                null);
+                null,
+                availabilityId: FeatureAvailability.RecipeDrop);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.NumbersLoadDefaultFallback".Translate(),
@@ -903,7 +941,8 @@ namespace HSK.KebabTweaks
                 ref EnableNumbersLoadDefaultFallback, AppliedNumbersLoadDefaultFallback, true, false,
                 ResetNumbersLoadDefaultFallback,
                 null,
-                researchLink: FeatureResearchLinkCatalog.NumbersLoadDefaultFallback);
+                researchLink: FeatureResearchLinkCatalog.NumbersLoadDefaultFallback,
+                availabilityId: FeatureAvailability.Numbers);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.AndroidEnlightenFix".Translate(),
@@ -912,7 +951,8 @@ namespace HSK.KebabTweaks
                 ref EnableAndroidEnlightenFix, AppliedAndroidEnlightenFix,
                 true, false, ResetAndroidEnlightenFix,
                 null,
-                researchLink: FeatureResearchLinkCatalog.AndroidEnlightenFix);
+                researchLink: FeatureResearchLinkCatalog.AndroidEnlightenFix,
+                availabilityId: FeatureAvailability.AndroidEnlighten);
             AndroidEnlightenFixFeatures.SyncGivers();
             DrawCompatibilityPatchesSection(listing, fullWidth);
         }
@@ -945,7 +985,8 @@ namespace HSK.KebabTweaks
                         "KebabTweaks.WikiRim.MultilingualSearch.Tooltip".Translate());
                 },
                 headerSuffix: " " + "KebabTweaks.Patch.WikiRim.PackageSuffix".Translate(),
-                headerSuffixTooltip: "KebabTweaks.Patch.WikiRim.PackageSuffixTooltip".Translate());
+                headerSuffixTooltip: "KebabTweaks.Patch.WikiRim.PackageSuffixTooltip".Translate(),
+                availabilityId: FeatureAvailability.WikiRim);
         }
 
         private void DrawFixesTabContents(Listing_Standard listing, float fullWidth)
@@ -978,7 +1019,9 @@ namespace HSK.KebabTweaks
                 },
                 FixErrorTraceCatalog.TakeFromMending, FixErrorTraceCatalog.TakeFromMendingTipId,
                 leadingSpacer: !firstHeaderOnTab,
-                researchLink: FeatureResearchLinkCatalog.TakeFromMending);
+                researchLink: FeatureResearchLinkCatalog.TakeFromMending,
+                availabilityId: FeatureAvailability.TakeFromMending,
+                trailingSuffix: " " + "KebabTweaks.HeaderSuffix.Only15".Translate());
             firstHeaderOnTab = false;
 #endif
             if (!FixSymptomProbe.IsCatCrazyTimeLeftover())
@@ -999,7 +1042,8 @@ namespace HSK.KebabTweaks
                         () => CatFloorSleepEnableLogging, v => CatFloorSleepEnableLogging = v,
                         "CatFloorSleepPatch.EnableLoggingTooltip".Translate());
                 },
-                FixErrorTraceCatalog.CatFloorSleep, FixErrorTraceCatalog.CatFloorSleepTipId);
+                FixErrorTraceCatalog.CatFloorSleep, FixErrorTraceCatalog.CatFloorSleepTipId,
+                availabilityId: FeatureAvailability.CatFloorSleep);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.TradeCaravanLordFix".Translate(),
@@ -1012,7 +1056,8 @@ namespace HSK.KebabTweaks
                         () => TradeCaravanLordEnableLogging, v => TradeCaravanLordEnableLogging = v,
                         "TradeCaravanLordFixPatch.EnableLoggingTooltip".Translate());
                 },
-                FixErrorTraceCatalog.TradeCaravanLordFix, FixErrorTraceCatalog.TradeCaravanLordFixTipId);
+                FixErrorTraceCatalog.TradeCaravanLordFix, FixErrorTraceCatalog.TradeCaravanLordFixTipId,
+                availabilityId: FeatureAvailability.TradeCaravan);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.CompressibleOverlapFix".Translate(),
@@ -1028,7 +1073,8 @@ namespace HSK.KebabTweaks
                         "KebabTweaks.Patch.CompressibleOverlapFix.EnableLoggingTooltip".Translate());
                 },
                 FixErrorTraceCatalog.CompressibleOverlapFix, FixErrorTraceCatalog.CompressibleOverlapFixTipId,
-                researchLink: FeatureResearchLinkCatalog.CompressibleOverlapFix);
+                researchLink: FeatureResearchLinkCatalog.CompressibleOverlapFix,
+                availabilityId: FeatureAvailability.Compressible);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.TraderCaravanStayFix".Translate(),
@@ -1036,7 +1082,8 @@ namespace HSK.KebabTweaks
                 null,
                 ref EnableTraderCaravanStayFix, AppliedTraderCaravanStayFix, true, false,
                 ResetTraderCaravanStayFix,
-                null);
+                null,
+                availabilityId: FeatureAvailability.TraderStay);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.RatkinMercenaryAgeFix".Translate(),
@@ -1046,7 +1093,8 @@ namespace HSK.KebabTweaks
                 ResetRatkinMercenaryAgeFix,
                 null,
                 FixErrorTraceCatalog.RatkinMercenaryAgeFix,
-                FixErrorTraceCatalog.RatkinMercenaryAgeFixTipId);
+                FixErrorTraceCatalog.RatkinMercenaryAgeFixTipId,
+                availabilityId: FeatureAvailability.Ratkin);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.ArmorRacksAssignFix".Translate(),
@@ -1055,7 +1103,8 @@ namespace HSK.KebabTweaks
                 ref EnableArmorRacksAssignFix, AppliedArmorRacksAssignFix, true, false, ResetArmorRacksAssignFix,
                 null,
                 FixErrorTraceCatalog.ArmorRacksAssignFix, FixErrorTraceCatalog.ArmorRacksAssignFixTipId,
-                researchLink: FeatureResearchLinkCatalog.ArmorRacksAssignFix);
+                researchLink: FeatureResearchLinkCatalog.ArmorRacksAssignFix,
+                availabilityId: FeatureAvailability.ArmorRacks);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.SaveSettingsLoadFix".Translate(),
@@ -1066,7 +1115,8 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.SaveSettingsLoadFix,
                 FixErrorTraceCatalog.SaveSettingsLoadFixTipId,
-                researchLink: FeatureResearchLinkCatalog.SaveSettingsLoadFix);
+                researchLink: FeatureResearchLinkCatalog.SaveSettingsLoadFix,
+                availabilityId: FeatureAvailability.SaveSettings);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.StorageSettingsAllowedToAcceptFix".Translate(),
@@ -1076,7 +1126,8 @@ namespace HSK.KebabTweaks
                 true, false, ResetStorageSettingsAllowedToAcceptFix,
                 null,
                 FixErrorTraceCatalog.StorageSettingsAllowedToAcceptFix,
-                FixErrorTraceCatalog.StorageSettingsAllowedToAcceptFixTipId);
+                FixErrorTraceCatalog.StorageSettingsAllowedToAcceptFixTipId,
+                availabilityId: FeatureAvailability.StorageSettings);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.CeRunForCoverDestFix".Translate(),
@@ -1084,7 +1135,8 @@ namespace HSK.KebabTweaks
                 SupersededStandaloneMods.CeRunForCoverDestFix,
                 ref EnableCeRunForCoverDestFix, AppliedCeRunForCoverDestFix, true, false, ResetCeRunForCoverDestFix,
                 null,
-                FixErrorTraceCatalog.CeRunForCoverDestFix, FixErrorTraceCatalog.CeRunForCoverDestFixTipId);
+                FixErrorTraceCatalog.CeRunForCoverDestFix, FixErrorTraceCatalog.CeRunForCoverDestFixTipId,
+                availabilityId: FeatureAvailability.CeRunForCover);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.CeProjectileNullSoundFix".Translate(),
@@ -1094,7 +1146,8 @@ namespace HSK.KebabTweaks
                 ResetCeProjectileNullSoundFix,
                 null,
                 FixErrorTraceCatalog.CeProjectileNullSoundFix,
-                FixErrorTraceCatalog.CeProjectileNullSoundFixTipId);
+                FixErrorTraceCatalog.CeProjectileNullSoundFixTipId,
+                availabilityId: FeatureAvailability.CeProjectile);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.CeExtendedLoadoutMedicineLabelFix".Translate(),
@@ -1105,7 +1158,8 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.CeExtendedLoadoutMedicineLabelFix,
                 FixErrorTraceCatalog.CeExtendedLoadoutMedicineLabelFixTipId,
-                researchLink: FeatureResearchLinkCatalog.CeExtendedLoadoutMedicineLabelFix);
+                researchLink: FeatureResearchLinkCatalog.CeExtendedLoadoutMedicineLabelFix,
+                availabilityId: FeatureAvailability.CeExtendedLoadout);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.FishTableTypeListFix".Translate(),
@@ -1113,7 +1167,8 @@ namespace HSK.KebabTweaks
                 SupersededStandaloneMods.FishTableTypeListFix,
                 ref EnableFishTableTypeListFix, AppliedFishTableTypeListFix, true, false, ResetFishTableTypeListFix,
                 null,
-                FixErrorTraceCatalog.FishTableTypeListFix, FixErrorTraceCatalog.FishTableTypeListFixTipId);
+                FixErrorTraceCatalog.FishTableTypeListFix, FixErrorTraceCatalog.FishTableTypeListFixTipId,
+                availabilityId: FeatureAvailability.FishTable);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.GetActiveRitualsFix".Translate(),
@@ -1121,7 +1176,8 @@ namespace HSK.KebabTweaks
                 SupersededStandaloneMods.GetActiveRitualsFix,
                 ref EnableGetActiveRitualsFix, AppliedGetActiveRitualsFix, true, false, ResetGetActiveRitualsFix,
                 null,
-                FixErrorTraceCatalog.GetActiveRitualsFix, FixErrorTraceCatalog.GetActiveRitualsFixTipId);
+                FixErrorTraceCatalog.GetActiveRitualsFix, FixErrorTraceCatalog.GetActiveRitualsFixTipId,
+                availabilityId: FeatureAvailability.GetActiveRituals);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.IdleErrorWanderFix".Translate(),
@@ -1129,7 +1185,8 @@ namespace HSK.KebabTweaks
                 SupersededStandaloneMods.IdleErrorWanderFix,
                 ref EnableIdleErrorWanderFix, AppliedIdleErrorWanderFix, true, false, ResetIdleErrorWanderFix,
                 null,
-                FixErrorTraceCatalog.IdleErrorWanderFix, FixErrorTraceCatalog.IdleErrorWanderFixTipId);
+                FixErrorTraceCatalog.IdleErrorWanderFix, FixErrorTraceCatalog.IdleErrorWanderFixTipId,
+                availabilityId: FeatureAvailability.IdleErrorWander);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.AllowToolHaulUrgentlyNreFix".Translate(),
@@ -1139,7 +1196,8 @@ namespace HSK.KebabTweaks
                 true, false, ResetAllowToolHaulUrgentlyNreFix,
                 null,
                 FixErrorTraceCatalog.AllowToolHaulUrgentlyNreFix,
-                FixErrorTraceCatalog.AllowToolHaulUrgentlyNreFixTipId);
+                FixErrorTraceCatalog.AllowToolHaulUrgentlyNreFixTipId,
+                availabilityId: FeatureAvailability.AllowTool);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.DubsAnalyzerBeginUpdateFix".Translate(),
@@ -1149,7 +1207,8 @@ namespace HSK.KebabTweaks
                 true, false, ResetDubsAnalyzerBeginUpdateFix,
                 null,
                 FixErrorTraceCatalog.DubsAnalyzerBeginUpdateFix,
-                FixErrorTraceCatalog.DubsAnalyzerBeginUpdateFixTipId);
+                FixErrorTraceCatalog.DubsAnalyzerBeginUpdateFixTipId,
+                availabilityId: FeatureAvailability.DubsAnalyzer);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.DebugLogSplitterDragFix".Translate(),
@@ -1159,7 +1218,8 @@ namespace HSK.KebabTweaks
                 true, false, ResetDebugLogSplitterDragFix,
                 null,
                 FixErrorTraceCatalog.DebugLogSplitterDragFix,
-                FixErrorTraceCatalog.DebugLogSplitterDragFixTipId);
+                FixErrorTraceCatalog.DebugLogSplitterDragFixTipId,
+                availabilityId: FeatureAvailability.DebugLog);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.HospitalityGuestApparelOptimizeFix".Translate(),
@@ -1169,7 +1229,8 @@ namespace HSK.KebabTweaks
                 true, false, ResetHospitalityGuestApparelOptimizeFix,
                 null,
                 FixErrorTraceCatalog.HospitalityGuestApparelOptimizeFix,
-                FixErrorTraceCatalog.HospitalityGuestApparelOptimizeFixTipId);
+                FixErrorTraceCatalog.HospitalityGuestApparelOptimizeFixTipId,
+                availabilityId: FeatureAvailability.Hospitality);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.PtgMedicalCare".Translate(),
@@ -1177,7 +1238,8 @@ namespace HSK.KebabTweaks
                 SupersededStandaloneMods.PtgMedicalCare,
                 ref EnablePtgMedicalCare, AppliedPtgMedicalCare, true, true, ResetPtgMedicalCare,
                 null,
-                FixErrorTraceCatalog.PtgMedicalCare, FixErrorTraceCatalog.PtgMedicalCareTipId);
+                FixErrorTraceCatalog.PtgMedicalCare, FixErrorTraceCatalog.PtgMedicalCareTipId,
+                availabilityId: FeatureAvailability.PtgMedical);
 
             if (!FixSymptomProbe.IsSeedsPleaseSowFixLeftover())
             {
@@ -1193,7 +1255,8 @@ namespace HSK.KebabTweaks
                 null,
                 FixErrorTraceCatalog.NeanderthalChiefLeaderFix,
                 FixErrorTraceCatalog.NeanderthalChiefLeaderFixTipId,
-                researchLink: FeatureResearchLinkCatalog.NeanderthalChiefLeaderFix);
+                researchLink: FeatureResearchLinkCatalog.NeanderthalChiefLeaderFix,
+                availabilityId: FeatureAvailability.TribalLeader);
 
             if (!FixSymptomProbe.IsCraftStuffFixLeftover())
             {
@@ -1223,7 +1286,8 @@ namespace HSK.KebabTweaks
                 ref EnableStratumSolarRoofEnergyTabFix, AppliedStratumSolarRoofEnergyTabFix,
                 true, false, ResetStratumSolarRoofEnergyTabFix,
                 null,
-                researchLink: FeatureResearchLinkCatalog.StratumSolarRoofEnergyTabFix);
+                researchLink: FeatureResearchLinkCatalog.StratumSolarRoofEnergyTabFix,
+                availabilityId: FeatureAvailability.StratumSolar);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.MapPreviewRngBaselineFix".Translate(),
@@ -1233,7 +1297,8 @@ namespace HSK.KebabTweaks
                 true, true, ResetMapPreviewRngBaselineFix,
                 null,
                 FixErrorTraceCatalog.MapPreviewRngBaselineFix,
-                FixErrorTraceCatalog.MapPreviewRngBaselineFixTipId);
+                FixErrorTraceCatalog.MapPreviewRngBaselineFixTipId,
+                availabilityId: FeatureAvailability.MapPreview);
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.UnifiedXmlPathFix".Translate(),
@@ -1243,7 +1308,8 @@ namespace HSK.KebabTweaks
                 true, true, ResetUnifiedXmlPathFix,
                 null,
                 FixErrorTraceCatalog.UnifiedXmlPathFix,
-                FixErrorTraceCatalog.UnifiedXmlPathFixTipId);
+                FixErrorTraceCatalog.UnifiedXmlPathFixTipId,
+                availabilityId: FeatureAvailability.UnifiedXml);
 
             if (!FixSymptomProbe.IsMainMenuBgFitFixLeftover())
             {
@@ -1258,7 +1324,8 @@ namespace HSK.KebabTweaks
                 true, true, ResetRimatomicsGuidancePanelFix,
                 null,
                 FixErrorTraceCatalog.RimatomicsGuidancePanelFix,
-                FixErrorTraceCatalog.RimatomicsGuidancePanelFixTipId);
+                FixErrorTraceCatalog.RimatomicsGuidancePanelFixTipId,
+                availabilityId: FeatureAvailability.Rimatomics);
 
             if (!FixSymptomProbe.IsBurnWeaponBillFixLeftover())
             {
@@ -1304,6 +1371,7 @@ namespace HSK.KebabTweaks
 
         private void DrawKebabSwitchesBlock(Listing_Standard listing, float fullWidth)
         {
+            bool notificationsBlocked = FeatureAvailability.IsBlocked(FeatureAvailability.KebabSwitches);
             DrawFeatureHeaderWithResetOnly(
                 listing,
                 "KebabTweaks.KebabSwitches.Header".Translate(),
@@ -1312,95 +1380,275 @@ namespace HSK.KebabTweaks
 
             DrawFeatureBodyPanel(listing, fullWidth, () =>
             {
-                DrawSettingsEnableLoggingCheckboxRow(listing, "KebabSwitches.EnableLogging".Translate(),
-                    () => KebabSwitchesEnableLogging, v => KebabSwitchesEnableLogging = v);
-                DrawSettingsRowSeparator(listing, fullWidth);
+                bool searchActive = NotificationsSearchQueryActive();
+                bool showLogging = !searchActive || NotificationsSearchKeyedMatches("KebabSwitches.EnableLogging");
+                bool showIgnoreAll = !searchActive || NotificationsSearchKeyedMatches("KebabSwitches.IgnoreAll");
+                bool screenHeaderMatch = searchActive && NotificationsSearchKeyedMatches("KebabSwitches.ScreenMessagesHeader");
+                bool letterHeaderMatch = searchActive && NotificationsSearchKeyedMatches("KebabSwitches.LettersHeader");
+                bool alertHeaderMatch = searchActive && NotificationsSearchKeyedMatches("KebabSwitches.AlertsHeader");
+                bool showScreen = !searchActive || screenHeaderMatch || CountMatchingScreenMessages() > 0;
+                bool showLetters = !searchActive || letterHeaderMatch || CountMatchingLetters() > 0;
+                bool showAlerts = !searchActive || alertHeaderMatch || CountMatchingAlerts() > 0;
+
+                if (showLogging)
+                {
+                    DrawSettingsEnableLoggingCheckboxRow(listing, "KebabSwitches.EnableLogging".Translate(),
+                        () => KebabSwitchesEnableLogging, v => KebabSwitchesEnableLogging = v);
+                }
+
+                if (showLogging && showIgnoreAll)
+                {
+                    DrawSettingsRowSeparator(listing, fullWidth);
+                }
+
+                if (showIgnoreAll)
+                {
+                    bool ignoreAll = AllNotificationIgnoresEnabled();
+                    bool ignoreAllBefore = ignoreAll;
+                    DrawSettingsCheckboxRow(
+                        listing,
+                        "KebabSwitches.IgnoreAll".Translate(),
+                        ref ignoreAll,
+                        false);
+                    if (ignoreAll != ignoreAllBefore)
+                    {
+                        bool turnOn = ignoreAll;
+                        Find.WindowStack.Add(new Dialog_MessageBox(
+                            (turnOn
+                                ? "KebabSwitches.IgnoreAll.ConfirmOn"
+                                : "KebabSwitches.IgnoreAll.ConfirmOff").Translate(),
+                            "Confirm".Translate(),
+                            () => SetAllNotificationIgnores(turnOn),
+                            "Cancel".Translate(),
+                            null,
+                            "KebabSwitches.IgnoreAll".Translate(),
+                            buttonADestructive: true));
+                    }
+                }
+
+                if (showLogging || showIgnoreAll)
+                {
+                    DrawSettingsRowSeparator(listing, fullWidth);
+                }
+
                 DrawNotificationsSearchRow(listing);
                 DrawSettingsRowSeparator(listing, fullWidth);
-                DrawSettingsCheckboxHeightSpacer(listing);
 
-                int screenVisible = CountMatchingScreenMessages();
-                int letterVisible = CountMatchingLetters();
-                int alertVisible = CountMatchingAlerts();
-                int visibleCount = screenVisible + letterVisible + alertVisible;
                 bool drewCatalogSection = false;
-
-                if (screenVisible > 0)
+                if (showScreen)
                 {
-                    DrawSettingsSectionHeader(listing, "KebabSwitches.ScreenMessagesHeader".Translate());
-                    DrawSettingsRowSeparator(listing, fullWidth);
-                    foreach (SuppressibleScreenMessageEntry entry in SuppressibleScreenMessages.All)
-                    {
-                        if (!NotificationsSearchMatches(entry))
+                    DrawSettingsCheckboxHeightSpacer(listing);
+                    DrawNotificationSection(
+                        listing,
+                        fullWidth,
+                        "KebabSwitches.ScreenMessagesHeader".Translate(),
+                        AllScreenMessagesSuppressed(),
+                        SetAllScreenMessages,
+                        () =>
                         {
-                            continue;
-                        }
+                            foreach (SuppressibleScreenMessageEntry entry in SuppressibleScreenMessages.All)
+                            {
+                                if (!screenHeaderMatch && !NotificationsSearchMatches(entry))
+                                {
+                                    continue;
+                                }
 
-                        bool value = entry.IsSuppressEnabled();
-                        DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
-                        entry.SetSuppressEnabled(value);
-                        DrawSettingsRowSeparator(listing, fullWidth);
-                    }
-
+                                bool value = entry.IsSuppressEnabled();
+                                DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
+                                entry.SetSuppressEnabled(value);
+                                DrawSettingsRowSeparator(listing, fullWidth);
+                            }
+                        });
                     drewCatalogSection = true;
                 }
 
-                if (letterVisible > 0)
+                if (showLetters)
                 {
                     if (drewCatalogSection)
                     {
                         DrawSettingsCheckboxHeightSpacer(listing);
                     }
 
-                    DrawSettingsSectionHeader(listing, "KebabSwitches.LettersHeader".Translate());
-                    DrawSettingsRowSeparator(listing, fullWidth);
-                    foreach (SuppressibleLetterEntry entry in SuppressibleLetters.All)
-                    {
-                        if (!NotificationsSearchMatches(entry))
+                    DrawNotificationSection(
+                        listing,
+                        fullWidth,
+                        "KebabSwitches.LettersHeader".Translate(),
+                        AllLettersSuppressed(),
+                        SetAllLetters,
+                        () =>
                         {
-                            continue;
-                        }
+                            foreach (SuppressibleLetterEntry entry in SuppressibleLetters.All)
+                            {
+                                if (!letterHeaderMatch && !NotificationsSearchMatches(entry))
+                                {
+                                    continue;
+                                }
 
-                        bool value = entry.IsSuppressEnabled;
-                        DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
-                        entry.SetSuppressEnabled(value);
-                        DrawSettingsRowSeparator(listing, fullWidth);
-                    }
-
+                                bool value = entry.IsSuppressEnabled;
+                                DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
+                                entry.SetSuppressEnabled(value);
+                                DrawSettingsRowSeparator(listing, fullWidth);
+                            }
+                        });
                     drewCatalogSection = true;
                 }
 
-                if (alertVisible > 0)
+                if (showAlerts)
                 {
                     if (drewCatalogSection)
                     {
                         DrawSettingsCheckboxHeightSpacer(listing);
                     }
 
-                    DrawSettingsSectionHeader(listing, "KebabSwitches.AlertsHeader".Translate());
-                    DrawSettingsRowSeparator(listing, fullWidth);
-                    foreach (SuppressibleAlertEntry entry in SuppressibleAlerts.All)
-                    {
-                        if (!NotificationsSearchMatches(entry))
+                    DrawNotificationSection(
+                        listing,
+                        fullWidth,
+                        "KebabSwitches.AlertsHeader".Translate(),
+                        AllAlertsSuppressed(),
+                        SetAllAlerts,
+                        () =>
                         {
-                            continue;
-                        }
+                            foreach (SuppressibleAlertEntry entry in SuppressibleAlerts.All)
+                            {
+                                if (!alertHeaderMatch && !NotificationsSearchMatches(entry))
+                                {
+                                    continue;
+                                }
 
-                        bool value = entry.IsSuppressEnabled;
-                        DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
-                        entry.SetSuppressEnabled(value);
-                        DrawSettingsRowSeparator(listing, fullWidth);
-                    }
+                                bool value = entry.IsSuppressEnabled;
+                                DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
+                                entry.SetSuppressEnabled(value);
+                                DrawSettingsRowSeparator(listing, fullWidth);
+                            }
+                        });
                 }
 
-                QuickSearchFilter searchFilter = NotificationsSearchWidget.filter;
-                bool searchActive = searchFilter != null && searchFilter.Active;
-                NotificationsSearchWidget.noResultsMatched = searchActive && visibleCount == 0;
-                if (searchActive && visibleCount == 0)
+                bool anyHit = showLogging || showIgnoreAll || showScreen || showLetters || showAlerts;
+                NotificationsSearchWidget.noResultsMatched = searchActive && !anyHit;
+                if (searchActive && !anyHit)
                 {
                     DrawNotificationsSearchNoMatchesRow(listing);
                 }
-            });
+            }, interactive: !notificationsBlocked);
+        }
+
+        /// <summary>
+        /// One feed header and its ignore rows. The header checkbox sets every row in this feed.
+        ///
+        /// Заголовок одной ленты и её строки игнора. Чекбокс заголовка ставит каждую строку этой ленты.
+        /// </summary>
+        private void DrawNotificationSection(
+            Listing_Standard listing,
+            float fullWidth,
+            string headerLabel,
+            bool allOn,
+            Action<bool> setAll,
+            Action drawRows)
+        {
+            bool master = allOn;
+            DrawSettingsSectionHeader(listing, headerLabel, ref master, "KebabSwitches.SectionMaster.Tooltip".Translate());
+            if (master != allOn)
+            {
+                setAll(master);
+            }
+
+            DrawSettingsRowSeparator(listing, fullWidth);
+            drawRows();
+        }
+
+        static bool AllScreenMessagesSuppressed()
+        {
+            if (SuppressibleScreenMessages.All.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < SuppressibleScreenMessages.All.Length; i++)
+            {
+                if (!SuppressibleScreenMessages.All[i].IsSuppressEnabled())
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        static void SetAllScreenMessages(bool value)
+        {
+            for (int i = 0; i < SuppressibleScreenMessages.All.Length; i++)
+            {
+                SuppressibleScreenMessages.All[i].SetSuppressEnabled(value);
+            }
+        }
+
+        static bool AllLettersSuppressed()
+        {
+            if (SuppressibleLetters.All.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < SuppressibleLetters.All.Length; i++)
+            {
+                if (!SuppressibleLetters.All[i].IsSuppressEnabled)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        static void SetAllLetters(bool value)
+        {
+            for (int i = 0; i < SuppressibleLetters.All.Length; i++)
+            {
+                SuppressibleLetters.All[i].SetSuppressEnabled(value);
+            }
+        }
+
+        static bool AllAlertsSuppressed()
+        {
+            if (SuppressibleAlerts.All.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < SuppressibleAlerts.All.Length; i++)
+            {
+                if (!SuppressibleAlerts.All[i].IsSuppressEnabled)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        static void SetAllAlerts(bool value)
+        {
+            for (int i = 0; i < SuppressibleAlerts.All.Length; i++)
+            {
+                SuppressibleAlerts.All[i].SetSuppressEnabled(value);
+            }
+        }
+
+        static bool AllNotificationIgnoresEnabled()
+        {
+            return AllScreenMessagesSuppressed() && AllLettersSuppressed() && AllAlertsSuppressed();
+        }
+
+        static void SetAllNotificationIgnores(bool value)
+        {
+            SetAllScreenMessages(value);
+            SetAllLetters(value);
+            SetAllAlerts(value);
+        }
+
+        static bool NotificationsSearchKeyedMatches(string key)
+        {
+            return NotificationsSearchHaystackMatches(NotificationSearchTexts.ForKeyed(key));
         }
 
         /// <summary>
@@ -1535,7 +1783,8 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.CatCrazyTime, FixErrorTraceCatalog.CatCrazyTimeTipId,
                 leadingSpacer: leadingSpacer,
                 interactive: leftover ? EnableObsoleteFixes : true,
-                relevancePercent: leftover ? CatCrazyTimeFixRelevancePercent : (int?)null);
+                relevancePercent: leftover ? CatCrazyTimeFixRelevancePercent : (int?)null,
+                availabilityId: FeatureAvailability.CatCrazyTime);
         }
 
         private void DrawCraftStuffFixPatchBlock(
@@ -1552,7 +1801,8 @@ namespace HSK.KebabTweaks
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: FixSymptomProbe.GetCraftStuffRelevancePercent(),
-                researchLink: FeatureResearchLinkCatalog.DominantIngredientStuffFix);
+                researchLink: FeatureResearchLinkCatalog.DominantIngredientStuffFix,
+                availabilityId: FeatureAvailability.CraftStuff);
         }
 
         private void DrawStartingPawnChildAgeFixPatchBlock(
@@ -1571,7 +1821,8 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.StartingPawnChildAgeFixTipId,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? 0 : (int?)null,
-                researchLink: FeatureResearchLinkCatalog.StartingPawnChildAgeFix);
+                researchLink: FeatureResearchLinkCatalog.StartingPawnChildAgeFix,
+                availabilityId: FeatureAvailability.StartingPawnChildAge);
         }
 
         private void DrawStartingPawnNameFixPatchBlock(
@@ -1588,7 +1839,8 @@ namespace HSK.KebabTweaks
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? 0 : (int?)null,
-                researchLink: FeatureResearchLinkCatalog.StartingPawnNameFix);
+                researchLink: FeatureResearchLinkCatalog.StartingPawnNameFix,
+                availabilityId: FeatureAvailability.StartingPawnName);
         }
 
         private void DrawSeedsPleaseSowFixPatchBlock(
@@ -1606,7 +1858,8 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.SeedsPleaseSowFix, FixErrorTraceCatalog.SeedsPleaseSowFixTipId,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: FixSymptomProbe.GetSeedsPleaseSowRelevancePercent(),
-                researchLink: FeatureResearchLinkCatalog.SeedsPleaseSowFix);
+                researchLink: FeatureResearchLinkCatalog.SeedsPleaseSowFix,
+                availabilityId: FeatureAvailability.SeedsPlease);
         }
 
 #if RIMWORLD_1_6
@@ -1640,7 +1893,8 @@ namespace HSK.KebabTweaks
                 leadingSpacer: leadingSpacer,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: FixSymptomProbe.GetUfFillRelevancePercent(),
-                researchLink: FeatureResearchLinkCatalog.UfFillExtraIngredientsFix);
+                researchLink: FeatureResearchLinkCatalog.UfFillExtraIngredientsFix,
+                availabilityId: FeatureAvailability.UfFill);
         }
 
         private void DrawMainMenuBgFitFixPatchBlock(
@@ -1658,7 +1912,8 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.MainMenuBgFitFix,
                 FixErrorTraceCatalog.MainMenuBgFitFixTipId,
                 interactive: leftover ? EnableObsoleteFixes : true,
-                relevancePercent: leftover ? 0 : (int?)null);
+                relevancePercent: leftover ? 0 : (int?)null,
+                availabilityId: FeatureAvailability.MainMenuBg);
         }
 
         private void DrawBurnWeaponBillFixPatchBlock(
@@ -1675,7 +1930,8 @@ namespace HSK.KebabTweaks
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
-                researchLink: FeatureResearchLinkCatalog.BurnWeaponBillFix);
+                researchLink: FeatureResearchLinkCatalog.BurnWeaponBillFix,
+                availabilityId: FeatureAvailability.BurnWeapon);
             BurnWeaponBillFixFeatures.SyncRecipeWorkTypes();
         }
 
@@ -1693,7 +1949,8 @@ namespace HSK.KebabTweaks
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
-                researchLink: FeatureResearchLinkCatalog.BreachAxeWorkAmountFix);
+                researchLink: FeatureResearchLinkCatalog.BreachAxeWorkAmountFix,
+                availabilityId: FeatureAvailability.BreachAxe);
             BreachAxeWorkAmountFixFeatures.SyncWorkAmount();
         }
 
@@ -1711,7 +1968,8 @@ namespace HSK.KebabTweaks
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
-                researchLink: FeatureResearchLinkCatalog.RawFungusBillFix);
+                researchLink: FeatureResearchLinkCatalog.RawFungusBillFix,
+                availabilityId: FeatureAvailability.RawFungus);
             RawFungusBillFixFeatures.SyncCategory();
         }
 
@@ -1729,7 +1987,8 @@ namespace HSK.KebabTweaks
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
-                researchLink: FeatureResearchLinkCatalog.AnomalyEspFleeFix);
+                researchLink: FeatureResearchLinkCatalog.AnomalyEspFleeFix,
+                availabilityId: FeatureAvailability.AnomalyEsp);
         }
 #endif
 
@@ -1752,11 +2011,23 @@ namespace HSK.KebabTweaks
             int? relevancePercent = null,
             string researchLink = null,
             string headerSuffix = null,
-            string headerSuffixTooltip = null)
+            string headerSuffixTooltip = null,
+            string availabilityId = null,
+            string trailingSuffix = null)
         {
+            bool dependencyBlocked = FeatureAvailability.IsBlocked(availabilityId);
+            if (dependencyBlocked)
+            {
+                interactive = false;
+            }
+
             if (leadingSpacer)
             {
-                DrawFeatureHeaderLeadingSpacer(listing);
+                Rect spacer = listing.GetRect(FeatureHeaderLeadingSpacerHeight);
+                spacer.x = 0f;
+                spacer.width = fullWidth;
+                BlockDisabledSettingsRowInput(spacer, dependencyBlocked);
+                DrawDisabledSettingsRowVeil(spacer, dependencyBlocked);
             }
 
             DrawPatchEnableHeaderRow(
@@ -1779,10 +2050,12 @@ namespace HSK.KebabTweaks
                 showSearchButton: selectedSettingsTab == SettingsTabKind.Patches
                     || selectedSettingsTab == SettingsTabKind.Fixes,
                 headerSuffix,
-                headerSuffixTooltip);
+                headerSuffixTooltip,
+                dependencyBlocked,
+                trailingSuffix);
             if (drawBody != null)
             {
-                DrawFeatureBodyPanel(listing, fullWidth, drawBody, enabled);
+                DrawFeatureBodyPanel(listing, fullWidth, drawBody, enabled && !dependencyBlocked);
             }
             else
             {
@@ -2021,10 +2294,11 @@ namespace HSK.KebabTweaks
                 FeatureResetButtonWidth,
                 CheckboxControlSize);
 
+            bool dependencyBlocked = FeatureAvailability.IsBlocked(FeatureAvailability.KebabSwitches);
             bool supersededActive = SupersededStandaloneMods.IsActive(supersededPackageId);
             if (supersededActive)
             {
-                if (Mouse.IsOver(row))
+                if (!dependencyBlocked && Mouse.IsOver(row))
                 {
                     Widgets.DrawHighlight(row);
                 }
@@ -2032,8 +2306,10 @@ namespace HSK.KebabTweaks
                 TooltipHandler.TipRegion(row, "KebabTweaks.SupersededStandaloneTooltip".Translate());
             }
 
+            BlockDisabledSettingsRowInput(row, dependencyBlocked);
             DrawFeatureHeaderLabel(row, label, supersededActive, differsFromDefault: false);
-            DrawFeatureResetButton(resetRect, label, resetAction, interactive: true);
+            DrawFeatureResetButton(resetRect, label, resetAction, interactive: !dependencyBlocked);
+            DrawDisabledSettingsRowVeil(row, dependencyBlocked);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -2063,11 +2339,12 @@ namespace HSK.KebabTweaks
             bool showCopyButton = false,
             bool showSearchButton = false,
             string headerSuffix = null,
-            string headerSuffixTooltip = null)
+            string headerSuffixTooltip = null,
+            bool dependencyVeil = false,
+            string trailingSuffix = null)
         {
             Rect row = listing.GetRect(SettingsCheckboxRowHeight);
             DrawFeatureHeaderBackground(row);
-            BlockDisabledSettingsRowInput(row, !interactive);
             float controlY = row.y + (row.height - CheckboxControlSize) / 2f;
             Rect checkRect = new Rect(
                 row.xMax - HeaderControlsRightInset - CheckboxControlSize,
@@ -2104,11 +2381,16 @@ namespace HSK.KebabTweaks
                     controlY,
                     FixErrorTraceUi.CopyButtonSize,
                     FixErrorTraceUi.CopyButtonSize);
+                if (hasErrorTrace)
+                {
+                    NoteAlwaysInteractiveRect(copyRect);
+                }
+
                 FixErrorTraceUi.DrawHeaderIconButton(
                     copyRect,
                     TexButton.Copy,
                     errorTrace,
-                    clickDisabled: !interactive || !hasErrorTrace);
+                    clickDisabled: !hasErrorTrace);
                 iconCursorX = copyRect.x;
             }
 
@@ -2119,16 +2401,29 @@ namespace HSK.KebabTweaks
                     controlY,
                     FixErrorTraceUi.CopyButtonSize,
                     FixErrorTraceUi.CopyButtonSize);
+                if (!researchLink.NullOrEmpty())
+                {
+                    NoteAlwaysInteractiveRect(searchRect);
+                }
+
                 FixErrorTraceUi.DrawHeaderIconButton(
                     searchRect,
                     FixErrorTraceUi.SearchIcon,
                     researchLink,
-                    clickDisabled: !interactive || researchLink.NullOrEmpty());
+                    clickDisabled: researchLink.NullOrEmpty());
             }
+
+            BlockDisabledSettingsRowInput(row, !interactive);
 
             bool supersededActive = SupersededStandaloneMods.IsActive(supersededPackageId);
 
             string tip = tooltip ?? string.Empty;
+            if (dependencyVeil)
+            {
+                string missingNote = "KebabTweaks.MissingDependenciesTooltip".Translate();
+                tip = tip.NullOrEmpty() ? missingNote : missingNote + "\n\n" + tip;
+            }
+
             if (supersededActive)
             {
                 if (!tip.NullOrEmpty())
@@ -2151,7 +2446,7 @@ namespace HSK.KebabTweaks
             Rect labelRect;
             Rect suffixRect;
             DrawFeatureHeaderLabel(row, label, supersededActive, differsFromDefault: false,
-                relevancePercent, out labelRect, out suffixRect, headerSuffix);
+                relevancePercent, out labelRect, out suffixRect, headerSuffix, trailingSuffix);
             bool overSuffix = suffixRect.width > 0.5f && Mouse.IsOver(suffixRect);
 
             Rect headerTipRect = row;
@@ -2224,12 +2519,13 @@ namespace HSK.KebabTweaks
             }
 
             // After restart Applied* matches Enable* - outline stays off until the player toggles again.
-            // Superseded silent-skip keeps Applied* aligned with Enable*, so no yellow outline then.
+            // A superseded skip keeps Applied* aligned with Enable*, so no yellow outline then.
             if (!supersededActive && requiresRestart && value != appliedAtLoad)
             {
                 DrawInnerBoxBorder(checkRect, 2f, RestartPendingOutlineColor);
             }
 
+            DrawDisabledSettingsRowVeil(row, dependencyVeil);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -2246,9 +2542,11 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Draws the centered patch title and optional relevance percent suffix.
+        /// Draws the centered patch title, then the relevance or package suffix, then an optional
+        /// trailing suffix such as the 1.5-only mark. The trailing piece has no suffix tooltip.
         ///
-        /// Рисует центрированный заголовок патча и необязательный суффикс актуальности в процентах.
+        /// Рисует центрированный заголовок, затем суффикс актуальности или package id, затем
+        /// необязательный хвостовой суффикс, например метку «только 1.5». У хвоста нет своего тултипа.
         /// </summary>
         private static void DrawFeatureHeaderLabel(
             Rect row,
@@ -2258,7 +2556,8 @@ namespace HSK.KebabTweaks
             int? relevancePercent,
             out Rect labelRect,
             out Rect suffixRect,
-            string headerSuffix = null)
+            string headerSuffix = null,
+            string trailingSuffix = null)
         {
             string suffix = !headerSuffix.NullOrEmpty()
                 ? headerSuffix
@@ -2266,6 +2565,7 @@ namespace HSK.KebabTweaks
                     ? " (" + relevancePercent.Value.ToString() + "%)"
                     : string.Empty;
             bool tintRelevance = headerSuffix.NullOrEmpty() && relevancePercent.HasValue;
+            string trailing = trailingSuffix ?? string.Empty;
 
             TextAnchor previousAnchor = Text.Anchor;
             Color previousColor = GUI.color;
@@ -2281,11 +2581,13 @@ namespace HSK.KebabTweaks
 
             Vector2 labelSize = CalcUnwrappedLabelSize(label);
             Vector2 suffixSize = suffix.NullOrEmpty() ? Vector2.zero : CalcUnwrappedLabelSize(suffix);
-            float startX = row.x + (row.width - labelSize.x - suffixSize.x) / 2f;
+            Vector2 trailingSize = trailing.NullOrEmpty() ? Vector2.zero : CalcUnwrappedLabelSize(trailing);
+            float startX = row.x + (row.width - labelSize.x - suffixSize.x - trailingSize.x) / 2f;
             labelRect = new Rect(startX, row.y, labelSize.x, row.height);
             suffixRect = suffix.NullOrEmpty()
                 ? new Rect(startX + labelSize.x, row.y, 0f, row.height)
                 : new Rect(startX + labelSize.x, row.y, suffixSize.x, row.height);
+            Rect trailingRect = new Rect(startX + labelSize.x + suffixSize.x, row.y, trailingSize.x, row.height);
 
             Widgets.Label(labelRect, label);
             Text.CurFontStyle.fontStyle = previousStyle;
@@ -2302,6 +2604,11 @@ namespace HSK.KebabTweaks
 
                 Widgets.Label(suffixRect, suffix);
                 GUI.color = previousColor;
+            }
+
+            if (!trailing.NullOrEmpty())
+            {
+                Widgets.Label(trailingRect, trailing);
             }
 
             Text.WordWrap = previousWrap;
@@ -2372,12 +2679,13 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Hides Notifications ignore rows when the typed text is not in the drawn label or in
-        /// the same label's other indexed translations (NotificationSearchTexts).
+        /// Draws the Notifications search box. Ignore rows match four lists at once: the
+        /// English checkbox, the Russian checkbox, the English game sentence, and the Russian
+        /// game sentence. Enable logging, Ignore all, and the three feed headers use ForKeyed.
         ///
-        /// Скрывает строки игнора на вкладке Уведомления, если введённого текста нет ни в
-        /// нарисованной подписи, ни в других учитываемых переводах той же строки
-        /// (NotificationSearchTexts).
+        /// Рисует поле поиска на вкладке Уведомления. Строки игнора сверяются сразу по четырём
+        /// спискам: английский чекбокс, русский чекбокс, английская фраза игры и русская фраза
+        /// игры. Включить логирование, Игнорировать все и три заголовка лент ищутся через ForKeyed.
         /// </summary>
         private void DrawNotificationsSearchRow(Listing_Standard listing)
         {
@@ -2420,7 +2728,7 @@ namespace HSK.KebabTweaks
                 return true;
             }
 
-            return NotificationsSearchHaystackMatches(NotificationSearchTexts.For(entry));
+            return NotificationSearchTexts.Matches(entry, NotificationsSearchWidget.filter.Text);
         }
 
         private static bool NotificationsSearchMatches(SuppressibleLetterEntry entry)
@@ -2430,7 +2738,7 @@ namespace HSK.KebabTweaks
                 return true;
             }
 
-            return NotificationsSearchHaystackMatches(NotificationSearchTexts.For(entry));
+            return NotificationSearchTexts.Matches(entry, NotificationsSearchWidget.filter.Text);
         }
 
         private static bool NotificationsSearchMatches(SuppressibleAlertEntry entry)
@@ -2440,7 +2748,7 @@ namespace HSK.KebabTweaks
                 return true;
             }
 
-            return NotificationsSearchHaystackMatches(NotificationSearchTexts.For(entry));
+            return NotificationSearchTexts.Matches(entry, NotificationsSearchWidget.filter.Text);
         }
 
         private static bool NotificationsSearchQueryActive()
@@ -2496,17 +2804,48 @@ namespace HSK.KebabTweaks
             return count;
         }
 
-        private static void DrawFeatureHeaderLeadingSpacer(Listing_Standard listing)
+        /// <summary>
+        /// Centered feed title with a checkbox on the right. The checkbox does not move the title.
+        /// Tooltip stays active when the row cannot be toggled.
+        ///
+        /// Центрированный заголовок ленты с чекбоксом справа. Чекбокс не сдвигает заголовок.
+        /// Тултип работает, когда строку нельзя переключить.
+        /// </summary>
+        private static void DrawSettingsSectionHeader(
+            Listing_Standard listing,
+            string label,
+            ref bool value,
+            string tooltip)
         {
-            listing.GetRect(FeatureHeaderLeadingSpacerHeight);
-        }
-
-        private static void DrawSettingsSectionHeader(Listing_Standard listing, string label)
-        {
-            Text.Anchor = TextAnchor.MiddleCenter;
             Rect row = listing.GetRect(SettingsSectionHeaderHeight);
+            float controlY = row.y + (row.height - CheckboxControlSize) / 2f;
+            Rect checkRect = new Rect(
+                row.xMax - HeaderControlsRightInset - CheckboxControlSize,
+                controlY,
+                CheckboxControlSize,
+                CheckboxControlSize);
+            Text.Anchor = TextAnchor.MiddleCenter;
             DrawUnwrappedLabel(row, label);
             Text.Anchor = TextAnchor.UpperLeft;
+            if (!tooltip.NullOrEmpty())
+            {
+                if (bodyContentInteractive && Mouse.IsOver(row))
+                {
+                    Widgets.DrawHighlight(row);
+                }
+
+                TooltipHandler.TipRegion(row, tooltip);
+            }
+
+            BlockDisabledSettingsRowInput(row, !bodyContentInteractive);
+            bool displayed = value;
+            Widgets.Checkbox(new Vector2(checkRect.x, checkRect.y), ref displayed, CheckboxControlSize,
+                disabled: !bodyContentInteractive);
+            if (bodyContentInteractive && displayed != value)
+            {
+                value = displayed;
+            }
+
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -2808,14 +3147,64 @@ namespace HSK.KebabTweaks
             listing.Gap(SettingsCheckboxRowGap);
         }
 
+        static readonly List<Rect> alwaysInteractiveRects = new List<Rect>();
+
         /// <summary>
-        /// Swallows mouse input on a settings row so disabled controls cannot be changed.
+        /// Drops magnifier and copy rects from the previous Repaint before this one records new ones.
         ///
-        /// Поглощает клики по строке настроек, чтобы выключенные элементы нельзя было изменить.
+        /// Сбрасывает прямоугольники лупы и копирования с прошлого Repaint перед записью новых.
+        /// </summary>
+        private static void ClearAlwaysInteractiveRects()
+        {
+            if (Event.current.type == EventType.Repaint)
+            {
+                alwaysInteractiveRects.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Remembers a magnifier or copy rect. Those buttons stay clickable under a veil.
+        ///
+        /// Запоминает прямоугольник лупы или копирования. Эти кнопки остаются кликабельными под пеленой.
+        /// </summary>
+        private static void NoteAlwaysInteractiveRect(Rect rect)
+        {
+            if (Event.current.type != EventType.Repaint || rect.width <= 0.5f || rect.height <= 0.5f)
+            {
+                return;
+            }
+
+            alwaysInteractiveRects.Add(rect);
+        }
+
+        static bool MouseOverAlwaysInteractiveRect()
+        {
+            for (int i = 0; i < alwaysInteractiveRects.Count; i++)
+            {
+                if (Mouse.IsOver(alwaysInteractiveRects[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Veil and input block are one contract: a veiled rect does not take clicks, and a
+        /// non-interactive rect is veiled. Only MouseDown, MouseUp, and MouseDrag are consumed,
+        /// so TipRegion tooltips still work. Magnifier and copy rects noted on Repaint stay clickable.
+        /// CheckboxLabeled still toggles after the event is used, so a veiled checkbox is also drawn disabled.
+        ///
+        /// Затемнение и блок ввода - одна связка: затемнённый прямоугольник не принимает клики,
+        /// а невосприимчивый прямоугольник затемнён. Поглощаются только MouseDown, MouseUp и
+        /// MouseDrag, поэтому тултипы TipRegion работают. Прямоугольники лупы и копирования,
+        /// отмеченные на Repaint, остаются кликабельными.
+        /// CheckboxLabeled после поглощения события всё равно переключается, поэтому затемнённый чекбокс рисуется недоступным.
         /// </summary>
         private static void BlockDisabledSettingsRowInput(Rect row, bool disabled)
         {
-            if (!disabled || !Mouse.IsOver(row))
+            if (!disabled || !Mouse.IsOver(row) || MouseOverAlwaysInteractiveRect())
             {
                 return;
             }
@@ -2829,9 +3218,9 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Draws a semi-transparent dark veil over an inactive settings row.
+        /// Visual half of the veil and input-block contract. Does not consume mouse events.
         ///
-        /// Рисует полупрозрачную тёмную пелену поверх неактивной строки настроек.
+        /// Визуальная половина связки затемнения и блока ввода. События мыши не поглощает.
         /// </summary>
         private static void DrawDisabledSettingsRowVeil(Rect row, bool disabled)
         {
@@ -2964,6 +3353,33 @@ namespace HSK.KebabTweaks
             SuppressBillCompleteMessage = false;
             SuppressFullyHealedMessage = false;
             SuppressSocialFightMessage = false;
+            SuppressShipChunkDropMessage = false;
+            SuppressStruckMineableMessage = false;
+            SuppressBedLostAssignmentMessage = false;
+            SuppressBedDestroyedMessage = false;
+            SuppressSleepingPawnsWokenUpMessage = false;
+            SuppressNoLongerSocialFightingMessage = false;
+            SuppressNoLongerTargetedInsultMessage = false;
+            SuppressInsultingSpreeEndedMessage = false;
+            SuppressTargetedInsultStreamEndedMessage = false;
+            SuppressFoodBingeEndedMessage = false;
+            SuppressNoLongerBingingOnDrugMessage = false;
+            SuppressBerserkEndedMessage = false;
+            SuppressFireStartingEndedMessage = false;
+            SuppressJailbreakerEndedMessage = false;
+            SuppressSlaughtererEndedMessage = false;
+            SuppressMurderousRageEndedMessage = false;
+            SuppressGiveUpReturnedMessage = false;
+            SuppressTantrumEndedMessage = false;
+            SuppressRedirectedAngerMessage = false;
+            SuppressSadisticRageEndedMessage = false;
+            SuppressCorpseObsessionEndedMessage = false;
+            SuppressWanderSadEndedMessage = false;
+            SuppressHideInRoomEndedMessage = false;
+            SuppressPsychoticWanderEndedMessage = false;
+            SuppressConfusedEndedMessage = false;
+            SuppressPanicFleeEndedMessage = false;
+            SuppressManhunterEndedMessage = false;
             SuppressNewBondRelationMessage = false;
             SuppressNewBondRelationNewNameMessage = false;
             SuppressFoodPoisoningMessage = false;
@@ -3641,6 +4057,33 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref SuppressBillCompleteMessage, "SuppressBillCompleteMessage", defaultValue: false);
             Scribe_Values.Look(ref SuppressFullyHealedMessage, "SuppressFullyHealedMessage", defaultValue: false);
             Scribe_Values.Look(ref SuppressSocialFightMessage, "SuppressSocialFightMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressShipChunkDropMessage, "SuppressShipChunkDropMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressStruckMineableMessage, "SuppressStruckMineableMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressBedLostAssignmentMessage, "SuppressBedLostAssignmentMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressBedDestroyedMessage, "SuppressBedDestroyedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressSleepingPawnsWokenUpMessage, "SuppressSleepingPawnsWokenUpMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressNoLongerSocialFightingMessage, "SuppressNoLongerSocialFightingMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressNoLongerTargetedInsultMessage, "SuppressNoLongerTargetedInsultMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressInsultingSpreeEndedMessage, "SuppressInsultingSpreeEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressTargetedInsultStreamEndedMessage, "SuppressTargetedInsultStreamEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressFoodBingeEndedMessage, "SuppressFoodBingeEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressNoLongerBingingOnDrugMessage, "SuppressNoLongerBingingOnDrugMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressBerserkEndedMessage, "SuppressBerserkEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressFireStartingEndedMessage, "SuppressFireStartingEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressJailbreakerEndedMessage, "SuppressJailbreakerEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressSlaughtererEndedMessage, "SuppressSlaughtererEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressMurderousRageEndedMessage, "SuppressMurderousRageEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressGiveUpReturnedMessage, "SuppressGiveUpReturnedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressTantrumEndedMessage, "SuppressTantrumEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressRedirectedAngerMessage, "SuppressRedirectedAngerMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressSadisticRageEndedMessage, "SuppressSadisticRageEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressCorpseObsessionEndedMessage, "SuppressCorpseObsessionEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressWanderSadEndedMessage, "SuppressWanderSadEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressHideInRoomEndedMessage, "SuppressHideInRoomEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressPsychoticWanderEndedMessage, "SuppressPsychoticWanderEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressConfusedEndedMessage, "SuppressConfusedEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressPanicFleeEndedMessage, "SuppressPanicFleeEndedMessage", defaultValue: false);
+            Scribe_Values.Look(ref SuppressManhunterEndedMessage, "SuppressManhunterEndedMessage", defaultValue: false);
             Scribe_Values.Look(ref SuppressNewBondRelationMessage, "SuppressNewBondRelationMessage",
                 defaultValue: false);
             Scribe_Values.Look(ref SuppressNewBondRelationNewNameMessage, "SuppressNewBondRelationNewNameMessage",

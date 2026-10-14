@@ -64,7 +64,10 @@ namespace HSK.KebabTweaks
         {
             if (AccessTools.TypeByName(LoadFilterDialogTypeName) == null)
             {
-                Log.Message("[ApparelPolicyLoadFixPatch] Save Storage Settings not loaded; patch skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.ApparelPolicy,
+                    "Apparel Policy Load Fix",
+                    "Save Storage Settings (savestoragesettings.kv.rw.fishtmp)");
                 return;
             }
 

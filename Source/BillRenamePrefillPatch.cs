@@ -53,7 +53,10 @@ namespace HSK.KebabTweaks
                 dialogRenameBillType = AccessTools.TypeByName(DialogRenameBillTypeName);
                 if (dialogRenameBillType == null)
                 {
-                    Log.Message("[BillRenamePrefillPatch] Better Workbench Management not loaded; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.BillRename,
+                        "Bill Rename Prefill Patch",
+                        "Better Workbench Management (ImprovedWorkbenches)");
                     return;
                 }
 
@@ -79,7 +82,10 @@ namespace HSK.KebabTweaks
                 Type renameDialogBaseType = AccessTools.TypeByName("Verse.Dialog_Rename`1");
                 if (renameDialogBaseType == null)
                 {
-                    Log.Warning("[BillRenamePrefillPatch] Verse.Dialog_Rename`1 not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.BillRename,
+                        "Bill Rename Prefill Patch",
+                        "Verse.Dialog_Rename was not found.");
                     return;
                 }
 
@@ -95,7 +101,10 @@ namespace HSK.KebabTweaks
 
                 if (curNameField == null || renameDialogDoWindowContentsMethod == null || ctor == null)
                 {
-                    Log.Warning("[BillRenamePrefillPatch] Dialog_RenameBill hooks not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.BillRename,
+                        "Bill Rename Prefill Patch",
+                        "Dialog_RenameBill hooks were not found.");
                     return;
                 }
 

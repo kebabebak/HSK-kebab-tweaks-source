@@ -30,21 +30,29 @@ namespace HSK.KebabTweaks
             Type patchType = AccessTools.TypeByName("RimThemesLite.UI_BackgroundMain_Patch");
             if (patchType == null)
             {
-                Log.Message("[HSK kebab tweaks] RimThemesLite not loaded; main menu BG fit fix skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.MainMenuBg,
+                    "Main Menu Background Fit Fix",
+                    "RimThemes (skyarkhangel.RimThemesLite)");
                 return;
             }
 
             MethodInfo target = AccessTools.Method(patchType, "Prefix");
             if (target == null)
             {
-                Log.Warning("[HSK kebab tweaks] RimThemesLite UI_BackgroundMain_Patch.Prefix not found; skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.MainMenuBg,
+                    "Main Menu Background Fit Fix",
+                    "RimThemesLite UI_BackgroundMain_Patch.Prefix was not found.");
                 return;
             }
 
             if (!MainMenuBgFit_RimThemesVideoBgRect_Transpiler.PrefixUsesScreenDimensions(target))
             {
-                Log.Message(
-                    "[HSK kebab tweaks] RimThemes main menu BG already uses UI.screenWidth/Height; fit fix skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.MainMenuBg,
+                    "Main Menu Background Fit Fix",
+                    "RimThemes main menu background already uses UI.screenWidth and UI.screenHeight.");
                 return;
             }
 

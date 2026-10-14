@@ -58,6 +58,10 @@ namespace HSK.KebabTweaks
         {
             if (!ModsConfig.IdeologyActive)
             {
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.GetActiveRituals,
+                    "Get Active Rituals Fix",
+                    "Ideology (Ludeon.RimWorld.Ideology)");
                 return;
             }
 
@@ -66,7 +70,10 @@ namespace HSK.KebabTweaks
                 MethodBase target = AccessTools.Method(typeof(IdeoManager), nameof(IdeoManager.GetActiveRituals));
                 if (target == null)
                 {
-                    Log.Warning("[GetActiveRitualsFixPatch] IdeoManager.GetActiveRituals not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.GetActiveRituals,
+                        "Get Active Rituals Fix",
+                        "IdeoManager.GetActiveRituals was not found.");
                     return;
                 }
 

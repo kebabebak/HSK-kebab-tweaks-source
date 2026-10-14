@@ -29,14 +29,20 @@ namespace HSK.KebabTweaks
             Type patchesType = AccessTools.TypeByName("UnifiedXmlExport.LoadedModManagerPatches");
             if (patchesType == null)
             {
-                Log.Message("[HSK kebab tweaks] Unified Xml Export not loaded; UXE path fix skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.UnifiedXml,
+                    "Unified Xml Path Fix",
+                    "Unified Xml Export (name.krypt.rimworld.unifiedxmlexport)");
                 return;
             }
 
             MethodInfo target = AccessTools.Method(patchesType, "ParseAndProcessXML_postfix");
             if (target == null)
             {
-                Log.Warning("[HSK kebab tweaks] UXE ParseAndProcessXML_postfix not found; path fix skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.UnifiedXml,
+                    "Unified Xml Path Fix",
+                    "UnifiedXmlExport.LoadedModManagerPatches.ParseAndProcessXML_postfix was not found.");
                 return;
             }
 

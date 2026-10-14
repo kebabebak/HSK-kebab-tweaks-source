@@ -41,8 +41,10 @@ namespace HSK.KebabTweaks
                         "GenerateRandomAge",
                         new[] { typeof(Pawn), typeof(PawnGenerationRequest) }) == null)
                 {
-                    Log.Message(
-                        "[StartingPawnChildAgeFixPatch] PawnGenerator.GenerateRandomAge not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.StartingPawnChildAge,
+                        "Starting Pawn Child Age Fix",
+                        "PawnGenerator.GenerateRandomAge was not found.");
                     return;
                 }
 

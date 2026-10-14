@@ -6,13 +6,13 @@ using Verse;
 namespace HSK.KebabTweaks.KebabSwitches
 {
     /// <summary>
-    /// Search text for one ignore row: the drawn label plus the same label in the active
-    /// language, English, and Russian (including Russian-SK), so a query in another language
-    /// still matches.
+    /// Ignore-row search checks four lists at once, character by character: the checkbox the
+    /// player sees in English, the checkbox in Russian, the English game sentence, and the
+    /// Russian game sentence (label and body, not only the short quote).
     ///
-    /// Текст поиска одной строки игнора: нарисованная подпись и та же подпись на активном
-    /// языке, английском и русском (включая Russian-SK), чтобы запрос на другом языке тоже
-    /// находил строку.
+    /// Поиск строки игнора проверяет четыре списка сразу, посимвольно: чекбокс, который игрок
+    /// видит по-английски, чекбокс по-русски, английскую фразу игры и русскую фразу игры
+    /// (заголовок и текст, не только короткая цитата).
     /// </summary>
     public static class NotificationSearchTexts
     {
@@ -67,6 +67,42 @@ namespace HSK.KebabTweaks.KebabSwitches
             return haystack;
         }
 
+        private static readonly Dictionary<string, string> KeyedHaystacks = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Search text for a keyed label on the Notifications tab: the drawn translation plus
+        /// the same key in every indexed language.
+        ///
+        /// Текст поиска подписи по ключу на вкладке Уведомления: нарисованный перевод и тот же
+        /// ключ на каждом учитываемом языке.
+        /// </summary>
+        public static string ForKeyed(string key)
+        {
+            if (key.NullOrEmpty())
+            {
+                return string.Empty;
+            }
+
+            if (KeyedHaystacks.TryGetValue(key, out string cached))
+            {
+                return cached;
+            }
+
+            List<string> parts = new List<string>();
+            List<LoadedLanguage> languages = IndexedLanguages();
+            for (int i = 0; i < languages.Count; i++)
+            {
+                if (TryOwn(languages[i], key, out string text))
+                {
+                    parts.Add(text);
+                }
+            }
+
+            string haystack = Join(key.Translate(), parts);
+            KeyedHaystacks[key] = haystack;
+            return haystack;
+        }
+
         public static string For(SuppressibleAlertEntry entry)
         {
             if (entry == null)
@@ -82,6 +118,366 @@ namespace HSK.KebabTweaks.KebabSwitches
             string haystack = Join(entry.CheckboxLabel, AlertParts(entry));
             AlertHaystacks[entry] = haystack;
             return haystack;
+        }
+
+        /// <summary>
+        /// True when the query is a character sequence inside any of the four ignore-row lists.
+        ///
+        /// Истина, если запрос - последовательность символов в любом из четырёх списков строки игнора.
+        /// </summary>
+        public static bool Matches(SuppressibleScreenMessageEntry entry, string query)
+        {
+            if (entry == null || query.NullOrEmpty())
+            {
+                return false;
+            }
+
+            if (!ScreenQuads.TryGetValue(entry, out SearchQuad quad))
+            {
+                quad = BuildScreenQuad(entry);
+                ScreenQuads[entry] = quad;
+            }
+
+            return QuadHits(quad, query);
+        }
+
+        public static bool Matches(SuppressibleLetterEntry entry, string query)
+        {
+            if (entry == null || query.NullOrEmpty())
+            {
+                return false;
+            }
+
+            if (!LetterQuads.TryGetValue(entry, out SearchQuad quad))
+            {
+                quad = BuildLetterQuad(entry);
+                LetterQuads[entry] = quad;
+            }
+
+            return QuadHits(quad, query);
+        }
+
+        public static bool Matches(SuppressibleAlertEntry entry, string query)
+        {
+            if (entry == null || query.NullOrEmpty())
+            {
+                return false;
+            }
+
+            if (!AlertQuads.TryGetValue(entry, out SearchQuad quad))
+            {
+                quad = BuildAlertQuad(entry);
+                AlertQuads[entry] = quad;
+            }
+
+            return QuadHits(quad, query);
+        }
+
+        private struct SearchQuad
+        {
+            public string DisplayedEnglish;
+            public string DisplayedRussian;
+            public string GameEnglish;
+            public string GameRussian;
+        }
+
+        private static readonly Dictionary<SuppressibleScreenMessageEntry, SearchQuad> ScreenQuads =
+            new Dictionary<SuppressibleScreenMessageEntry, SearchQuad>();
+
+        private static readonly Dictionary<SuppressibleLetterEntry, SearchQuad> LetterQuads =
+            new Dictionary<SuppressibleLetterEntry, SearchQuad>();
+
+        private static readonly Dictionary<SuppressibleAlertEntry, SearchQuad> AlertQuads =
+            new Dictionary<SuppressibleAlertEntry, SearchQuad>();
+
+        private static readonly string[] FoodCauseKeys =
+        {
+            "FoodPoisonCause_IncompetentCook",
+            "FoodPoisonCause_FilthyKitchen",
+            "FoodPoisonCause_Rotten",
+            "FoodPoisonCause_DangerousFoodType",
+        };
+
+        private static SearchQuad BuildScreenQuad(SuppressibleScreenMessageEntry entry)
+        {
+            SearchQuad quad = new SearchQuad
+            {
+                DisplayedEnglish = DisplayedIn(entry.CheckboxLabelKey, english: true),
+                DisplayedRussian = DisplayedIn(entry.CheckboxLabelKey, english: false),
+                GameEnglish = ScreenGame(entry, russian: false),
+                GameRussian = ScreenGame(entry, russian: true),
+            };
+            FillEmptyGameText(ref quad);
+            return quad;
+        }
+
+        private static SearchQuad BuildLetterQuad(SuppressibleLetterEntry entry)
+        {
+            SearchQuad quad = new SearchQuad
+            {
+                DisplayedEnglish = DisplayedLetter(entry, english: true),
+                DisplayedRussian = DisplayedLetter(entry, english: false),
+                GameEnglish = LetterGame(entry, russian: false),
+                GameRussian = LetterGame(entry, russian: true),
+            };
+            FillEmptyGameText(ref quad);
+            return quad;
+        }
+
+        private static SearchQuad BuildAlertQuad(SuppressibleAlertEntry entry)
+        {
+            SearchQuad quad = new SearchQuad
+            {
+                DisplayedEnglish = DisplayedAlert(entry, english: true),
+                DisplayedRussian = DisplayedAlert(entry, english: false),
+                GameEnglish = AlertGame(entry, russian: false),
+                GameRussian = AlertGame(entry, russian: true),
+            };
+            FillEmptyGameText(ref quad);
+            return quad;
+        }
+
+        /// <summary>
+        /// When a language has no translation, the game shows the other language's sentence.
+        /// That sentence is stored on the empty side so the row still has both game lists.
+        ///
+        /// Если у языка нет перевода, игра показывает фразу другого языка. Эта фраза кладётся
+        /// в пустой список, чтобы у строки были оба игровых списка.
+        /// </summary>
+        private static void FillEmptyGameText(ref SearchQuad quad)
+        {
+            if (quad.GameRussian.NullOrEmpty())
+            {
+                quad.GameRussian = quad.GameEnglish;
+            }
+
+            if (quad.GameEnglish.NullOrEmpty())
+            {
+                quad.GameEnglish = quad.GameRussian;
+            }
+        }
+
+        private static bool QuadHits(SearchQuad quad, string query)
+        {
+            return Hit(quad.DisplayedEnglish, query)
+                || Hit(quad.DisplayedRussian, query)
+                || Hit(quad.GameEnglish, query)
+                || Hit(quad.GameRussian, query);
+        }
+
+        private static bool Hit(string haystack, string query)
+        {
+            if (haystack.NullOrEmpty() || query.NullOrEmpty())
+            {
+                return false;
+            }
+
+            string foldedHay = KeyedSuppressMatcher.Normalize(haystack);
+            string foldedQuery = KeyedSuppressMatcher.Normalize(query);
+            if (foldedQuery.Length == 0)
+            {
+                return false;
+            }
+
+            return foldedHay.IndexOf(foldedQuery, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        private static string DisplayedIn(string checkboxKey, bool english)
+        {
+            StringBuilder sb = new StringBuilder();
+            HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (LoadedLanguage language in LanguageDatabase.AllLoadedLanguages)
+            {
+                if (language == null || (english ? !IsEnglish(language) : !IsRussian(language)))
+                {
+                    continue;
+                }
+
+                if (TryOwn(language, checkboxKey, out string text))
+                {
+                    AppendUnique(sb, seen, text);
+                }
+            }
+
+            return sb.ToString();
+        }
+
+        private static string DisplayedLetter(SuppressibleLetterEntry entry, bool english)
+        {
+            StringBuilder sb = new StringBuilder();
+            HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (LoadedLanguage language in LanguageDatabase.AllLoadedLanguages)
+            {
+                if (language == null || (english ? !IsEnglish(language) : !IsRussian(language)))
+                {
+                    continue;
+                }
+
+                string quote = LetterQuote(language, entry);
+                AppendUnique(sb, seen, Compose(language, IgnoreLetterKey, quote));
+            }
+
+            return sb.ToString();
+        }
+
+        private static string DisplayedAlert(SuppressibleAlertEntry entry, bool english)
+        {
+            StringBuilder sb = new StringBuilder();
+            HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (LoadedLanguage language in LanguageDatabase.AllLoadedLanguages)
+            {
+                if (language == null || (english ? !IsEnglish(language) : !IsRussian(language)))
+                {
+                    continue;
+                }
+
+                string quote = AlertQuote(language, entry);
+                AppendUnique(sb, seen, Compose(language, IgnoreAlertKey, quote));
+            }
+
+            return sb.ToString();
+        }
+
+        private static string ScreenGame(SuppressibleScreenMessageEntry entry, bool russian)
+        {
+            StringBuilder sb = new StringBuilder();
+            HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (!entry.TranslationKey.NullOrEmpty())
+            {
+                AppendLanguageText(sb, seen, entry.TranslationKey, russian);
+                if (!russian)
+                {
+                    AppendUnique(sb, seen, NotificationEnglishCatalog.TryGet(entry.TranslationKey));
+                }
+            }
+
+            if (!russian && !entry.HardcodedEnglish.NullOrEmpty())
+            {
+                AppendUnique(sb, seen, entry.HardcodedEnglish);
+            }
+
+            AppendFilterExacts(sb, seen, entry.Id, russian, screen: true);
+            if (string.Equals(entry.Id, "FoodPoisoning", StringComparison.Ordinal))
+            {
+                for (int i = 0; i < FoodCauseKeys.Length; i++)
+                {
+                    AppendLanguageText(sb, seen, FoodCauseKeys[i], russian);
+                }
+            }
+
+            NotificationStoredGameText.Append(entry.Id, russian, sb, seen);
+            return sb.ToString();
+        }
+
+        private static string LetterGame(SuppressibleLetterEntry entry, bool russian)
+        {
+            StringBuilder sb = new StringBuilder();
+            HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (!entry.TranslationKey.NullOrEmpty())
+            {
+                AppendLanguageText(sb, seen, entry.TranslationKey, russian);
+                if (!russian)
+                {
+                    AppendUnique(sb, seen, NotificationEnglishCatalog.TryGet(entry.TranslationKey));
+                }
+
+                foreach (string bodyKey in LetterSuppressFilter.BodyKeys(entry.TranslationKey))
+                {
+                    AppendLanguageText(sb, seen, bodyKey, russian);
+                    if (!russian)
+                    {
+                        AppendUnique(sb, seen, NotificationEnglishCatalog.TryGet(bodyKey));
+                    }
+                }
+            }
+
+            AppendFilterExacts(sb, seen, entry.Id, russian, screen: false);
+            NotificationStoredGameText.Append(entry.Id, russian, sb, seen);
+            return sb.ToString();
+        }
+
+        private static string AlertGame(SuppressibleAlertEntry entry, bool russian)
+        {
+            StringBuilder sb = new StringBuilder();
+            HashSet<string> seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (!entry.HardcodedEnglish.NullOrEmpty() && !russian)
+            {
+                AppendUnique(sb, seen, entry.HardcodedEnglish);
+            }
+
+            if (!entry.TranslationKey.NullOrEmpty())
+            {
+                AppendLanguageText(sb, seen, entry.TranslationKey, russian);
+                if (!russian)
+                {
+                    AppendUnique(sb, seen, AlertEnglishCatalog.TryGet(entry.TranslationKey));
+                }
+            }
+
+            NotificationStoredGameText.Append(entry.Id, russian, sb, seen);
+            return sb.ToString();
+        }
+
+        private static void AppendLanguageText(StringBuilder sb, HashSet<string> seen, string key, bool russian)
+        {
+            foreach (LoadedLanguage language in LanguageDatabase.AllLoadedLanguages)
+            {
+                if (language == null || (russian ? !IsRussian(language) : !IsEnglish(language)))
+                {
+                    continue;
+                }
+
+                if (TryOwn(language, key, out string text))
+                {
+                    AppendUnique(sb, seen, text);
+                }
+            }
+        }
+
+        private static void AppendFilterExacts(
+            StringBuilder sb,
+            HashSet<string> seen,
+            string id,
+            bool russian,
+            bool screen)
+        {
+            List<string> exact = new List<string>();
+            if (screen)
+            {
+                ScreenMessageSuppressFilter.CollectExact(id, exact);
+            }
+            else
+            {
+                LetterSuppressFilter.CollectExact(id, exact);
+            }
+
+            for (int i = 0; i < exact.Count; i++)
+            {
+                string text = exact[i];
+                if (HasCyrillic(text) == russian)
+                {
+                    AppendUnique(sb, seen, text);
+                }
+            }
+        }
+
+        private static bool HasCyrillic(string text)
+        {
+            if (text == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                char c = text[i];
+                if (c >= '\u0400' && c <= '\u04FF')
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

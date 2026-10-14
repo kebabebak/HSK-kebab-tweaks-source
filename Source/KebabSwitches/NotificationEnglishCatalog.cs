@@ -40,6 +40,21 @@ namespace HSK.KebabTweaks.KebabSwitches
             map["MessageBillComplete"] = "Bill complete: {0}.";
             map["MessageFullyHealed"] = "{1_label} is fully healed.";
             map["MessageSocialFight"] = "{PAWN1_labelShort} started a social fight with {PAWN2_labelShort}.";
+            map["MessageShipChunkDrop"] =
+                "Chunks of a spacecraft have impacted nearby. You can deconstruct them to yield resources.";
+            map["StruckMineable"] = "We have struck {0}!";
+            map["MessageTargetedTantrumChangedTarget"] =
+                "{PAWN_labelShort} couldn't reach {OLDTARGET_label} so {PAWN_pronoun} decided to redirect {PAWN_possessive} anger at {TARGET_label}.";
+            map["MessageTargetedInsultingSpreeChangedTarget"] =
+                "{PAWN_labelShort} couldn't reach {OLDTARGET_label} so {PAWN_pronoun} decided to redirect {PAWN_possessive} anger at {TARGET_label}.";
+            map["MessageBedLostAssignment"] = "{0} is no longer assigned to {1_nameDef}.";
+            map["MessageBedDestroyed"] = "{0} assigned to {1_nameDef} was destroyed.";
+            map["MessageSleepingPawnsWokenUp"] = "{0} have woken up.";
+            map["MessageNoLongerSocialFighting"] =
+                "{PAWN1_labelShort} and {PAWN2_labelShort} are no longer social fighting.";
+            map["MessageNoLongerOnTargetedInsultingSpree"] =
+                "{PAWN_labelShort} is no longer on an insulting spree against {TARGET_label}.";
+            map["MessageNoLongerBingingOnDrug"] = "{2_labelShort} is no longer binging on {1}.";
             map["MessageNewBondRelation"] = "{HUMAN_labelShort} and {ANIMAL_labelShort} have formed a bond.";
             map["MessageNewBondRelationNewName"] =
                 "{HUMAN_labelShort} and {1} have formed a bond. {HUMAN_labelShort} has named {ANIMAL_objective} {ANIMAL_nameFull}.";
@@ -153,6 +168,11 @@ namespace HSK.KebabTweaks.KebabSwitches
             map["LetterLabelRescueeJoins"] = "{PAWN_nameDef} joins";
             map["LetterLabelRescueQuestFinished"] = "Rescuee joins";
             map["LetterLabelRoofCollapsed"] = "Roof collapse";
+            map["RoofCollapsed"] = "A roof has collapsed because it was too far from any support.";
+            map["LetterFoundPreciousLump"] =
+                "Using your long-range mineral scanner, {WORKER_labelShort} has found a lump of {0} some distance away.";
+            map["LetterDeepScannerFoundLump"] =
+                "{FINDER_nameDef} has found a lump of buried {0} using the ground-penetrating scanner!";
             map["LetterLabelShortCircuit"] = "Zzztt...";
             map["LetterLabelSingleVisitorArrives"] = "Visitor";
             map["LetterLabelSiteCountdownStarted"] = "Caravan detected";

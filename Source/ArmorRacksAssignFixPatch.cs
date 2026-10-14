@@ -51,7 +51,10 @@ namespace HSK.KebabTweaks
                 Type assignCompType = AccessTools.TypeByName("ArmorRacks.ThingComps.CompAssignableToPawn_ArmorRacks");
                 if (assignCompType == null)
                 {
-                    Log.Message("[ArmorRacksAssignFixPatch] Armor Racks not loaded; patch skipped.");
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.ArmorRacks,
+                        "Armor Racks Assign Fix",
+                        "Armor Racks (khamenman.armorracks)");
                     return;
                 }
 
@@ -59,20 +62,29 @@ namespace HSK.KebabTweaks
                 MethodBase tryAssignPawn = AccessTools.Method(assignCompType, "TryAssignPawn", new[] { typeof(Pawn) });
                 if (assignedAnything == null || tryAssignPawn == null)
                 {
-                    Log.Warning("[ArmorRacksAssignFixPatch] Armor Racks assign methods not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.ArmorRacks,
+                        "Armor Racks Assign Fix",
+                        "Armor Racks assign methods were not found.");
                     return;
                 }
 
                 Type armorRackType = AccessTools.TypeByName("ArmorRacks.Things.ArmorRack");
                 if (armorRackType == null)
                 {
-                    Log.Warning("[ArmorRacksAssignFixPatch] ArmorRacks.Things.ArmorRack not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.ArmorRacks,
+                        "Armor Racks Assign Fix",
+                        "ArmorRacks.Things.ArmorRack was not found.");
                     return;
                 }
 
                 if (!ArmorRacksAssignHelpers.TryInit(armorRackType, assignCompType))
                 {
-                    Log.Warning("[ArmorRacksAssignFixPatch] Failed to resolve Armor Racks helpers; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.ArmorRacks,
+                        "Armor Racks Assign Fix",
+                        "Armor Racks helpers were not resolved.");
                     return;
                 }
 

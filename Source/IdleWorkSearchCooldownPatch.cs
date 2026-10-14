@@ -46,8 +46,10 @@ namespace HSK.KebabTweaks
                     nameof(JobGiver_Work.TryIssueJobPackage));
                 if (tryIssue == null)
                 {
-                    Log.Warning(
-                        "[IdleWorkSearchCooldownPatch] JobGiver_Work.TryIssueJobPackage not found; patch skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.IdleWorkSearch,
+                        "Idle Work Search Cooldown Patch",
+                        "JobGiver_Work.TryIssueJobPackage was not found.");
                     return;
                 }
 

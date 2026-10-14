@@ -36,7 +36,10 @@ namespace HSK.KebabTweaks
             Type generatorType = AccessTools.TypeByName("MapPreview.MapPreviewGenerator");
             if (patchType == null || generatorType == null)
             {
-                Log.Message("[HSK kebab tweaks] Map Preview not loaded; Map Preview RNG baseline fix skipped.");
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.MapPreview,
+                    "Map Preview RNG Baseline Fix",
+                    "Map Preview (m00nl1ght.MapPreview)");
                 return;
             }
 
@@ -44,14 +47,20 @@ namespace HSK.KebabTweaks
             MethodInfo constructMinimal = AccessTools.Method(generatorType, "ConstructMinimalMapComponents");
             if (fillPrefix == null || constructMinimal == null)
             {
-                Log.Warning("[HSK kebab tweaks] Map Preview target methods not found; RNG baseline fix skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.MapPreview,
+                    "Map Preview RNG Baseline Fix",
+                    "Map Preview target methods were not found.");
                 return;
             }
 
             prevRandItField = AccessTools.Field(patchType, "_prevRandIt");
             if (prevRandItField == null)
             {
-                Log.Warning("[HSK kebab tweaks] Map Preview _prevRandIt field not found; RNG baseline fix skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.MapPreview,
+                    "Map Preview RNG Baseline Fix",
+                    "Map Preview _prevRandIt field was not found.");
                 return;
             }
 
