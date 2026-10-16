@@ -60,6 +60,7 @@ namespace HSK.KebabTweaks
         public const string BreachAxe = "BreachAxeWorkAmountFixFeatures";
         public const string RawFungus = "RawFungusBillFixFeatures";
         public const string AnomalyEsp = "AnomalyEspFleeFixFeatures";
+        public const string ToggleableReadouts = "ToggleableReadoutsGuiFixFeatures";
 
         public const string CoreSk = "Core SK (skyarkhangel.HSK)";
 

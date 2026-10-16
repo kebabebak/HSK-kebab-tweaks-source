@@ -1,4 +1,3 @@
-#if RIMWORLD_1_6
 using System;
 using HarmonyLib;
 using Verse;
@@ -83,4 +82,3 @@ namespace HSK.KebabTweaks
         }
     }
 }
-#endif

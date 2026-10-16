@@ -40,6 +40,9 @@ namespace HSK.KebabTweaks
         public static bool EnableHospitalityGuestApparelOptimizeFix = true;
         public static bool EnableLowTpsPawnDump = true;
         public static bool EnableIdleWorkSearchCooldown = true;
+        public static bool EnableParanoidPerfectionist;
+        public static bool ParanoidCatchCritical = true;
+        public static bool ParanoidCatchAnyError;
         public static bool EnableDrillLimitPatch = true;
         public static bool EnableDrillLimitValueField = true;
         public static bool EnableDrillLimitAnyResource = true;
@@ -70,10 +73,10 @@ namespace HSK.KebabTweaks
         public static bool EnableObsoleteFixes;
         public static bool DoNotResetObsoleteFixesOnReload;
         public static bool SymptomBucketDefaultsApplied;
-#if RIMWORLD_1_6
         public static bool EnableMapPreviewRngBaselineFix = true;
         public static bool EnableUnifiedXmlPathFix = true;
         public static bool EnableMainMenuBgFitFix = true;
+        public static bool EnableToggleableReadoutsGuiFix = true;
         public static bool EnableRimatomicsGuidancePanelFix = true;
         public static bool EnableUfFillExtraIngredientsFix = true;
         public static bool EnableUfFillCapPickupToBillCount = true;
@@ -83,7 +86,6 @@ namespace HSK.KebabTweaks
         public static bool EnableRawFungusBillFix = true;
         public static bool EnableAnomalyEspFleeFix = true;
         public static bool EnableStratumSolarRoofEnergyTabFix = true;
-#endif
 
 #if RIMWORLD_1_6
         public static bool AppliedCatCrazyTime;
@@ -103,6 +105,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedHospitalityGuestApparelOptimizeFix = true;
         public static bool AppliedLowTpsPawnDump = true;
         public static bool AppliedIdleWorkSearchCooldown = true;
+        public static bool AppliedParanoidPerfectionist;
         public static bool AppliedDrillLimitPatch = true;
         public static bool AppliedStartingCorpsesNoHaul = true;
         public static bool AppliedPtgMedicalCare = true;
@@ -126,10 +129,10 @@ namespace HSK.KebabTweaks
         public static bool AppliedAndroidEnlightenFix = true;
         public static bool AppliedWikiRimCompat = true;
         public static bool AppliedSaveSettingsLoadFix = true;
-#if RIMWORLD_1_6
         public static bool AppliedMapPreviewRngBaselineFix = true;
         public static bool AppliedUnifiedXmlPathFix = true;
         public static bool AppliedMainMenuBgFitFix = true;
+        public static bool AppliedToggleableReadoutsGuiFix = true;
         public static bool AppliedRimatomicsGuidancePanelFix = true;
         public static bool AppliedUfFillExtraIngredientsFix = true;
         public static bool AppliedBurnWeaponBillFix;
@@ -137,7 +140,6 @@ namespace HSK.KebabTweaks
         public static bool AppliedRawFungusBillFix;
         public static bool AppliedAnomalyEspFleeFix = true;
         public static bool AppliedStratumSolarRoofEnergyTabFix = true;
-#endif
 
         public static bool CatCrazyTimeEnableLogging;
         public static bool CatFloorSleepEnableLogging;
@@ -438,7 +440,6 @@ namespace HSK.KebabTweaks
                 FeatureAvailability.StartingPawnChildAge);
         }
 
-#if RIMWORLD_1_6
         public static bool IsBurnWeaponBillFixEnabled()
         {
             return IsFixRunning(
@@ -498,6 +499,21 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// True when the resource-list copies should run: current enable while GUIContent has no
+        /// m_Text field. Obsolete section plus leftover enable when that field is present.
+        ///
+        /// True, когда копии списка ресурсов должны ставиться: обычный enable, пока у GUIContent
+        /// нет поля m_Text. Раздел «Устаревшие» плюс leftover enable, если это поле есть.
+        /// </summary>
+        public static bool IsToggleableReadoutsGuiFixEnabled()
+        {
+            return IsFixRunning(
+                EnableToggleableReadoutsGuiFix,
+                FixSymptomProbe.IsToggleableReadoutsGuiFixLeftover(),
+                FeatureAvailability.ToggleableReadouts);
+        }
+
+        /// <summary>
         /// True when Fermenter Fill hooks should run: current enable while CommitIngredients still
         /// aborts extra stacks; Obsolete section plus leftover enable when that abort is gone.
         ///
@@ -511,7 +527,6 @@ namespace HSK.KebabTweaks
                 FixSymptomProbe.IsUfFillFixLeftover(),
                 FeatureAvailability.UfFill);
         }
-#endif
 
         public static bool HasAnyObsoleteLeftover()
         {
@@ -558,9 +573,7 @@ namespace HSK.KebabTweaks
         private static readonly Color RelevancePercentZeroColor = new Color(0.95f, 0.22f, 0.22f);
 
         private const int CatCrazyTimeFixRelevancePercent = 0;
-#if RIMWORLD_1_6
         private const int ObsoleteFixRelevancePercent = 0;
-#endif
 
         private static Texture2D featureHeaderAlphaGradientTex;
 
@@ -884,6 +897,27 @@ namespace HSK.KebabTweaks
                 availabilityId: FeatureAvailability.IdleWorkSearch);
 
             DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.ParanoidPerfectionist".Translate(),
+                "KebabTweaks.Patch.ParanoidPerfectionist.Tooltip".Translate(),
+                null,
+                ref EnableParanoidPerfectionist, AppliedParanoidPerfectionist, false, false,
+                ResetParanoidPerfectionist,
+                () =>
+                {
+                    DrawSettingsCheckboxRow(listing,
+                        "ParanoidPerfectionist.CatchCritical".Translate(),
+                        ref ParanoidCatchCritical,
+                        true,
+                        "ParanoidPerfectionist.CatchCriticalTooltip".Translate());
+                    DrawSettingsRowSeparator(listing, fullWidth);
+                    DrawSettingsCheckboxRow(listing,
+                        "ParanoidPerfectionist.CatchAny".Translate(),
+                        ref ParanoidCatchAnyError,
+                        false,
+                        "ParanoidPerfectionist.CatchAnyTooltip".Translate());
+                });
+
+            DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.GrowerCutTrees".Translate(),
                 "KebabTweaks.Patch.GrowerCutTrees.Tooltip".Translate(),
                 SupersededStandaloneMods.GrowerCutTrees,
@@ -993,15 +1027,13 @@ namespace HSK.KebabTweaks
         {
             FixSymptomProbe.Ensure();
             bool firstHeaderOnTab = true;
-#if RIMWORLD_1_6
             if (!FixSymptomProbe.IsUfFillFixLeftover())
             {
                 DrawUfFillExtraIngredientsFixPatchBlock(listing, fullWidth, leftover: false,
                     leadingSpacer: !firstHeaderOnTab);
                 firstHeaderOnTab = false;
             }
-#endif
-#if !RIMWORLD_1_6
+
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.TakeFromMending".Translate(),
                 "KebabTweaks.Patch.TakeFromMending.Tooltip".Translate(),
@@ -1020,10 +1052,8 @@ namespace HSK.KebabTweaks
                 FixErrorTraceCatalog.TakeFromMending, FixErrorTraceCatalog.TakeFromMendingTipId,
                 leadingSpacer: !firstHeaderOnTab,
                 researchLink: FeatureResearchLinkCatalog.TakeFromMending,
-                availabilityId: FeatureAvailability.TakeFromMending,
-                trailingSuffix: " " + "KebabTweaks.HeaderSuffix.Only15".Translate());
+                availabilityId: FeatureAvailability.TakeFromMending);
             firstHeaderOnTab = false;
-#endif
             if (!FixSymptomProbe.IsCatCrazyTimeLeftover())
             {
                 DrawCatCrazyTimePatchBlock(listing, fullWidth, leftover: false,
@@ -1273,7 +1303,6 @@ namespace HSK.KebabTweaks
                 DrawStartingPawnNameFixPatchBlock(listing, fullWidth, leftover: false);
             }
 
-#if RIMWORLD_1_6
             if (!FixSymptomProbe.IsAnomalyEspFleeFixLeftover())
             {
                 DrawAnomalyEspFleeFixPatchBlock(listing, fullWidth, leftover: false);
@@ -1316,6 +1345,11 @@ namespace HSK.KebabTweaks
                 DrawMainMenuBgFitFixPatchBlock(listing, fullWidth, leftover: false);
             }
 
+            if (!FixSymptomProbe.IsToggleableReadoutsGuiFixLeftover())
+            {
+                DrawToggleableReadoutsGuiFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.RimatomicsGuidancePanelFix".Translate(),
                 "KebabTweaks.Patch.RimatomicsGuidancePanelFix.Tooltip".Translate(),
@@ -1341,7 +1375,6 @@ namespace HSK.KebabTweaks
             {
                 DrawRawFungusBillFixPatchBlock(listing, fullWidth, leftover: false);
             }
-#endif
 
             if (HasAnyObsoleteLeftover())
             {
@@ -1681,13 +1714,11 @@ namespace HSK.KebabTweaks
             Rect cachedRect = new Rect(0f, startY, fullWidth, cachedHeight);
             BlockDisabledSettingsRowInput(cachedRect, !EnableObsoleteFixes && cachedHeight > 0.5f);
 
-#if RIMWORLD_1_6
             if (FixSymptomProbe.IsUfFillFixLeftover())
             {
                 DrawUfFillExtraIngredientsFixPatchBlock(listing, fullWidth, leftover: true,
                     leadingSpacer: true);
             }
-#endif
 
             if (FixSymptomProbe.IsCatCrazyTimeLeftover())
             {
@@ -1714,7 +1745,6 @@ namespace HSK.KebabTweaks
                 DrawSeedsPleaseSowFixPatchBlock(listing, fullWidth, leftover: true);
             }
 
-#if RIMWORLD_1_6
             if (FixSymptomProbe.IsBurnWeaponBillFixLeftover())
             {
                 DrawBurnWeaponBillFixPatchBlock(listing, fullWidth, leftover: true);
@@ -1739,7 +1769,11 @@ namespace HSK.KebabTweaks
             {
                 DrawMainMenuBgFitFixPatchBlock(listing, fullWidth, leftover: true);
             }
-#endif
+
+            if (FixSymptomProbe.IsToggleableReadoutsGuiFixLeftover())
+            {
+                DrawToggleableReadoutsGuiFixPatchBlock(listing, fullWidth, leftover: true);
+            }
 
             float height = listing.CurHeight - startY;
             obsoleteFixesSectionHeightCache = height;
@@ -1862,7 +1896,6 @@ namespace HSK.KebabTweaks
                 availabilityId: FeatureAvailability.SeedsPlease);
         }
 
-#if RIMWORLD_1_6
         private void DrawUfFillExtraIngredientsFixPatchBlock(
             Listing_Standard listing,
             float fullWidth,
@@ -1914,6 +1947,25 @@ namespace HSK.KebabTweaks
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? 0 : (int?)null,
                 availabilityId: FeatureAvailability.MainMenuBg);
+        }
+
+        private void DrawToggleableReadoutsGuiFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.ToggleableReadoutsGuiFix".Translate(),
+                "KebabTweaks.Patch.ToggleableReadoutsGuiFix.Tooltip".Translate(),
+                null,
+                ref EnableToggleableReadoutsGuiFix, AppliedToggleableReadoutsGuiFix,
+                !leftover, true, ResetToggleableReadoutsGuiFix,
+                null,
+                FixErrorTraceCatalog.ToggleableReadoutsGuiFix,
+                FixErrorTraceCatalog.ToggleableReadoutsGuiFixTipId,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? 0 : (int?)null,
+                availabilityId: FeatureAvailability.ToggleableReadouts);
         }
 
         private void DrawBurnWeaponBillFixPatchBlock(
@@ -1990,7 +2042,6 @@ namespace HSK.KebabTweaks
                 researchLink: FeatureResearchLinkCatalog.AnomalyEspFleeFix,
                 availabilityId: FeatureAvailability.AnomalyEsp);
         }
-#endif
 
         private void DrawPatchBlock(
             Listing_Standard listing,
@@ -3302,6 +3353,7 @@ namespace HSK.KebabTweaks
             ResetHospitalityGuestApparelOptimizeFix();
             ResetLowTpsPawnDump();
             ResetIdleWorkSearchCooldown();
+            ResetParanoidPerfectionist();
             ResetDrillLimitPatch();
             ResetStartingCorpsesNoHaul();
             ResetPtgMedicalCare();
@@ -3325,10 +3377,10 @@ namespace HSK.KebabTweaks
             ResetAndroidEnlightenFix();
             ResetWikiRimCompat();
             ResetObsoleteFixes();
-#if RIMWORLD_1_6
             ResetMapPreviewRngBaselineFix();
             ResetUnifiedXmlPathFix();
             ResetMainMenuBgFitFix();
+            ResetToggleableReadoutsGuiFix();
             ResetRimatomicsGuidancePanelFix();
             ResetUfFillExtraIngredientsFix();
             ResetBurnWeaponBillFix();
@@ -3336,7 +3388,6 @@ namespace HSK.KebabTweaks
             ResetRawFungusBillFix();
             ResetAnomalyEspFleeFix();
             ResetStratumSolarRoofEnergyTabFix();
-#endif
             Write();
         }
 
@@ -3486,6 +3537,13 @@ namespace HSK.KebabTweaks
             LowTpsLogCooldownSeconds = DefaultLowTpsLogCooldownSeconds;
             LowTpsThreshold_Buffer = null;
             LowTpsLogCooldownSeconds_Buffer = null;
+        }
+
+        private static void ResetParanoidPerfectionist()
+        {
+            EnableParanoidPerfectionist = false;
+            ParanoidCatchCritical = true;
+            ParanoidCatchAnyError = false;
         }
 
         private static void ResetIdleWorkSearchCooldown()
@@ -3655,7 +3713,7 @@ namespace HSK.KebabTweaks
             {
                 ResetSeedsPleaseSowFix();
             }
-#if RIMWORLD_1_6
+
             if (FixSymptomProbe.IsUfFillFixLeftover())
             {
                 ResetUfFillExtraIngredientsFix();
@@ -3685,7 +3743,11 @@ namespace HSK.KebabTweaks
             {
                 ResetMainMenuBgFitFix();
             }
-#endif
+
+            if (FixSymptomProbe.IsToggleableReadoutsGuiFixLeftover())
+            {
+                ResetToggleableReadoutsGuiFix();
+            }
         }
 
         /// <summary>
@@ -3706,10 +3768,10 @@ namespace HSK.KebabTweaks
 
         /// <summary>
         /// Once per settings file, turn still-needed candidates on if they were left off.
-        /// RimWorld 1.6 only; waits until def-backed probes have run.
+        /// Waits until def-backed probes have run.
         ///
         /// Один раз на файл настроек включает ещё нужные фиксы, если они остались выкл.
-        /// Только RimWorld 1.6; ждёт зонды по дефам.
+        /// Ждёт зонды по дефам.
         /// </summary>
         public static void ApplySymptomBucketCurrentDefaultsOnce()
         {
@@ -3718,10 +3780,6 @@ namespace HSK.KebabTweaks
                 return;
             }
 
-#if !RIMWORLD_1_6
-            SymptomBucketDefaultsApplied = true;
-            return;
-#else
             FixSymptomProbe.Ensure();
             if (!FixSymptomProbe.DefBackedProbesReady)
             {
@@ -3784,12 +3842,16 @@ namespace HSK.KebabTweaks
                 EnableMainMenuBgFitFix = true;
             }
 
+            if (!FixSymptomProbe.IsToggleableReadoutsGuiFixLeftover())
+            {
+                EnableToggleableReadoutsGuiFix = true;
+            }
+
             Mod mod = LoadedModManager.GetMod<KebabTweaksMod>();
             if (mod != null)
             {
                 mod.WriteSettings();
             }
-#endif
         }
 
         private static void ResetObsoleteFixToggles()
@@ -3819,7 +3881,7 @@ namespace HSK.KebabTweaks
             {
                 EnableSeedsPleaseSowFix = false;
             }
-#if RIMWORLD_1_6
+
             if (FixSymptomProbe.IsUfFillFixLeftover())
             {
                 EnableUfFillExtraIngredientsFix = false;
@@ -3849,10 +3911,13 @@ namespace HSK.KebabTweaks
             {
                 EnableMainMenuBgFitFix = false;
             }
-#endif
+
+            if (FixSymptomProbe.IsToggleableReadoutsGuiFixLeftover())
+            {
+                EnableToggleableReadoutsGuiFix = false;
+            }
         }
 
-#if RIMWORLD_1_6
         private static void ResetMapPreviewRngBaselineFix()
         {
             EnableMapPreviewRngBaselineFix = true;
@@ -3866,6 +3931,11 @@ namespace HSK.KebabTweaks
         private static void ResetMainMenuBgFitFix()
         {
             EnableMainMenuBgFitFix = !FixSymptomProbe.IsMainMenuBgFitFixLeftover();
+        }
+
+        private static void ResetToggleableReadoutsGuiFix()
+        {
+            EnableToggleableReadoutsGuiFix = !FixSymptomProbe.IsToggleableReadoutsGuiFixLeftover();
         }
 
         private static void ResetRimatomicsGuidancePanelFix()
@@ -3907,7 +3977,6 @@ namespace HSK.KebabTweaks
         {
             EnableStratumSolarRoofEnergyTabFix = true;
         }
-#endif
 
         public override void ExposeData()
         {
@@ -3935,6 +4004,9 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableLowTpsPawnDump, "EnableLowTpsPawnDump", defaultValue: true);
             Scribe_Values.Look(ref EnableIdleWorkSearchCooldown, "EnableIdleWorkSearchCooldown",
                 defaultValue: true);
+            Scribe_Values.Look(ref EnableParanoidPerfectionist, "EnableParanoidPerfectionist", defaultValue: false);
+            Scribe_Values.Look(ref ParanoidCatchCritical, "ParanoidCatchCritical", defaultValue: true);
+            Scribe_Values.Look(ref ParanoidCatchAnyError, "ParanoidCatchAnyError", defaultValue: false);
             Scribe_Values.Look(ref EnableDrillLimitPatch, "EnableDrillLimitPatch", defaultValue: true);
             Scribe_Values.Look(ref EnableDrillLimitValueField, "EnableDrillLimitValueField", defaultValue: true);
             Scribe_Values.Look(ref EnableDrillLimitAnyResource, "EnableDrillLimitAnyResource", defaultValue: true);
@@ -3991,11 +4063,12 @@ namespace HSK.KebabTweaks
                 defaultValue: false);
             Scribe_Values.Look(ref SymptomBucketDefaultsApplied, "SymptomBucketDefaultsApplied",
                 defaultValue: false);
-#if RIMWORLD_1_6
             Scribe_Values.Look(ref EnableMapPreviewRngBaselineFix, "EnableMapPreviewRngBaselineFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableUnifiedXmlPathFix, "EnableUnifiedXmlPathFix", defaultValue: true);
             Scribe_Values.Look(ref EnableMainMenuBgFitFix, "EnableMainMenuBgFitFix", defaultValue: true);
+            Scribe_Values.Look(ref EnableToggleableReadoutsGuiFix, "EnableToggleableReadoutsGuiFix",
+                defaultValue: true);
             Scribe_Values.Look(ref EnableRimatomicsGuidancePanelFix, "EnableRimatomicsGuidancePanelFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableUfFillExtraIngredientsFix, "EnableUfFillExtraIngredientsFix",
@@ -4014,7 +4087,6 @@ namespace HSK.KebabTweaks
                 defaultValue: true);
             Scribe_Values.Look(ref EnableStratumSolarRoofEnergyTabFix, "EnableStratumSolarRoofEnergyTabFix",
                 defaultValue: true);
-#endif
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);
             Scribe_Values.Look(ref CatFloorSleepEnableLogging, "CatFloorSleepEnableLogging", defaultValue: false);

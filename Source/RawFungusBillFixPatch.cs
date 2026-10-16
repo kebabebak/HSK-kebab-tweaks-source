@@ -1,4 +1,3 @@
-#if RIMWORLD_1_6
 using System;
 using System.Collections.Generic;
 using HarmonyLib;
@@ -289,4 +288,3 @@ namespace HSK.KebabTweaks
         }
     }
 }
-#endif

@@ -1,11 +1,9 @@
-#if !RIMWORLD_1_6
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
-using HaulToBuilding;
-using Mending;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -13,6 +11,270 @@ using Verse.AI;
 
 namespace HSK.KebabTweaks
 {
+    /// <summary>
+    /// Reads HaulToBuilding ExtraBillData by name so this assembly does not reference that DLL.
+    /// Instance and TakeFrom are fields. TakeFromText is HaulToBuilding.Utils.TakeFromText.
+    ///
+    /// Читает ExtraBillData из HaulToBuilding по имени, без ссылки на ту DLL.
+    /// Instance и TakeFrom там поля. TakeFromText - это HaulToBuilding.Utils.TakeFromText.
+    /// </summary>
+    static class ExtraBillDataAccess
+    {
+        const string ComponentTypeName = "HaulToBuilding.GameComponent_ExtraBillData";
+        const string DataTypeName = "HaulToBuilding.ExtraBillData";
+
+        static bool resolved;
+        static Type componentType;
+        static Type dataType;
+        static MemberInfo instanceMember;
+        static MethodInfo getDataMethod;
+        static FieldInfo dataField;
+        static MemberInfo takeFromMember;
+        static MethodInfo takeFromTextMethod;
+
+        public static bool IsLoaded
+        {
+            get
+            {
+                Ensure();
+                return componentType != null && dataType != null;
+            }
+        }
+
+        public static Type ComponentType
+        {
+            get
+            {
+                Ensure();
+                return componentType;
+            }
+        }
+
+        public static object Instance
+        {
+            get
+            {
+                Ensure();
+                if (instanceMember == null)
+                {
+                    return null;
+                }
+
+                return instanceMember is PropertyInfo property
+                    ? property.GetValue(null)
+                    : ((FieldInfo)instanceMember).GetValue(null);
+            }
+        }
+
+        public static object GetData(object component, Bill bill)
+        {
+            Ensure();
+            if (component == null || getDataMethod == null)
+            {
+                return null;
+            }
+
+            return getDataMethod.Invoke(component, new object[] { bill, false });
+        }
+
+        public static IDictionary BillDictionary(object component)
+        {
+            Ensure();
+            if (component == null || dataField == null)
+            {
+                return null;
+            }
+
+            return dataField.GetValue(component) as IDictionary;
+        }
+
+        public static bool TakeFromHasAny(object data)
+        {
+            IEnumerable items = ReadTakeFrom(data);
+            if (items == null)
+            {
+                return false;
+            }
+
+            foreach (object unused in items)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static int TakeFromCount(object data)
+        {
+            IEnumerable items = ReadTakeFrom(data);
+            if (items is ICollection collection)
+            {
+                return collection.Count;
+            }
+
+            if (items == null)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            foreach (object unused in items)
+            {
+                count++;
+            }
+
+            return count;
+        }
+
+        public static string TakeFromText(object data)
+        {
+            Ensure();
+            if (data == null || takeFromTextMethod == null)
+            {
+                return null;
+            }
+
+            object value = takeFromTextMethod.IsStatic
+                ? takeFromTextMethod.Invoke(null, new[] { data })
+                : takeFromTextMethod.Invoke(data, null);
+            return value as string;
+        }
+
+        public static List<ISlotGroupParent> CopyTakeFromParents(object data)
+        {
+            IEnumerable items = ReadTakeFrom(data);
+            var parents = new List<ISlotGroupParent>();
+            if (items == null)
+            {
+                return parents;
+            }
+
+            foreach (object item in items)
+            {
+                if (item is ISlotGroupParent parent)
+                {
+                    parents.Add(parent);
+                }
+            }
+
+            return parents;
+        }
+
+        static IEnumerable ReadTakeFrom(object data)
+        {
+            Ensure();
+            if (data == null || takeFromMember == null)
+            {
+                return null;
+            }
+
+            object value = takeFromMember is PropertyInfo property
+                ? property.GetValue(data)
+                : ((FieldInfo)takeFromMember).GetValue(data);
+            return value as IEnumerable;
+        }
+
+        static void Ensure()
+        {
+            if (resolved)
+            {
+                return;
+            }
+
+            resolved = true;
+            componentType = AccessTools.TypeByName(ComponentTypeName);
+            dataType = AccessTools.TypeByName(DataTypeName);
+            if (componentType == null)
+            {
+                return;
+            }
+
+            instanceMember = AccessTools.Property(componentType, "Instance")
+                ?? (MemberInfo)AccessTools.Field(componentType, "Instance");
+            getDataMethod = AccessTools.Method(componentType, "GetData", new[] { typeof(Bill), typeof(bool) });
+            dataField = AccessTools.Field(componentType, "data");
+            if (dataType == null)
+            {
+                return;
+            }
+
+            takeFromMember = AccessTools.Property(dataType, "TakeFrom")
+                ?? (MemberInfo)AccessTools.Field(dataType, "TakeFrom");
+            takeFromTextMethod = AccessTools.Method(dataType, "TakeFromText");
+            if (takeFromTextMethod == null)
+            {
+                Type utilsType = AccessTools.TypeByName("HaulToBuilding.Utils");
+                if (utilsType != null)
+                {
+                    takeFromTextMethod = AccessTools.Method(utilsType, "TakeFromText", new[] { dataType });
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Reads Mending mod settings by name so this assembly does not reference Mending.dll.
+    ///
+    /// Читает настройки Mending по имени, без ссылки на Mending.dll.
+    /// </summary>
+    static class MendingSettingsAccess
+    {
+        static bool resolved;
+        static MemberInfo progressiveMending;
+        static MemberInfo pawnFreeSkillBonus;
+
+        public static bool ProgressiveMending
+        {
+            get
+            {
+                object value = Read(progressiveMending);
+                return value is bool flag && flag;
+            }
+        }
+
+        public static int PawnFreeSkillBonus
+        {
+            get
+            {
+                object value = Read(pawnFreeSkillBonus);
+                return value is int bonus ? bonus : 0;
+            }
+        }
+
+        static object Read(MemberInfo member)
+        {
+            Ensure();
+            if (member == null)
+            {
+                return null;
+            }
+
+            return member is PropertyInfo property
+                ? property.GetValue(null)
+                : ((FieldInfo)member).GetValue(null);
+        }
+
+        static void Ensure()
+        {
+            if (resolved)
+            {
+                return;
+            }
+
+            resolved = true;
+            Type settingsType = AccessTools.TypeByName("Mending.Mending_Settings");
+            if (settingsType == null)
+            {
+                return;
+            }
+
+            progressiveMending = AccessTools.Property(settingsType, "progressiveMending")
+                ?? (MemberInfo)AccessTools.Field(settingsType, "progressiveMending");
+            pawnFreeSkillBonus = AccessTools.Property(settingsType, "pawnFreeSkillBonus")
+                ?? (MemberInfo)AccessTools.Field(settingsType, "pawnFreeSkillBonus");
+        }
+    }
+
     public static class TakeFromMendingModCompatibility
     {
         private const string MendAndRecyclePackageId = "notfood.MendAndRecycle";
@@ -53,6 +315,8 @@ namespace HSK.KebabTweaks
     /// HaulToBuilding / MendAndRecycle run unconstrained search when TakeFrom is set.
     /// ExtraBillData cleanup: postfix on GameComponent_ExtraBillData.ExposeData prunes null/dead
     /// bill keys that otherwise spam load errors after deleted bills deserialize.
+    /// HaulToBuilding and Mending types are resolved by name, so this assembly does not
+    /// reference those DLLs and skips the feature when Take It To Storage! is absent.
     ///
     /// Проблема: мод "Take It To Storage!" (HaulToBuilding) добавляет per-bill список "Take from"
     /// (ExtraBillData.TakeFrom). Патчит vanilla TryFindBestBillIngredients для крафта, но Core SK
@@ -70,11 +334,22 @@ namespace HSK.KebabTweaks
     /// нужен, чтобы перехватить до HaulToBuilding / MendAndRecycle при установленном TakeFrom.
     /// Очистка ExtraBillData: Postfix GameComponent_ExtraBillData.ExposeData удаляет null/мёртвые
     /// ключи bill, иначе после удалённых билл спамят ошибки load.
+    /// Типы HaulToBuilding и Mending ищутся по имени, сборка на эти DLL не ссылается
+    /// и пропускает фикс, если нет Take It To Storage!.
     /// </summary>
     public static class TakeFromMendingFeatures
     {
         public static void Apply(Harmony harmony)
         {
+            if (!ExtraBillDataAccess.IsLoaded)
+            {
+                FeatureAvailability.SkipMissingMods(
+                    FeatureAvailability.TakeFromMending,
+                    "Take From Mending",
+                    "Take It To Storage! (legodude17.htsb)");
+                return;
+            }
+
             try
             {
                 // Explicit types only - never PatchAll(GetExecutingAssembly()) in the combined mod.
@@ -189,8 +464,14 @@ namespace HSK.KebabTweaks
                 return false;
             }
 
+            Type mendingGiver = AccessTools.TypeByName("Mending.WorkGiver_DoBill");
+            if (mendingGiver == null)
+            {
+                return false;
+            }
+
             targetMethod = AccessTools.Method(
-                typeof(Mending.WorkGiver_DoBill),
+                mendingGiver,
                 "TryFindBestBillIngredients",
                 new[]
                 {
@@ -240,10 +521,29 @@ namespace HSK.KebabTweaks
         }
     }
 
-    [HarmonyPatch(typeof(GameComponent_ExtraBillData), nameof(GameComponent_ExtraBillData.ExposeData))]
+    [HarmonyPatch]
     internal static class ExtraBillDataExposeDataPatch
     {
-        public static void Postfix(GameComponent_ExtraBillData __instance)
+        static MethodBase targetMethod;
+
+        static bool Prepare()
+        {
+            Type componentType = ExtraBillDataAccess.ComponentType;
+            if (componentType == null)
+            {
+                return false;
+            }
+
+            targetMethod = AccessTools.Method(componentType, "ExposeData");
+            return targetMethod != null;
+        }
+
+        static MethodBase TargetMethod()
+        {
+            return targetMethod;
+        }
+
+        public static void Postfix(object __instance)
         {
             if (!KebabTweaksSettings.EnableTakeFromMending)
             {
@@ -262,17 +562,9 @@ namespace HSK.KebabTweaks
 
     internal static class ExtraBillDataMaintenance
     {
-        private static FieldInfo extraBillDataDictionaryField;
-
-        internal static Dictionary<Bill, ExtraBillData> GetBillDataDictionary(GameComponent_ExtraBillData component)
+        internal static IDictionary GetBillDataDictionary(object component)
         {
-            if (component == null)
-            {
-                return null;
-            }
-
-            extraBillDataDictionaryField ??= AccessTools.Field(typeof(GameComponent_ExtraBillData), "data");
-            return extraBillDataDictionaryField?.GetValue(component) as Dictionary<Bill, ExtraBillData>;
+            return ExtraBillDataAccess.BillDictionary(component);
         }
 
         internal static bool IsBillDataKeyAlive(Bill bill)
@@ -311,9 +603,9 @@ namespace HSK.KebabTweaks
             }
         }
 
-        internal static int PruneStaleBillDataKeys(GameComponent_ExtraBillData component, string route)
+        internal static int PruneStaleBillDataKeys(object component, string route)
         {
-            var dict = ExtraBillDataMaintenance.GetBillDataDictionary(component);
+            IDictionary dict = ExtraBillDataMaintenance.GetBillDataDictionary(component);
             if (dict == null || dict.Count == 0)
             {
                 return 0;
@@ -321,7 +613,13 @@ namespace HSK.KebabTweaks
 
             List<Bill> staleKeys = null;
             int nullKeys = 0;
-            foreach (Bill key in dict.Keys.ToList())
+            var keys = new List<Bill>();
+            foreach (DictionaryEntry entry in dict)
+            {
+                keys.Add(entry.Key as Bill);
+            }
+
+            foreach (Bill key in keys)
             {
                 if (key == null)
                 {
@@ -554,7 +852,7 @@ namespace HSK.KebabTweaks
             {
                 var reason = repairable == null
                     ? "MissingMaterials".Translate("UsableIngredients".Translate())
-                    : "UnderRequiredSkill".Translate((int)(skillNeeded * 20f) - Mending_Settings.pawnFreeSkillBonus) + " : " + repairable.LabelNoCount;
+                    : "UnderRequiredSkill".Translate((int)(skillNeeded * 20f) - MendingSettingsAccess.PawnFreeSkillBonus) + " : " + repairable.LabelNoCount;
                 JobFailReason.Is(reason);
             }
             __result = chosen != null;
@@ -577,7 +875,7 @@ namespace HSK.KebabTweaks
                 TakeFromMendingPatchLog.Message($"[TakeFromMendingPatch] {route} skipped: bill is null.");
                 return false;
             }
-            var component = GameComponent_ExtraBillData.Instance;
+            object component = ExtraBillDataAccess.Instance;
             if (component == null)
             {
                 TakeFromMendingPatchLog.Message($"[TakeFromMendingPatch] {route} skipped: GameComponent_ExtraBillData.Instance is null for {DescribeBill(bill, pawn, billGiver)}.");
@@ -586,7 +884,7 @@ namespace HSK.KebabTweaks
 
             try
             {
-                if (TryGetTakeFromFromData(component.GetData(bill, createIfMissing: false), out parents))
+                if (TryGetTakeFromFromData(ExtraBillDataAccess.GetData(component, bill), out parents))
                 {
                     resolution = "direct";
                     TakeFromMendingPatchLog.Message($"[TakeFromMendingPatch] {route} resolved TakeFrom via direct bill key: {DescribeParents(parents)}");
@@ -606,7 +904,7 @@ namespace HSK.KebabTweaks
                                 $"[TakeFromMendingPatch] {route} skipped dead bill stack sibling for {DescribeBill(bill, pawn, billGiver)}.");
                             continue;
                         }
-                        if (TryGetTakeFromFromData(component.GetData(other, createIfMissing: false), out parents))
+                        if (TryGetTakeFromFromData(ExtraBillDataAccess.GetData(component, other), out parents))
                         {
                             resolution = $"billStack:{other.Label}";
                             TakeFromMendingPatchLog.Message(
@@ -649,7 +947,7 @@ namespace HSK.KebabTweaks
                 }
                 Map map = pawn?.Map ?? billGiver?.Map;
                 Bill bestMatch = null;
-                ExtraBillData bestData = null;
+                object bestData = null;
                 foreach (var kv in EnumerateBillDataWithTakeFrom(component))
                 {
                     var other = kv.Key;
@@ -680,12 +978,12 @@ namespace HSK.KebabTweaks
                         $"(linked/mirrored bill): {DescribeParents(parents)}");
                     return true;
                 }
-                var emptyDirect = component.GetData(bill, createIfMissing: false);
-                if (emptyDirect != null && (emptyDirect.TakeFrom == null || !emptyDirect.TakeFrom.Any()))
+                object emptyDirect = ExtraBillDataAccess.GetData(component, bill);
+                if (emptyDirect != null && !ExtraBillDataAccess.TakeFromHasAny(emptyDirect))
                 {
                     TakeFromMendingPatchLog.Message(
                         $"[TakeFromMendingPatch] {route} skipped: TakeFrom is empty for {DescribeBill(bill, pawn, billGiver)} " +
-                        $"(TakeFromText={emptyDirect.TakeFromText()}).");
+                        $"(TakeFromText={ExtraBillDataAccess.TakeFromText(emptyDirect)}).");
                 }
                 else
                 {
@@ -706,64 +1004,69 @@ namespace HSK.KebabTweaks
                 return false;
             }
         }
-        private static bool TryGetTakeFromFromData(ExtraBillData extraData, out List<ISlotGroupParent> parents)
+        private static bool TryGetTakeFromFromData(object extraData, out List<ISlotGroupParent> parents)
         {
             parents = null;
-            if (extraData?.TakeFrom == null || !extraData.TakeFrom.Any())
+            if (!ExtraBillDataAccess.TakeFromHasAny(extraData))
             {
                 return false;
             }
-            parents = extraData.TakeFrom.Where(parent => parent != null).ToList();
-            return parents.Count > 0;
+
+            parents = ExtraBillDataAccess.CopyTakeFromParents(extraData);
+            return parents != null && parents.Count > 0;
         }
-        private static IEnumerable<KeyValuePair<Bill, ExtraBillData>> EnumerateBillDataWithTakeFrom(
-            GameComponent_ExtraBillData component)
+
+        private static IEnumerable<KeyValuePair<Bill, object>> EnumerateBillDataWithTakeFrom(object component)
         {
-            var dict = ExtraBillDataMaintenance.GetBillDataDictionary(component);
+            IDictionary dict = ExtraBillDataMaintenance.GetBillDataDictionary(component);
             if (dict == null)
             {
                 yield break;
             }
 
-            foreach (var kv in dict)
+            foreach (DictionaryEntry entry in dict)
             {
-                if (!ExtraBillDataMaintenance.IsBillDataKeyAlive(kv.Key) || !TryGetTakeFromFromData(kv.Value, out _))
+                Bill key = entry.Key as Bill;
+                if (!ExtraBillDataMaintenance.IsBillDataKeyAlive(key) || !TryGetTakeFromFromData(entry.Value, out _))
                 {
                     continue;
                 }
 
-                yield return kv;
+                yield return new KeyValuePair<Bill, object>(key, entry.Value);
             }
         }
 
-        private static void LogBillDataDiagnostics(Bill bill, GameComponent_ExtraBillData component)
+        private static void LogBillDataDiagnostics(Bill bill, object component)
         {
             if (!KebabTweaksSettings.TakeFromMendingEnableLogging)
             {
                 return;
             }
-            var dict = ExtraBillDataMaintenance.GetBillDataDictionary(component);
+
+            IDictionary dict = ExtraBillDataMaintenance.GetBillDataDictionary(component);
             int count = dict?.Count ?? 0;
             TakeFromMendingPatchLog.Message($"[TakeFromMendingPatch] ExtraBillData dictionary entries: {count}");
             if (dict == null)
             {
                 return;
             }
-            foreach (var kv in dict)
+
+            foreach (DictionaryEntry entry in dict)
             {
-                if (!ExtraBillDataMaintenance.IsBillDataKeyAlive(kv.Key))
+                Bill key = entry.Key as Bill;
+                if (!ExtraBillDataMaintenance.IsBillDataKeyAlive(key))
                 {
                     TakeFromMendingPatchLog.Message("[TakeFromMendingPatch]   bill entry: <stale/dead key skipped>");
                     continue;
                 }
 
-                int takeFromCount = kv.Value?.TakeFrom?.Count ?? 0;
-                string recipe = kv.Key?.recipe?.defName ?? "<no recipe>";
-                string label = kv.Key?.Label ?? "<no label>";
-                string giver = kv.Key?.billStack?.billGiver?.LabelShort ?? "<no giver>";
+                int takeFromCount = ExtraBillDataAccess.TakeFromCount(entry.Value);
+                string recipe = key?.recipe?.defName ?? "<no recipe>";
+                string label = key?.Label ?? "<no label>";
+                string giver = key?.billStack?.billGiver?.LabelShort ?? "<no giver>";
                 TakeFromMendingPatchLog.Message(
                     $"[TakeFromMendingPatch]   bill entry: recipe={recipe}, label={label}, giver={giver}, TakeFrom.Count={takeFromCount}, " +
-                    $"sameStack={ReferenceEquals(kv.Key?.billStack, bill?.billStack)}");
+                    $"sameStack={ReferenceEquals(key?.billStack, bill?.billStack)}");
             }
         }
         private static void LogStockpileContext(Pawn pawn, List<ISlotGroupParent> parents, string resolution)
@@ -1009,7 +1312,7 @@ namespace HSK.KebabTweaks
         }
         private static float GetRepairLimit(Bill bill, Pawn pawn)
         {
-            if (!Mending_Settings.progressiveMending)
+            if (!MendingSettingsAccess.ProgressiveMending)
             {
                 return 1f;
             }
@@ -1021,7 +1324,7 @@ namespace HSK.KebabTweaks
             int level = skillRecord != null
                 ? skillRecord.GetLevel(includeAptitudes: true)
                 : pawn.RaceProps.mechFixedSkillLevel;
-            return 0.05f * Mathf.Clamp(level + Mending_Settings.pawnFreeSkillBonus, 0, 20);
+            return 0.05f * Mathf.Clamp(level + MendingSettingsAccess.PawnFreeSkillBonus, 0, 20);
         }
         private static bool EnoughSkill(Thing thing, float repairLimit, ref float skillNeeded, ref Thing repairable)
         {
@@ -1130,4 +1433,3 @@ namespace HSK.KebabTweaks
         }
     }
 }
-#endif

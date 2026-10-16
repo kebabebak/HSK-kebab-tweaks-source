@@ -42,9 +42,7 @@ namespace HSK.KebabTweaks
         const string CorunanPersonNamerDefName = "NamerPersonCorunanEN";
         const string SkPawnGeneratorPatchesTypeName = "SK.PawnGeneratorPatches";
         const string SkPawnGeneratorChildAgeMethodName = "PawnGenerator_GenerateRandomAge";
-#if RIMWORLD_1_6
         const string RimThemesBackgroundPatchTypeName = "RimThemesLite.UI_BackgroundMain_Patch";
-#endif
 
         static bool catCrazyTimeProbed;
         static bool catCrazyTimeLeftover;
@@ -58,7 +56,6 @@ namespace HSK.KebabTweaks
         static bool seedsPleaseSowProbed;
         static bool seedsPleaseSowLeftover;
         static bool seedsPleaseSowPartial;
-#if RIMWORLD_1_6
         static bool defsProbed;
         static bool burnWeaponLeftover;
         static bool breachAxeLeftover;
@@ -70,7 +67,8 @@ namespace HSK.KebabTweaks
         static bool anomalyEspLeftover;
         static bool mainMenuBgFitProbed;
         static bool mainMenuBgFitLeftover;
-#endif
+        static bool readoutGuiProbed;
+        static bool readoutGuiLeftover;
         static bool logged;
 
         /// <summary>
@@ -85,12 +83,11 @@ namespace HSK.KebabTweaks
             ProbeSeedsPleaseSowIfNeeded();
             ProbeStartingPawnNameIfNeeded();
             ProbeStartingPawnChildAgeIfNeeded();
-#if RIMWORLD_1_6
             ProbeUfFillIfNeeded();
             ProbeAnomalyEspFleeIfNeeded();
             ProbeMainMenuBgFitIfNeeded();
+            ProbeReadoutGuiIfNeeded();
             ProbeDefBackedFixesIfNeeded();
-#endif
             LogOnce();
         }
 
@@ -187,7 +184,6 @@ namespace HSK.KebabTweaks
             return null;
         }
 
-#if RIMWORLD_1_6
         public static bool IsBurnWeaponBillFixLeftover()
         {
             Ensure();
@@ -224,6 +220,12 @@ namespace HSK.KebabTweaks
             return mainMenuBgFitLeftover;
         }
 
+        public static bool IsToggleableReadoutsGuiFixLeftover()
+        {
+            Ensure();
+            return readoutGuiLeftover;
+        }
+
         /// <summary>
         /// Header suffix for Fermenter Fill: 0 leftover, 65 when CommitIngredients still aborts
         /// extra stacks after IngredientPortion RemainingCount or get_RemainingCount, null when
@@ -248,17 +250,12 @@ namespace HSK.KebabTweaks
 
             return null;
         }
-#endif
 
         public static bool DefBackedProbesReady
         {
             get
             {
-#if RIMWORLD_1_6
                 return defsProbed;
-#else
-                return true;
-#endif
             }
         }
 
@@ -271,14 +268,14 @@ namespace HSK.KebabTweaks
                 return true;
             }
 
-#if RIMWORLD_1_6
             if (IsUfFillFixLeftover() || IsBurnWeaponBillFixLeftover() ||
                 IsBreachAxeWorkAmountFixLeftover() || IsRawFungusBillFixLeftover() ||
-                IsAnomalyEspFleeFixLeftover() || IsMainMenuBgFitFixLeftover())
+                IsAnomalyEspFleeFixLeftover() || IsMainMenuBgFitFixLeftover() ||
+                IsToggleableReadoutsGuiFixLeftover())
             {
                 return true;
             }
-#endif
+
             return false;
         }
 
@@ -629,7 +626,6 @@ namespace HSK.KebabTweaks
             craftStuffLeftover = true;
         }
 
-#if RIMWORLD_1_6
         static void ProbeUfFillIfNeeded()
         {
             if (ufFillProbed)
@@ -728,18 +724,20 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Closed when Core_SK EnemySelfPreservationPatch or ESP PostApplyDamage postfix already
-        /// loads MutantDef.preventsMentalBreaks. Alive when that field is absent from both.
+        /// Closed when MutantDef has no preventsMentalBreaks, or when Core_SK
+        /// EnemySelfPreservationPatch or the ESP PostApplyDamage postfix already loads that field.
+        /// Alive when the field exists and neither body loads it.
         ///
-        /// Closed, если Core_SK EnemySelfPreservationPatch или postfix ESP PostApplyDamage уже
-        /// грузит MutantDef.preventsMentalBreaks. Alive, если поля нет ни там ни там.
+        /// Closed, если у MutantDef нет preventsMentalBreaks, либо Core_SK
+        /// EnemySelfPreservationPatch или postfix ESP PostApplyDamage уже грузит это поле.
+        /// Alive, если поле есть и его нет ни в одном из этих тел.
         /// </summary>
         static bool ProbeAnomalyEspFleeClosed()
         {
             FieldInfo preventsMentalBreaks = AccessTools.Field(typeof(MutantDef), "preventsMentalBreaks");
             if (preventsMentalBreaks == null)
             {
-                return false;
+                return true;
             }
 
             Type sk = AccessTools.TypeByName(SkEnemySelfPreservationPatchTypeName);
@@ -889,7 +887,28 @@ namespace HSK.KebabTweaks
         {
             return RawFungusBillFixFeatures.CapturedInFungusCategory();
         }
-#endif
+
+        /// <summary>
+        /// Closed when GUIContent still has the instance field m_Text (Unity 1.5 and 1.6).
+        /// Alive when that field is absent (RimWorld 1.7). The other missing readout calls
+        /// are the same stub split, so this one field is the fingerprint.
+        ///
+        /// Closed, если у GUIContent ещё есть поле экземпляра m_Text (Unity 1.5 и 1.6).
+        /// Alive, если поля нет (RimWorld 1.7). Остальные отсутствующие вызовы списка
+        /// ресурсов из того же разрыва, поэтому отпечаток один.
+        /// </summary>
+        static void ProbeReadoutGuiIfNeeded()
+        {
+            if (readoutGuiProbed)
+            {
+                return;
+            }
+
+            readoutGuiProbed = true;
+            readoutGuiLeftover = typeof(UnityEngine.GUIContent).GetField(
+                "m_Text",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null;
+        }
 
         static void LogOnce()
         {
@@ -898,23 +917,15 @@ namespace HSK.KebabTweaks
                 return;
             }
 
-#if RIMWORLD_1_6
             if (!catCrazyTimeProbed || !craftStuffProbed || !seedsPleaseSowProbed ||
                 !startingPawnNameProbed || !startingPawnChildAgeProbed ||
-                !ufFillProbed || !defsProbed || !anomalyEspProbed || !mainMenuBgFitProbed)
+                !ufFillProbed || !defsProbed || !anomalyEspProbed || !mainMenuBgFitProbed ||
+                !readoutGuiProbed)
             {
                 return;
             }
-#else
-            if (!catCrazyTimeProbed || !craftStuffProbed || !seedsPleaseSowProbed ||
-                !startingPawnNameProbed || !startingPawnChildAgeProbed)
-            {
-                return;
-            }
-#endif
 
             logged = true;
-#if RIMWORLD_1_6
             Log.Message(
                 "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover +
                 " CraftStuff=" + craftStuffLeftover +
@@ -929,17 +940,8 @@ namespace HSK.KebabTweaks
                 " BreachAxe=" + breachAxeLeftover +
                 " RawFungus=" + rawFungusLeftover +
                 " AnomalyEspFlee=" + anomalyEspLeftover +
-                " MainMenuBgFit=" + mainMenuBgFitLeftover + ".");
-#else
-            Log.Message(
-                "[HSK kebab tweaks] Symptom leftover: CatCrazyTime=" + catCrazyTimeLeftover +
-                " CraftStuff=" + craftStuffLeftover +
-                " CraftStuffPartial=" + craftStuffPartial +
-                " SeedsPleaseSow=" + seedsPleaseSowLeftover +
-                " SeedsPleaseSowPartial=" + seedsPleaseSowPartial +
-                " StartingPawnName=" + startingPawnNameLeftover +
-                " StartingPawnChildAge=" + startingPawnChildAgeLeftover + ".");
-#endif
+                " MainMenuBgFit=" + mainMenuBgFitLeftover +
+                " ReadoutGui=" + readoutGuiLeftover + ".");
         }
 
         static bool MethodCalls(MethodInfo method, Type declaringType, string methodName)

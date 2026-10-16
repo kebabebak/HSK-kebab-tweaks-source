@@ -41,7 +41,14 @@ namespace HSK.KebabTweaks
         {
             settings = GetSettings<KebabTweaksSettings>();
             harmony = new Harmony(HarmonyId);
-#if RIMWORLD_1_6
+            try
+            {
+                SettingsAudit.Install(harmony);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[HSK kebab tweaks] Settings audit poller failed: " + ex);
+            }
             if (KebabTweaksSettings.EnableUnifiedXmlPathFix
                 && !SupersededStandaloneMods.IsActive(SupersededStandaloneMods.UnifiedXmlPathFix))
             {
@@ -59,7 +66,7 @@ namespace HSK.KebabTweaks
             {
                 KebabTweaksSettings.AppliedUnifiedXmlPathFix = KebabTweaksSettings.EnableUnifiedXmlPathFix;
             }
-#endif
+
             if (KebabTweaksSettings.EnableCeExtendedLoadoutMedicineLabelFix)
             {
                 KebabTweaksSettings.AppliedCeExtendedLoadoutMedicineLabelFix = true;
@@ -77,6 +84,15 @@ namespace HSK.KebabTweaks
             {
                 KebabTweaksSettings.AppliedCeExtendedLoadoutMedicineLabelFix =
                     KebabTweaksSettings.EnableCeExtendedLoadoutMedicineLabelFix;
+            }
+
+            try
+            {
+                ParanoidPerfectionistFeatures.Apply(harmony);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[HSK kebab tweaks] Failed to apply paranoid perfectionist early: " + ex);
             }
 
             LongEventHandler.ExecuteWhenFinished(ApplyAllFeatures);
@@ -102,6 +118,14 @@ namespace HSK.KebabTweaks
                 FixSymptomProbe.Ensure();
                 KebabTweaksSettings.ApplyObsoleteFixesResetOnGameStart();
                 KebabTweaksSettings.ApplySymptomBucketCurrentDefaultsOnce();
+                try
+                {
+                    SettingsAudit.Publish();
+                }
+                catch (Exception auditEx)
+                {
+                    Log.Error("[HSK kebab tweaks] Settings audit failed: " + auditEx);
+                }
 
                 if (SupersededStandaloneMods.IsActive(SupersededStandaloneMods.KebabSwitches))
                 {
@@ -164,6 +188,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableIdleWorkSearchCooldown, null,
                     "IdleWorkSearchCooldownFeatures",
                     () => IdleWorkSearchCooldownFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedParanoidPerfectionist,
+                    KebabTweaksSettings.EnableParanoidPerfectionist, null,
+                    "ParanoidPerfectionistFeatures",
+                    () => ParanoidPerfectionistFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedDrillLimitPatch,
                     KebabTweaksSettings.EnableDrillLimitPatch, null,
                     "DrillLimitFeatures",
@@ -172,13 +200,9 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableStartingCorpsesNoHaul, null,
                     "StartingCorpsesNoHaulFeatures",
                     () => StartingCorpsesNoHaulFeatures.Apply(harmony));
-#if !RIMWORLD_1_6
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedTakeFromMending,
                     KebabTweaksSettings.EnableTakeFromMending, SupersededStandaloneMods.TakeFromMending,
                     "TakeFromMendingFeatures", () => TakeFromMendingFeatures.Apply(harmony));
-#else
-                KebabTweaksSettings.AppliedTakeFromMending = false;
-#endif
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedApparelPolicyLoadFix,
                     KebabTweaksSettings.EnableApparelPolicyLoadFix, null,
                     "ApparelPolicyLoadFixFeatures", () => ApparelPolicyLoadFixFeatures.Apply(harmony));
@@ -259,7 +283,6 @@ namespace HSK.KebabTweaks
                     "SaveSettingsLoadFixFeatures",
                     () => SaveSettingsLoadFixFeatures.Apply(harmony));
 
-#if RIMWORLD_1_6
                 // XML DefInjected + Rule_String typo safety (no settings toggle).
                 OdysseyRuTradersGuildNamerFixFeatures.Apply(harmony);
 
@@ -274,6 +297,13 @@ namespace HSK.KebabTweaks
                     SupersededStandaloneMods.MainMenuBgFitFix,
                     "MainMenuBgFitFixFeatures",
                     () => MainMenuBgFitFixFeatures.Apply(harmony));
+
+                ToggleableReadoutsGuiFixFeatures.NoteIfMissing();
+                ApplyRestartUnlessSuperseded(ref KebabTweaksSettings.AppliedToggleableReadoutsGuiFix,
+                    KebabTweaksSettings.IsToggleableReadoutsGuiFixEnabled(),
+                    null,
+                    FeatureAvailability.ToggleableReadouts,
+                    () => ToggleableReadoutsGuiFixFeatures.Apply(harmony));
 
                 ApplyRestartUnlessSuperseded(ref KebabTweaksSettings.AppliedRimatomicsGuidancePanelFix,
                     KebabTweaksSettings.EnableRimatomicsGuidancePanelFix,
@@ -305,7 +335,6 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableStratumSolarRoofEnergyTabFix, null,
                     "StratumSolarRoofEnergyTabFixFeatures",
                     () => StratumSolarRoofEnergyTabFixFeatures.Apply(harmony));
-#endif
 
                 Log.Message("[HSK kebab tweaks] Feature apply pass finished.");
             }

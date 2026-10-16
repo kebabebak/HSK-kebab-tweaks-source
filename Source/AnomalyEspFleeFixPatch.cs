@@ -1,4 +1,3 @@
-#if RIMWORLD_1_6
 using System;
 using System.Reflection;
 using HarmonyLib;
@@ -18,8 +17,8 @@ namespace HSK.KebabTweaks
     /// skip only that ESP postfix (vanilla damage and other PostApplyDamage patches still run).
     /// Does not mute Messages.Message. Notifications Ignore for ESP.injured stays a separate
     /// global mute and still hides every matching toast, including real raider flees.
-    /// Leftover when Core_SK EnemySelfPreservationPatch or ESP postfix already loads
-    /// MutantDef.preventsMentalBreaks.
+    /// Leftover when MutantDef has no preventsMentalBreaks, or when Core_SK
+    /// EnemySelfPreservationPatch or the ESP postfix already loads that field.
     ///
     /// Проблема: Enemy Self Preservation в Postfix Pawn.PostApplyDamage запускает
     /// SelfPreservation на любом Humanlike, в том числе на мутантах Anomaly с
@@ -31,8 +30,9 @@ namespace HSK.KebabTweaks
     /// применяется, пропускается только этот postfix ESP (ванильный урон и чужие патчи
     /// PostApplyDamage идут как обычно). Messages.Message не глушится. Ignore в Уведомлениях
     /// для ESP.injured остаётся отдельным глобальным mute и по-прежнему скрывает все такие
-    /// тосты, включая настоящее бегство рейдеров. Leftover, если Core_SK
-    /// EnemySelfPreservationPatch или postfix ESP уже грузит MutantDef.preventsMentalBreaks.
+    /// тосты, включая настоящее бегство рейдеров. Leftover, если у MutantDef нет
+    /// preventsMentalBreaks, либо Core_SK EnemySelfPreservationPatch или postfix ESP уже
+    /// грузит это поле.
     /// </summary>
     public static class AnomalyEspFleeFixFeatures
     {
@@ -89,7 +89,9 @@ namespace HSK.KebabTweaks
             if (pawn.IsMutant)
             {
                 MutantDef mutantDef = pawn.mutant?.Def;
-                if (mutantDef != null && mutantDef.preventsMentalBreaks)
+                FieldInfo preventsMentalBreaks = AccessTools.Field(typeof(MutantDef), "preventsMentalBreaks");
+                if (mutantDef != null && preventsMentalBreaks != null &&
+                    preventsMentalBreaks.GetValue(mutantDef) is bool blocked && blocked)
                 {
                     return true;
                 }
@@ -124,4 +126,3 @@ namespace HSK.KebabTweaks
         }
     }
 }
-#endif
