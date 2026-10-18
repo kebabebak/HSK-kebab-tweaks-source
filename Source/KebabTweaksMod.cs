@@ -254,7 +254,7 @@ namespace HSK.KebabTweaks
                     SupersededStandaloneMods.SeedsPleaseSowFix, "SeedsPleaseSowFixFeatures",
                     () => SeedsPleaseSowFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedNeanderthalChiefLeaderFix,
-                    KebabTweaksSettings.EnableNeanderthalChiefLeaderFix,
+                    KebabTweaksSettings.IsNeanderthalChiefLeaderFixEnabled(),
                     SupersededStandaloneMods.NeanderthalChiefLeaderFix,
                     "NeanderthalChiefLeaderFixFeatures",
                     () => NeanderthalChiefLeaderFixFeatures.Apply(harmony));
@@ -335,6 +335,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableStratumSolarRoofEnergyTabFix, null,
                     "StratumSolarRoofEnergyTabFixFeatures",
                     () => StratumSolarRoofEnergyTabFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedArchitectInfoBoxFpsFix,
+                    KebabTweaksSettings.EnableArchitectInfoBoxFpsFix, null,
+                    "ArchitectInfoBoxFpsFixFeatures",
+                    () => ArchitectInfoBoxFpsFixFeatures.Apply(harmony));
 
                 Log.Message("[HSK kebab tweaks] Feature apply pass finished.");
             }

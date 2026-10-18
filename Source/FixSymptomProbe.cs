@@ -42,6 +42,9 @@ namespace HSK.KebabTweaks
         const string CorunanPersonNamerDefName = "NamerPersonCorunanEN";
         const string SkPawnGeneratorPatchesTypeName = "SK.PawnGeneratorPatches";
         const string SkPawnGeneratorChildAgeMethodName = "PawnGenerator_GenerateRandomAge";
+        const string SkFactionLeaderGenerationTypeName = "SK.FactionLeaderGenerationPatches";
+        const string SkFactionLeaderGeneratePawnMethodName = "PawnGenerator_GeneratePawn";
+        const string SkFactionLeaderFinalizerMethodName = "Faction_TryGenerateNewLeader";
         const string RimThemesBackgroundPatchTypeName = "RimThemesLite.UI_BackgroundMain_Patch";
 
         static bool catCrazyTimeProbed;
@@ -50,6 +53,8 @@ namespace HSK.KebabTweaks
         static bool startingPawnNameLeftover;
         static bool startingPawnChildAgeProbed;
         static bool startingPawnChildAgeLeftover;
+        static bool tribalLeaderProbed;
+        static bool tribalLeaderLeftover;
         static bool craftStuffProbed;
         static bool craftStuffLeftover;
         static bool craftStuffPartial;
@@ -83,6 +88,7 @@ namespace HSK.KebabTweaks
             ProbeSeedsPleaseSowIfNeeded();
             ProbeStartingPawnNameIfNeeded();
             ProbeStartingPawnChildAgeIfNeeded();
+            ProbeTribalLeaderIfNeeded();
             ProbeUfFillIfNeeded();
             ProbeAnomalyEspFleeIfNeeded();
             ProbeMainMenuBgFitIfNeeded();
@@ -144,6 +150,12 @@ namespace HSK.KebabTweaks
         {
             Ensure();
             return startingPawnChildAgeLeftover;
+        }
+
+        public static bool IsNeanderthalChiefLeaderFixLeftover()
+        {
+            Ensure();
+            return tribalLeaderLeftover;
         }
 
         /// <summary>
@@ -263,7 +275,7 @@ namespace HSK.KebabTweaks
         {
             if (IsCatCrazyTimeLeftover() || IsCraftStuffFixLeftover() ||
                 IsSeedsPleaseSowFixLeftover() || IsStartingPawnNameFixLeftover() ||
-                IsStartingPawnChildAgeFixLeftover())
+                IsStartingPawnChildAgeFixLeftover() || IsNeanderthalChiefLeaderFixLeftover())
             {
                 return true;
             }
@@ -349,6 +361,38 @@ namespace HSK.KebabTweaks
 
             startingPawnChildAgeProbed = true;
             startingPawnChildAgeLeftover = ProbeStartingPawnChildAgeClosed();
+        }
+
+        static void ProbeTribalLeaderIfNeeded()
+        {
+            if (tribalLeaderProbed)
+            {
+                return;
+            }
+
+            tribalLeaderProbed = true;
+            tribalLeaderLeftover = ProbeTribalLeaderClosed();
+        }
+
+        /// <summary>
+        /// Closed when SK.FactionLeaderGenerationPatches has the GeneratePawn prefix and the
+        /// TryGenerateNewLeader finalizer. Alive when that type or either method is absent
+        /// (the loaded Core_SK does not yet force violence on those leader requests).
+        ///
+        /// Closed, если у SK.FactionLeaderGenerationPatches есть prefix GeneratePawn и
+        /// finalizer TryGenerateNewLeader. Alive, если типа или любого из методов нет
+        /// (загруженный Core_SK ещё не требует violence у этих запросов лидера).
+        /// </summary>
+        static bool ProbeTribalLeaderClosed()
+        {
+            Type sk = AccessTools.TypeByName(SkFactionLeaderGenerationTypeName);
+            if (sk == null)
+            {
+                return false;
+            }
+
+            return AccessTools.Method(sk, SkFactionLeaderGeneratePawnMethodName) != null
+                && AccessTools.Method(sk, SkFactionLeaderFinalizerMethodName) != null;
         }
 
         /// <summary>
@@ -919,6 +963,7 @@ namespace HSK.KebabTweaks
 
             if (!catCrazyTimeProbed || !craftStuffProbed || !seedsPleaseSowProbed ||
                 !startingPawnNameProbed || !startingPawnChildAgeProbed ||
+                !tribalLeaderProbed ||
                 !ufFillProbed || !defsProbed || !anomalyEspProbed || !mainMenuBgFitProbed ||
                 !readoutGuiProbed)
             {
@@ -934,6 +979,7 @@ namespace HSK.KebabTweaks
                 " SeedsPleaseSowPartial=" + seedsPleaseSowPartial +
                 " StartingPawnName=" + startingPawnNameLeftover +
                 " StartingPawnChildAge=" + startingPawnChildAgeLeftover +
+                " TribalLeader=" + tribalLeaderLeftover +
                 " UfFill=" + ufFillLeftover +
                 " UfFillPartial=" + ufFillPartial +
                 " BurnWeapon=" + burnWeaponLeftover +

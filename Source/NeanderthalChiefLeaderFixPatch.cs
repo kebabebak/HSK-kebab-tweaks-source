@@ -67,7 +67,7 @@ namespace HSK.KebabTweaks
         /// </summary>
         private static void TryGenerateNewLeader_Postfix(Faction __instance, ref bool __result)
         {
-            if (!KebabTweaksSettings.EnableNeanderthalChiefLeaderFix)
+            if (!KebabTweaksSettings.IsNeanderthalChiefLeaderFixEnabled())
             {
                 return;
             }
@@ -103,7 +103,7 @@ namespace HSK.KebabTweaks
         /// </summary>
         private static Exception TryGenerateNewLeader_Finalizer(Exception __exception)
         {
-            if (!KebabTweaksSettings.EnableNeanderthalChiefLeaderFix)
+            if (!KebabTweaksSettings.IsNeanderthalChiefLeaderFixEnabled())
             {
                 return __exception;
             }

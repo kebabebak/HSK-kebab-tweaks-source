@@ -86,8 +86,10 @@ namespace HSK.KebabTweaks.KebabSwitches
 
         /// <summary>
         /// Letters restored from a save are drawn by LettersOnGUI and never pass ReceiveLetter again.
+        /// No letter-ignore checkbox on means none of those letters can be removed, so the catalog is not walked.
         ///
         /// Письма из сохранения рисует LettersOnGUI, повторного ReceiveLetter у них нет.
+        /// Если ни один игнор письма не включён, снять эти письма нельзя, и каталог не обходится.
         /// </summary>
         public static void LettersOnGUI_Prefix(LetterStack __instance)
         {
@@ -98,6 +100,11 @@ namespace HSK.KebabTweaks.KebabSwitches
 
             List<Letter> list = __instance.LettersListForReading;
             if (list == null || list.Count == 0)
+            {
+                return;
+            }
+
+            if (KebabTweaksSettings.SuppressedLetterCount == 0)
             {
                 return;
             }
@@ -167,8 +174,20 @@ namespace HSK.KebabTweaks.KebabSwitches
             return value.ToString();
         }
 
+        /// <summary>
+        /// True when this text matches a catalog entry whose ignore checkbox is on.
+        /// No letter ignore is on means every entry is off, so the result is false without a catalog walk.
+        ///
+        /// Истина, если текст совпал с записью каталога, у которой включён игнор.
+        /// Если ни один игнор письма не включён, все записи выключены, и результат ложь без обхода каталога.
+        /// </summary>
         private static bool ShouldSuppress(string label)
         {
+            if (KebabTweaksSettings.SuppressedLetterCount == 0)
+            {
+                return false;
+            }
+
             string entryId = LetterSuppressFilter.MatchEntryId(label);
             if (string.IsNullOrEmpty(entryId))
             {

@@ -542,7 +542,8 @@ namespace HSK.KebabTweaks
             Bool(list, "ptg", () => KebabTweaksSettings.EnablePtgMedicalCare, true);
             Bool(list, "seeds", () => KebabTweaksSettings.EnableSeedsPleaseSowFix,
                 () => !FixSymptomProbe.IsSeedsPleaseSowFixLeftover());
-            Bool(list, "chief", () => KebabTweaksSettings.EnableNeanderthalChiefLeaderFix, true);
+            Bool(list, "chief", () => KebabTweaksSettings.EnableNeanderthalChiefLeaderFix,
+                () => !FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover());
             Bool(list, "craft-stuff", () => KebabTweaksSettings.EnableDominantIngredientStuffFix,
                 () => !FixSymptomProbe.IsCraftStuffFixLeftover());
             Bool(list, "child-age", () => KebabTweaksSettings.EnableStartingPawnChildAgeFix,
@@ -563,6 +564,7 @@ namespace HSK.KebabTweaks
             Bool(list, "anomaly", () => KebabTweaksSettings.EnableAnomalyEspFleeFix,
                 () => !FixSymptomProbe.IsAnomalyEspFleeFixLeftover());
             Bool(list, "solar", () => KebabTweaksSettings.EnableStratumSolarRoofEnergyTabFix, true);
+            Bool(list, "info-box", () => KebabTweaksSettings.EnableArchitectInfoBoxFpsFix, true);
             Bool(list, "map-preview", () => KebabTweaksSettings.EnableMapPreviewRngBaselineFix, true);
             Bool(list, "unified-xml", () => KebabTweaksSettings.EnableUnifiedXmlPathFix, true);
             Bool(list, "menu-bg", () => KebabTweaksSettings.EnableMainMenuBgFitFix,

@@ -86,6 +86,7 @@ namespace HSK.KebabTweaks
         public static bool EnableRawFungusBillFix = true;
         public static bool EnableAnomalyEspFleeFix = true;
         public static bool EnableStratumSolarRoofEnergyTabFix = true;
+        public static bool EnableArchitectInfoBoxFpsFix = true;
 
 #if RIMWORLD_1_6
         public static bool AppliedCatCrazyTime;
@@ -140,6 +141,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedRawFungusBillFix;
         public static bool AppliedAnomalyEspFleeFix = true;
         public static bool AppliedStratumSolarRoofEnergyTabFix = true;
+        public static bool AppliedArchitectInfoBoxFpsFix = true;
 
         public static bool CatCrazyTimeEnableLogging;
         public static bool CatFloorSleepEnableLogging;
@@ -438,6 +440,23 @@ namespace HSK.KebabTweaks
                 EnableStartingPawnChildAgeFix,
                 FixSymptomProbe.IsStartingPawnChildAgeFixLeftover(),
                 FeatureAvailability.StartingPawnChildAge);
+        }
+
+        /// <summary>
+        /// True when Tribal Leader hooks should run: current enable while
+        /// SK.FactionLeaderGenerationPatches is absent; Obsolete section plus leftover
+        /// enable when that Core_SK guard is loaded. XML patches are not this flag.
+        ///
+        /// True, когда хуки Tribal Leader должны работать: обычный enable, пока нет
+        /// SK.FactionLeaderGenerationPatches; раздел «Устаревшие» плюс leftover enable,
+        /// если этот guard Core_SK загружен. XML-патчи этим флагом не управляются.
+        /// </summary>
+        public static bool IsNeanderthalChiefLeaderFixEnabled()
+        {
+            return IsFixRunning(
+                EnableNeanderthalChiefLeaderFix,
+                FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover(),
+                FeatureAvailability.TribalLeader);
         }
 
         public static bool IsBurnWeaponBillFixEnabled()
@@ -1276,17 +1295,10 @@ namespace HSK.KebabTweaks
                 DrawSeedsPleaseSowFixPatchBlock(listing, fullWidth, leftover: false);
             }
 
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.TribalLeaderFix".Translate(),
-                "KebabTweaks.Patch.TribalLeaderFix.Tooltip".Translate(),
-                SupersededStandaloneMods.NeanderthalChiefLeaderFix,
-                ref EnableNeanderthalChiefLeaderFix, AppliedNeanderthalChiefLeaderFix,
-                true, false, ResetNeanderthalChiefLeaderFix,
-                null,
-                FixErrorTraceCatalog.NeanderthalChiefLeaderFix,
-                FixErrorTraceCatalog.NeanderthalChiefLeaderFixTipId,
-                researchLink: FeatureResearchLinkCatalog.NeanderthalChiefLeaderFix,
-                availabilityId: FeatureAvailability.TribalLeader);
+            if (!FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover())
+            {
+                DrawNeanderthalChiefLeaderFixPatchBlock(listing, fullWidth, leftover: false);
+            }
 
             if (!FixSymptomProbe.IsCraftStuffFixLeftover())
             {
@@ -1375,6 +1387,14 @@ namespace HSK.KebabTweaks
             {
                 DrawRawFungusBillFixPatchBlock(listing, fullWidth, leftover: false);
             }
+
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.ArchitectInfoBoxFpsFix".Translate(),
+                "KebabTweaks.Patch.ArchitectInfoBoxFpsFix.Tooltip".Translate(),
+                null,
+                ref EnableArchitectInfoBoxFpsFix, AppliedArchitectInfoBoxFpsFix,
+                true, false, ResetArchitectInfoBoxFpsFix,
+                null);
 
             if (HasAnyObsoleteLeftover())
             {
@@ -1735,6 +1755,11 @@ namespace HSK.KebabTweaks
                 DrawStartingPawnChildAgeFixPatchBlock(listing, fullWidth, leftover: true);
             }
 
+            if (FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover())
+            {
+                DrawNeanderthalChiefLeaderFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
             if (FixSymptomProbe.IsStartingPawnNameFixLeftover())
             {
                 DrawStartingPawnNameFixPatchBlock(listing, fullWidth, leftover: true);
@@ -1837,6 +1862,26 @@ namespace HSK.KebabTweaks
                 relevancePercent: FixSymptomProbe.GetCraftStuffRelevancePercent(),
                 researchLink: FeatureResearchLinkCatalog.DominantIngredientStuffFix,
                 availabilityId: FeatureAvailability.CraftStuff);
+        }
+
+        private void DrawNeanderthalChiefLeaderFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.TribalLeaderFix".Translate(),
+                "KebabTweaks.Patch.TribalLeaderFix.Tooltip".Translate(),
+                SupersededStandaloneMods.NeanderthalChiefLeaderFix,
+                ref EnableNeanderthalChiefLeaderFix, AppliedNeanderthalChiefLeaderFix,
+                !leftover, false, ResetNeanderthalChiefLeaderFix,
+                null,
+                FixErrorTraceCatalog.NeanderthalChiefLeaderFix,
+                FixErrorTraceCatalog.NeanderthalChiefLeaderFixTipId,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? 0 : (int?)null,
+                researchLink: FeatureResearchLinkCatalog.NeanderthalChiefLeaderFix,
+                availabilityId: FeatureAvailability.TribalLeader);
         }
 
         private void DrawStartingPawnChildAgeFixPatchBlock(
@@ -3388,6 +3433,7 @@ namespace HSK.KebabTweaks
             ResetRawFungusBillFix();
             ResetAnomalyEspFleeFix();
             ResetStratumSolarRoofEnergyTabFix();
+            ResetArchitectInfoBoxFpsFix();
             Write();
         }
 
@@ -3645,7 +3691,7 @@ namespace HSK.KebabTweaks
 
         private static void ResetNeanderthalChiefLeaderFix()
         {
-            EnableNeanderthalChiefLeaderFix = true;
+            EnableNeanderthalChiefLeaderFix = !FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover();
         }
 
         private static void ResetDominantIngredientStuffFix()
@@ -3702,6 +3748,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsStartingPawnChildAgeFixLeftover())
             {
                 ResetStartingPawnChildAgeFix();
+            }
+
+            if (FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover())
+            {
+                ResetNeanderthalChiefLeaderFix();
             }
 
             if (FixSymptomProbe.IsStartingPawnNameFixLeftover())
@@ -3802,6 +3853,11 @@ namespace HSK.KebabTweaks
                 EnableStartingPawnChildAgeFix = true;
             }
 
+            if (!FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover())
+            {
+                EnableNeanderthalChiefLeaderFix = true;
+            }
+
             if (!FixSymptomProbe.IsStartingPawnNameFixLeftover())
             {
                 EnableStartingPawnNameFix = true;
@@ -3870,6 +3926,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsStartingPawnChildAgeFixLeftover())
             {
                 EnableStartingPawnChildAgeFix = false;
+            }
+
+            if (FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover())
+            {
+                EnableNeanderthalChiefLeaderFix = false;
             }
 
             if (FixSymptomProbe.IsStartingPawnNameFixLeftover())
@@ -3976,6 +4037,11 @@ namespace HSK.KebabTweaks
         private static void ResetStratumSolarRoofEnergyTabFix()
         {
             EnableStratumSolarRoofEnergyTabFix = true;
+        }
+
+        private static void ResetArchitectInfoBoxFpsFix()
+        {
+            EnableArchitectInfoBoxFpsFix = true;
         }
 
         public override void ExposeData()
@@ -4086,6 +4152,8 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableAnomalyEspFleeFix, "EnableAnomalyEspFleeFix",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableStratumSolarRoofEnergyTabFix, "EnableStratumSolarRoofEnergyTabFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableArchitectInfoBoxFpsFix, "EnableArchitectInfoBoxFpsFix",
                 defaultValue: true);
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);

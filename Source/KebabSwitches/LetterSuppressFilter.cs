@@ -9,10 +9,12 @@ namespace HSK.KebabTweaks.KebabSwitches
     /// Matches live letter label or body text against suppressible catalog entries (keyed templates and
     /// surgery-failure regex). A long-range mineral lump on 1.7 is a quest whose title is not
     /// LetterLabelFoundPreciousLump; its body is matched by the scanner phrase. Rebuilds after language load.
+    /// The first matching id for a given text does not depend on checkboxes, so it is remembered until that rebuild.
     ///
     /// Сопоставляет label или текст письма с каталогом (keyed-шаблоны и regex провала хирургии).
     /// Далёкие залежи в 1.7 - квест, заголовок которого не LetterLabelFoundPreciousLump; текст ловится
     /// фразой про сканер. Кэш пересобирается после загрузки языка.
+    /// Первый совпавший id для данного текста не зависит от чекбоксов и запоминается до этой пересборки.
     /// </summary>
     public static class LetterSuppressFilter
     {
@@ -50,6 +52,11 @@ namespace HSK.KebabTweaks.KebabSwitches
         private static readonly Dictionary<string, HashSet<string>> ExactById =
             new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
 
+        private static readonly Dictionary<string, string> MatchIdByText =
+            new Dictionary<string, string>(StringComparer.Ordinal);
+
+        private const int MatchIdCacheLimit = 128;
+
         public static int TrackedVariantCount
         {
             get
@@ -73,6 +80,7 @@ namespace HSK.KebabTweaks.KebabSwitches
         {
             PatternsById.Clear();
             ExactById.Clear();
+            MatchIdByText.Clear();
 
             foreach (SuppressibleLetterEntry entry in SuppressibleLetters.All)
             {
@@ -127,8 +135,12 @@ namespace HSK.KebabTweaks.KebabSwitches
 
         /// <summary>
         /// Returns the catalog entry id that matches this live letter label or body, or null.
+        /// LettersOnGUI asks again every draw. The remembered id is the first catalog hit, including a miss,
+        /// and a later entry does not override it. RebuildCache drops the memory; a large set is dropped so letter bodies are not kept for the whole session.
         ///
         /// Id записи каталога, совпавшей с label или текстом письма, либо null.
+        /// LettersOnGUI спрашивает снова на каждой отрисовке. Запоминается первый id каталога, в том числе промах,
+        /// и более поздняя запись его не перекрывает. RebuildCache сбрасывает память; большой набор сбрасывается, чтобы тексты писем не держались всю сессию.
         /// </summary>
         public static string MatchEntryId(string label)
         {
@@ -137,14 +149,20 @@ namespace HSK.KebabTweaks.KebabSwitches
                 return null;
             }
 
-            string normalized = KeyedSuppressMatcher.Normalize(label);
+            if (MatchIdByText.TryGetValue(label, out string cachedId))
+            {
+                return cachedId;
+            }
 
+            string id = null;
+            string normalized = KeyedSuppressMatcher.Normalize(label);
             foreach (SuppressibleLetterEntry entry in SuppressibleLetters.All)
             {
                 if (ExactById.TryGetValue(entry.Id, out HashSet<string> exact)
                     && exact.Contains(normalized))
                 {
-                    return entry.Id;
+                    id = entry.Id;
+                    break;
                 }
 
                 if (PatternsById.TryGetValue(entry.Id, out List<Regex> patterns))
@@ -153,13 +171,25 @@ namespace HSK.KebabTweaks.KebabSwitches
                     {
                         if (patterns[i].IsMatch(normalized))
                         {
-                            return entry.Id;
+                            id = entry.Id;
+                            break;
                         }
                     }
                 }
+
+                if (id != null)
+                {
+                    break;
+                }
             }
 
-            return null;
+            if (MatchIdByText.Count >= MatchIdCacheLimit)
+            {
+                MatchIdByText.Clear();
+            }
+
+            MatchIdByText[label] = id;
+            return id;
         }
 
         public static void CollectExact(string id, List<string> target)
