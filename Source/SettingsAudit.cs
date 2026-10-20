@@ -508,6 +508,11 @@ namespace HSK.KebabTweaks
             Bool(list, "recipe-drop", () => KebabTweaksSettings.EnableRecipeProductDropLostLog, true);
             Bool(list, "numbers", () => KebabTweaksSettings.EnableNumbersLoadDefaultFallback, true);
             Bool(list, "android", () => KebabTweaksSettings.EnableAndroidEnlightenFix, true);
+            Bool(list, "arch-search", () => KebabTweaksSettings.EnableArchitectSearchResearchPatch,
+                () => !FixSymptomProbe.IsArchitectSearchResearchPatchLeftover());
+            Bool(list, "monument-mat", () => KebabTweaksSettings.EnableMonumentMaterialOnMapPatch, true);
+            Bool(list, "patch-obsolete", () => KebabTweaksSettings.EnableObsoletePatches, false);
+            Bool(list, "patch-obsolete:keep", () => KebabTweaksSettings.DoNotResetObsoletePatchesOnReload, false);
 
             Bool(list, "wikirim", () => KebabTweaksSettings.EnableWikiRimCompat, true);
             Bool(list, "wikirim:multi", () => KebabTweaksSettings.EnableWikiRimMultilingualSearch, false);
@@ -564,7 +569,16 @@ namespace HSK.KebabTweaks
             Bool(list, "anomaly", () => KebabTweaksSettings.EnableAnomalyEspFleeFix,
                 () => !FixSymptomProbe.IsAnomalyEspFleeFixLeftover());
             Bool(list, "solar", () => KebabTweaksSettings.EnableStratumSolarRoofEnergyTabFix, true);
-            Bool(list, "info-box", () => KebabTweaksSettings.EnableArchitectInfoBoxFpsFix, true);
+            Bool(list, "info-box", () => KebabTweaksSettings.EnableArchitectInfoBoxFpsFix,
+                () => !FixSymptomProbe.IsArchitectInfoBoxFpsFixLeftover());
+            Bool(list, "hel-fps", () => KebabTweaksSettings.EnableRimatomicsHelFpsFix,
+                () => !FixSymptomProbe.IsRimatomicsHelFpsFixLeftover());
+            Bool(list, "disease-comp", () => KebabTweaksSettings.EnableDiseaseComplicationFix,
+                () => !FixSymptomProbe.IsDiseaseComplicationFixLeftover());
+            Bool(list, "trait-gain", () => KebabTweaksSettings.EnableTraitGainFix,
+                () => !FixSymptomProbe.IsTraitGainFixLeftover());
+            Bool(list, "sold-pawn", () => KebabTweaksSettings.EnableSoldPawnExitGoodwillFix,
+                () => !FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover());
             Bool(list, "map-preview", () => KebabTweaksSettings.EnableMapPreviewRngBaselineFix, true);
             Bool(list, "unified-xml", () => KebabTweaksSettings.EnableUnifiedXmlPathFix, true);
             Bool(list, "menu-bg", () => KebabTweaksSettings.EnableMainMenuBgFitFix,

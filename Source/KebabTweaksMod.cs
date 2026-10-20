@@ -117,6 +117,7 @@ namespace HSK.KebabTweaks
 
                 FixSymptomProbe.Ensure();
                 KebabTweaksSettings.ApplyObsoleteFixesResetOnGameStart();
+                KebabTweaksSettings.ApplyObsoletePatchesResetOnGameStart();
                 KebabTweaksSettings.ApplySymptomBucketCurrentDefaultsOnce();
                 try
                 {
@@ -336,9 +337,35 @@ namespace HSK.KebabTweaks
                     "StratumSolarRoofEnergyTabFixFeatures",
                     () => StratumSolarRoofEnergyTabFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedArchitectInfoBoxFpsFix,
-                    KebabTweaksSettings.EnableArchitectInfoBoxFpsFix, null,
+                    KebabTweaksSettings.IsArchitectInfoBoxFpsFixEnabled(), null,
                     "ArchitectInfoBoxFpsFixFeatures",
                     () => ArchitectInfoBoxFpsFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedRimatomicsHelFpsFix,
+                    KebabTweaksSettings.IsRimatomicsHelFpsFixEnabled(), null,
+                    FeatureAvailability.RimatomicsHel,
+                    () => RimatomicsHelFpsFixFeatures.Apply(harmony));
+                DiseaseComplicationFixFeatures.NoteIfMissing();
+                ApplyRestartUnlessSuperseded(ref KebabTweaksSettings.AppliedDiseaseComplicationFix,
+                    KebabTweaksSettings.IsDiseaseComplicationFixEnabled(), null,
+                    FeatureAvailability.DiseaseComplication,
+                    () => DiseaseComplicationFixFeatures.Apply(harmony));
+                TraitGainFixFeatures.NoteIfMissing();
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedTraitGainFix,
+                    KebabTweaksSettings.IsTraitGainFixEnabled(), null,
+                    FeatureAvailability.TraitGain,
+                    () => TraitGainFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedSoldPawnExitGoodwillFix,
+                    KebabTweaksSettings.IsSoldPawnExitGoodwillFixEnabled(), null,
+                    "SoldPawnExitGoodwillFixFeatures",
+                    () => SoldPawnExitGoodwillFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedArchitectSearchResearchPatch,
+                    KebabTweaksSettings.IsArchitectSearchResearchPatchEnabled(), null,
+                    "ArchitectSearchResearchPatchFeatures",
+                    () => ArchitectSearchResearchPatchFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedMonumentMaterialOnMapPatch,
+                    KebabTweaksSettings.IsMonumentMaterialOnMapPatchEnabled(), null,
+                    FeatureAvailability.MonumentMaterials,
+                    () => MonumentMaterialOnMapPatchFeatures.Apply(harmony));
 
                 Log.Message("[HSK kebab tweaks] Feature apply pass finished.");
             }

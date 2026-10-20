@@ -49,6 +49,9 @@ namespace HSK.KebabTweaks
         public const string MapPreview = "MapPreviewRngBaselineFixFeatures";
         public const string UnifiedXml = "UnifiedXmlPathFixFeatures";
         public const string Rimatomics = "RimatomicsGuidancePanelFixFeatures";
+        public const string RimatomicsHel = "RimatomicsHelFpsFixFeatures";
+        public const string DiseaseComplication = "DiseaseComplicationFixFeatures";
+        public const string TraitGain = "TraitGainFixFeatures";
         public const string CatCrazyTime = "CatCrazyTimeFeatures";
         public const string CraftStuff = "DominantIngredientStuffFixFeatures";
         public const string StartingPawnChildAge = "StartingPawnChildAgeFixFeatures";
@@ -61,6 +64,7 @@ namespace HSK.KebabTweaks
         public const string RawFungus = "RawFungusBillFixFeatures";
         public const string AnomalyEsp = "AnomalyEspFleeFixFeatures";
         public const string ToggleableReadouts = "ToggleableReadoutsGuiFixFeatures";
+        public const string MonumentMaterials = "MonumentMaterialOnMapPatchFeatures";
 
         public const string CoreSk = "Core SK (skyarkhangel.HSK)";
 

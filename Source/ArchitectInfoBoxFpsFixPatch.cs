@@ -17,7 +17,9 @@ namespace HSK.KebabTweaks
     /// a stored result exists, because a postfix cannot skip the per-character loop. A miss returns true so the original
     /// runs, the text stays vanilla (including "..." when nothing fits), and a caller dictionary is still filled.
     /// On a hit, a caller dictionary receives the stored string only when that text is not already in it.
-    /// The hooks stay installed and do nothing while the checkbox is off.
+    /// The hooks stay installed and do nothing while the checkbox is off. When
+    /// SK.Patch_ArchitectCategoryTab_DoInfoBox is loaded, the row is leftover and stays off
+    /// unless the Obsolete section is on.
     ///
     /// Проблема: ArchitectCategoryTab.DoInfoBox вызывает GenText.TruncateHeight на каждом кадре интерфейса и не передаёт кэш.
     /// TruncateHeight убирает по одному символу и измеряет каждый шаг через Text.CalcHeight, поэтому выбранная постройка
@@ -29,16 +31,12 @@ namespace HSK.KebabTweaks
     /// Промах возвращает true, исходный метод выполняется, текст остаётся ванильным (включая "...", когда не помещается
     /// ничего), и словарь вызывающего по-прежнему заполняется. При попадании словарь вызывающего получает сохранённую
     /// строку только если этого текста в нём ещё нет. Хуки остаются установленными и ничего не делают, пока чекбокс выключен.
+    /// Если загружен SK.Patch_ArchitectCategoryTab_DoInfoBox, строка устаревшая и остаётся выключенной, пока не включён раздел «Устаревшие».
     /// </summary>
     public static class ArchitectInfoBoxFpsFixFeatures
     {
         private static readonly Dictionary<MeasureKey, string> results = new Dictionary<MeasureKey, string>();
 
-        /// <summary>
-        /// Installs both TruncateHeight overloads. The hooks stay in place when the checkbox is off.
-        ///
-        /// Ставит обе перегрузки TruncateHeight. Хуки остаются, когда чекбокс выключен.
-        /// </summary>
         public static void Apply(Harmony harmony)
         {
             MethodInfo stringMethod = AccessTools.Method(typeof(GenText), "TruncateHeight", new[]
@@ -79,7 +77,7 @@ namespace HSK.KebabTweaks
             Dictionary<string, string> cache,
             ref string __result)
         {
-            if (!KebabTweaksSettings.EnableArchitectInfoBoxFpsFix)
+            if (!KebabTweaksSettings.IsArchitectInfoBoxFpsFixEnabled())
                 return true;
             if (!TryGetStored(str, width, height, out string stored))
                 return true;
@@ -91,7 +89,7 @@ namespace HSK.KebabTweaks
 
         public static void TruncateHeight_String_Postfix(string str, float width, float height, string __result)
         {
-            if (!KebabTweaksSettings.EnableArchitectInfoBoxFpsFix)
+            if (!KebabTweaksSettings.IsArchitectInfoBoxFpsFixEnabled())
                 return;
 
             Store(str, width, height, __result);
@@ -104,7 +102,7 @@ namespace HSK.KebabTweaks
             Dictionary<string, TaggedString> cache,
             ref TaggedString __result)
         {
-            if (!KebabTweaksSettings.EnableArchitectInfoBoxFpsFix)
+            if (!KebabTweaksSettings.IsArchitectInfoBoxFpsFixEnabled())
                 return true;
             if (!TryGetStored(str.RawText, width, height, out string stored))
                 return true;
@@ -116,7 +114,7 @@ namespace HSK.KebabTweaks
 
         public static void TruncateHeight_Tagged_Postfix(TaggedString str, float width, float height, TaggedString __result)
         {
-            if (!KebabTweaksSettings.EnableArchitectInfoBoxFpsFix)
+            if (!KebabTweaksSettings.IsArchitectInfoBoxFpsFixEnabled())
                 return;
 
             Store(str.RawText, width, height, __result.RawText);

@@ -67,6 +67,10 @@ namespace HSK.KebabTweaks
         public static bool EnableStartingPawnChildAgeFix = true;
         public static bool EnableStartingPawnNameFix = true;
         public static bool EnableAndroidEnlightenFix = true;
+        public static bool EnableArchitectSearchResearchPatch = true;
+        public static bool EnableMonumentMaterialOnMapPatch = true;
+        public static bool EnableObsoletePatches;
+        public static bool DoNotResetObsoletePatchesOnReload;
         public static bool EnableWikiRimCompat = true;
         public static bool EnableWikiRimMultilingualSearch;
         public static bool EnableSaveSettingsLoadFix = true;
@@ -87,6 +91,10 @@ namespace HSK.KebabTweaks
         public static bool EnableAnomalyEspFleeFix = true;
         public static bool EnableStratumSolarRoofEnergyTabFix = true;
         public static bool EnableArchitectInfoBoxFpsFix = true;
+        public static bool EnableRimatomicsHelFpsFix = true;
+        public static bool EnableDiseaseComplicationFix = true;
+        public static bool EnableTraitGainFix = true;
+        public static bool EnableSoldPawnExitGoodwillFix = true;
 
 #if RIMWORLD_1_6
         public static bool AppliedCatCrazyTime;
@@ -128,6 +136,8 @@ namespace HSK.KebabTweaks
         public static bool AppliedStartingPawnChildAgeFix = true;
         public static bool AppliedStartingPawnNameFix = true;
         public static bool AppliedAndroidEnlightenFix = true;
+        public static bool AppliedArchitectSearchResearchPatch = true;
+        public static bool AppliedMonumentMaterialOnMapPatch = true;
         public static bool AppliedWikiRimCompat = true;
         public static bool AppliedSaveSettingsLoadFix = true;
         public static bool AppliedMapPreviewRngBaselineFix = true;
@@ -142,6 +152,10 @@ namespace HSK.KebabTweaks
         public static bool AppliedAnomalyEspFleeFix = true;
         public static bool AppliedStratumSolarRoofEnergyTabFix = true;
         public static bool AppliedArchitectInfoBoxFpsFix = true;
+        public static bool AppliedRimatomicsHelFpsFix = true;
+        public static bool AppliedDiseaseComplicationFix = true;
+        public static bool AppliedTraitGainFix = true;
+        public static bool AppliedSoldPawnExitGoodwillFix = true;
 
         public static bool CatCrazyTimeEnableLogging;
         public static bool CatFloorSleepEnableLogging;
@@ -359,6 +373,51 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// True when a Patches-tab hook should run. Leftover patches use the Patches obsolete
+        /// section, separate from the Fixes section.
+        ///
+        /// True, когда хук вкладки «Патчи» должен работать. Leftover-патчи используют раздел
+        /// «Устаревшие» на вкладке патчей, отдельно от раздела фиксов.
+        /// </summary>
+        static bool IsPatchRunning(bool enableFlag, bool leftover, string availabilityId)
+        {
+            if (FeatureAvailability.IsBlocked(availabilityId))
+            {
+                return false;
+            }
+
+            if (leftover)
+            {
+                return EnableObsoletePatches && enableFlag;
+            }
+
+            return enableFlag;
+        }
+
+        /// <summary>
+        /// True when architect search should ignore projects the player cannot see.
+        ///
+        /// True, когда поиск архитектора должен пропускать проекты, которых игрок не видит.
+        /// </summary>
+        public static bool IsArchitectSearchResearchPatchEnabled()
+        {
+            return IsPatchRunning(
+                EnableArchitectSearchResearchPatch,
+                FixSymptomProbe.IsArchitectSearchResearchPatchLeftover(),
+                null);
+        }
+
+        /// <summary>
+        /// True when monument material choices should hide options with nothing on the map.
+        ///
+        /// True, когда выбор материалов монумента должен скрывать варианты, которых нет на карте.
+        /// </summary>
+        public static bool IsMonumentMaterialOnMapPatchEnabled()
+        {
+            return IsFixRunning(EnableMonumentMaterialOnMapPatch, false, FeatureAvailability.MonumentMaterials);
+        }
+
+        /// <summary>
         /// True when Cat Crazy Time hooks should run: current enable when the load-reroll
         /// symptom is still present; Obsolete section plus leftover enable when SK already
         /// keeps saved num.
@@ -457,6 +516,92 @@ namespace HSK.KebabTweaks
                 EnableNeanderthalChiefLeaderFix,
                 FixSymptomProbe.IsNeanderthalChiefLeaderFixLeftover(),
                 FeatureAvailability.TribalLeader);
+        }
+
+        /// <summary>
+        /// True when Architect Info Box hooks should run: current enable while
+        /// SK.Patch_ArchitectCategoryTab_DoInfoBox is absent; Obsolete section plus leftover
+        /// enable when that Core_SK cache is loaded.
+        ///
+        /// True, когда хуки Architect Info Box должны работать: обычный enable, пока нет
+        /// SK.Patch_ArchitectCategoryTab_DoInfoBox; раздел «Устаревшие» плюс leftover enable,
+        /// если этот кеш Core_SK загружен.
+        /// </summary>
+        public static bool IsArchitectInfoBoxFpsFixEnabled()
+        {
+            return IsFixRunning(
+                EnableArchitectInfoBoxFpsFix,
+                FixSymptomProbe.IsArchitectInfoBoxFpsFixLeftover(),
+                null);
+        }
+
+        /// <summary>
+        /// True when the high-energy laser hooks should run: current enable while
+        /// SK.Rimatomic_BetterHEL.TryFindNewTarget still walks every map thing; Obsolete
+        /// section plus leftover enable when that walk is already gone.
+        ///
+        /// True, когда хуки высокоэнергетического лазера должны работать: обычный enable, пока
+        /// SK.Rimatomic_BetterHEL.TryFindNewTarget ещё обходит все вещи карты; раздел «Устаревшие»
+        /// плюс leftover enable, если этого обхода уже нет.
+        /// </summary>
+        public static bool IsRimatomicsHelFpsFixEnabled()
+        {
+            return IsFixRunning(
+                EnableRimatomicsHelFpsFix,
+                FixSymptomProbe.IsRimatomicsHelFpsFixLeftover(),
+                FeatureAvailability.RimatomicsHel);
+        }
+
+        /// <summary>
+        /// True when the disease complication hook should run: current enable while IsReady still
+        /// passes the per-tick argument; Obsolete section plus leftover enable when it already
+        /// passes the current severity.
+        ///
+        /// True, когда хук осложнений болезни должен работать: обычный enable, пока IsReady ещё
+        /// передаёт аргумент за тик; раздел «Устаревшие» плюс leftover enable, если уже передаётся
+        /// текущая тяжесть.
+        /// </summary>
+        public static bool IsDiseaseComplicationFixEnabled()
+        {
+            return IsFixRunning(
+                EnableDiseaseComplicationFix,
+                FixSymptomProbe.IsDiseaseComplicationFixLeftover(),
+                FeatureAvailability.DiseaseComplication);
+        }
+
+        /// <summary>
+        /// True when trait gain should run: current enable while SK.TraitChangerMapComponent
+        /// with the 1200-tick cannibal counter is absent; Obsolete section plus leftover enable
+        /// when that component is loaded. The tick still does nothing while the component is loaded.
+        ///
+        /// True, когда выдача черт должна работать: обычный enable, пока нет
+        /// SK.TraitChangerMapComponent со счётчиком каннибализма раз в 1200 тиков; раздел
+        /// «Устаревшие» плюс leftover enable, если этот компонент загружен. Тик всё равно ничего
+        /// не делает, пока компонент загружен.
+        /// </summary>
+        public static bool IsTraitGainFixEnabled()
+        {
+            return IsFixRunning(
+                EnableTraitGainFix,
+                FixSymptomProbe.IsTraitGainFixLeftover(),
+                FeatureAvailability.TraitGain);
+        }
+
+        /// <summary>
+        /// True when the sold-pawn relations hook should run: current enable while
+        /// SK.Patch_SoldPawnExitGoodwill does not yet clear the tend count; Obsolete section
+        /// plus leftover enable when that Core_SK postfix already does.
+        ///
+        /// True, когда хук отношений за проданную пешку должен работать: обычный enable, пока
+        /// SK.Patch_SoldPawnExitGoodwill ещё не обнуляет счётчик лечений; раздел «Устаревшие»
+        /// плюс leftover enable, если этот postfix Core_SK уже обнуляет.
+        /// </summary>
+        public static bool IsSoldPawnExitGoodwillFixEnabled()
+        {
+            return IsFixRunning(
+                EnableSoldPawnExitGoodwillFix,
+                FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover(),
+                null);
         }
 
         public static bool IsBurnWeaponBillFixEnabled()
@@ -1007,7 +1152,90 @@ namespace HSK.KebabTweaks
                 researchLink: FeatureResearchLinkCatalog.AndroidEnlightenFix,
                 availabilityId: FeatureAvailability.AndroidEnlighten);
             AndroidEnlightenFixFeatures.SyncGivers();
+            if (!FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
+            {
+                DrawArchitectSearchResearchPatchBlock(listing, fullWidth, leftover: false);
+            }
+
+            DrawMonumentMaterialOnMapPatchBlock(listing, fullWidth);
             DrawCompatibilityPatchesSection(listing, fullWidth);
+            if (HasAnyObsoletePatchLeftover())
+            {
+                DrawObsoletePatchesSection(listing, fullWidth);
+            }
+        }
+
+        static bool HasAnyObsoletePatchLeftover()
+        {
+            return FixSymptomProbe.IsArchitectSearchResearchPatchLeftover();
+        }
+
+        void DrawArchitectSearchResearchPatchBlock(Listing_Standard listing, float fullWidth, bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.ArchitectSearchResearch".Translate(),
+                "KebabTweaks.Patch.ArchitectSearchResearch.Tooltip".Translate(),
+                null,
+                ref EnableArchitectSearchResearchPatch, AppliedArchitectSearchResearchPatch,
+                !leftover, false, ResetArchitectSearchResearchPatch,
+                null,
+                leadingSpacer: true,
+                interactive: leftover ? EnableObsoletePatches : true,
+                relevancePercent: leftover ? 0 : (int?)null);
+        }
+
+        void DrawMonumentMaterialOnMapPatchBlock(Listing_Standard listing, float fullWidth)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.MonumentMaterialOnMap".Translate(),
+                "KebabTweaks.Patch.MonumentMaterialOnMap.Tooltip".Translate(),
+                null,
+                ref EnableMonumentMaterialOnMapPatch, AppliedMonumentMaterialOnMapPatch,
+                true, false, ResetMonumentMaterialOnMapPatch,
+                null,
+                availabilityId: FeatureAvailability.MonumentMaterials);
+        }
+
+        void DrawObsoletePatchesSection(Listing_Standard listing, float fullWidth)
+        {
+            listing.GetRect(ObsoleteHeaderLeadingSpacerHeight);
+            DrawObsoletePatchesEnableHeaderRow(listing);
+            DrawSettingsRowSeparator(listing, fullWidth);
+            DrawFeatureBodyPanel(
+                listing,
+                fullWidth,
+                () =>
+                {
+                    DrawSettingsCheckboxRow(
+                        listing,
+                        "KebabTweaks.DoNotResetObsoleteFixesOnReload".Translate(),
+                        ref DoNotResetObsoletePatchesOnReload,
+                        false,
+                        "KebabTweaks.DoNotResetObsoleteFixesOnReload.Tooltip".Translate());
+                },
+                interactive: true,
+                drawRainbowTop: false);
+
+            if (FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
+            {
+                DrawArchitectSearchResearchPatchBlock(listing, fullWidth, leftover: true);
+            }
+        }
+
+        void DrawObsoletePatchesEnableHeaderRow(Listing_Standard listing)
+        {
+            DrawPatchEnableHeaderRow(
+                listing,
+                "KebabTweaks.ObsoleteFixes".Translate(),
+                null,
+                null,
+                ref EnableObsoletePatches,
+                EnableObsoletePatches,
+                false,
+                false,
+                ResetObsoletePatches,
+                confirmEnable: true,
+                confirmEnableAction: () => EnableObsoletePatches = true);
         }
 
         /// <summary>
@@ -1388,13 +1616,30 @@ namespace HSK.KebabTweaks
                 DrawRawFungusBillFixPatchBlock(listing, fullWidth, leftover: false);
             }
 
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.ArchitectInfoBoxFpsFix".Translate(),
-                "KebabTweaks.Patch.ArchitectInfoBoxFpsFix.Tooltip".Translate(),
-                null,
-                ref EnableArchitectInfoBoxFpsFix, AppliedArchitectInfoBoxFpsFix,
-                true, false, ResetArchitectInfoBoxFpsFix,
-                null);
+            if (!FixSymptomProbe.IsArchitectInfoBoxFpsFixLeftover())
+            {
+                DrawArchitectInfoBoxFpsFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
+            if (!FixSymptomProbe.IsRimatomicsHelFpsFixLeftover())
+            {
+                DrawRimatomicsHelFpsFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
+            if (!FixSymptomProbe.IsDiseaseComplicationFixLeftover())
+            {
+                DrawDiseaseComplicationFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
+            if (!FixSymptomProbe.IsTraitGainFixLeftover())
+            {
+                DrawTraitGainFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
+            if (!FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover())
+            {
+                DrawSoldPawnExitGoodwillFixPatchBlock(listing, fullWidth, leftover: false);
+            }
 
             if (HasAnyObsoleteLeftover())
             {
@@ -1800,6 +2045,31 @@ namespace HSK.KebabTweaks
                 DrawToggleableReadoutsGuiFixPatchBlock(listing, fullWidth, leftover: true);
             }
 
+            if (FixSymptomProbe.IsArchitectInfoBoxFpsFixLeftover())
+            {
+                DrawArchitectInfoBoxFpsFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsRimatomicsHelFpsFixLeftover())
+            {
+                DrawRimatomicsHelFpsFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsDiseaseComplicationFixLeftover())
+            {
+                DrawDiseaseComplicationFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsTraitGainFixLeftover())
+            {
+                DrawTraitGainFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover())
+            {
+                DrawSoldPawnExitGoodwillFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
             float height = listing.CurHeight - startY;
             obsoleteFixesSectionHeightCache = height;
             DrawDisabledSettingsRowVeil(new Rect(0f, startY, fullWidth, height),
@@ -2068,6 +2338,89 @@ namespace HSK.KebabTweaks
                 researchLink: FeatureResearchLinkCatalog.RawFungusBillFix,
                 availabilityId: FeatureAvailability.RawFungus);
             RawFungusBillFixFeatures.SyncCategory();
+        }
+
+        private void DrawArchitectInfoBoxFpsFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.ArchitectInfoBoxFpsFix".Translate(),
+                "KebabTweaks.Patch.ArchitectInfoBoxFpsFix.Tooltip".Translate(),
+                null,
+                ref EnableArchitectInfoBoxFpsFix, AppliedArchitectInfoBoxFpsFix,
+                !leftover, false, ResetArchitectInfoBoxFpsFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+        }
+
+        private void DrawRimatomicsHelFpsFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.RimatomicsHelFpsFix".Translate(),
+                "KebabTweaks.Patch.RimatomicsHelFpsFix.Tooltip".Translate(),
+                null,
+                ref EnableRimatomicsHelFpsFix, AppliedRimatomicsHelFpsFix,
+                !leftover, false, ResetRimatomicsHelFpsFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                availabilityId: FeatureAvailability.RimatomicsHel);
+        }
+
+        private void DrawDiseaseComplicationFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.DiseaseComplicationFix".Translate(),
+                "KebabTweaks.Patch.DiseaseComplicationFix.Tooltip".Translate(),
+                null,
+                ref EnableDiseaseComplicationFix, AppliedDiseaseComplicationFix,
+                !leftover, true, ResetDiseaseComplicationFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                availabilityId: FeatureAvailability.DiseaseComplication);
+        }
+
+        private void DrawTraitGainFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.TraitGainFix".Translate(),
+                "KebabTweaks.Patch.TraitGainFix.Tooltip".Translate(),
+                null,
+                ref EnableTraitGainFix, AppliedTraitGainFix,
+                !leftover, false, ResetTraitGainFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                availabilityId: FeatureAvailability.TraitGain);
+        }
+
+        private void DrawSoldPawnExitGoodwillFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.SoldPawnExitGoodwillFix".Translate(),
+                "KebabTweaks.Patch.SoldPawnExitGoodwillFix.Tooltip".Translate(),
+                null,
+                ref EnableSoldPawnExitGoodwillFix, AppliedSoldPawnExitGoodwillFix,
+                !leftover, false, ResetSoldPawnExitGoodwillFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
         }
 
         private void DrawAnomalyEspFleeFixPatchBlock(
@@ -2437,7 +2790,8 @@ namespace HSK.KebabTweaks
             string headerSuffix = null,
             string headerSuffixTooltip = null,
             bool dependencyVeil = false,
-            string trailingSuffix = null)
+            string trailingSuffix = null,
+            Action confirmEnableAction = null)
         {
             Rect row = listing.GetRect(SettingsCheckboxRowHeight);
             DrawFeatureHeaderBackground(row);
@@ -2591,7 +2945,15 @@ namespace HSK.KebabTweaks
                         "Confirm".Translate(),
                         () =>
                         {
-                            EnableObsoleteFixes = true;
+                            if (confirmEnableAction != null)
+                            {
+                                confirmEnableAction();
+                            }
+                            else
+                            {
+                                EnableObsoleteFixes = true;
+                            }
+
                             Write();
                         },
                         "Cancel".Translate(),
@@ -3420,6 +3782,9 @@ namespace HSK.KebabTweaks
             ResetStartingPawnChildAgeFix();
             ResetStartingPawnNameFix();
             ResetAndroidEnlightenFix();
+            ResetArchitectSearchResearchPatch();
+            ResetMonumentMaterialOnMapPatch();
+            ResetObsoletePatches();
             ResetWikiRimCompat();
             ResetObsoleteFixes();
             ResetMapPreviewRngBaselineFix();
@@ -3434,6 +3799,10 @@ namespace HSK.KebabTweaks
             ResetAnomalyEspFleeFix();
             ResetStratumSolarRoofEnergyTabFix();
             ResetArchitectInfoBoxFpsFix();
+            ResetRimatomicsHelFpsFix();
+            ResetDiseaseComplicationFix();
+            ResetTraitGainFix();
+            ResetSoldPawnExitGoodwillFix();
             Write();
         }
 
@@ -3715,6 +4084,53 @@ namespace HSK.KebabTweaks
             AndroidEnlightenFixFeatures.SyncGivers(force: true);
         }
 
+        private static void ResetArchitectSearchResearchPatch()
+        {
+            EnableArchitectSearchResearchPatch = !FixSymptomProbe.IsArchitectSearchResearchPatchLeftover();
+        }
+
+        private static void ResetMonumentMaterialOnMapPatch()
+        {
+            EnableMonumentMaterialOnMapPatch = true;
+        }
+
+        /// <summary>
+        /// Restores the Patches obsolete section, its leftover children, and Do not reset on reload.
+        ///
+        /// Возвращает раздел «Устаревшие» на вкладке патчей, патчи под ним и «не сбрасывать».
+        /// </summary>
+        private static void ResetObsoletePatches()
+        {
+            DoNotResetObsoletePatchesOnReload = false;
+            EnableObsoletePatches = false;
+            if (FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
+            {
+                EnableArchitectSearchResearchPatch = false;
+            }
+        }
+
+        /// <summary>
+        /// Turns the Patches obsolete section and this launch's leftover patches off when
+        /// Do not reset on reload is off.
+        ///
+        /// Выключает раздел «Устаревшие» на вкладке патчей и leftover-патчи этого запуска,
+        /// если «не сбрасывать» выключен.
+        /// </summary>
+        public static void ApplyObsoletePatchesResetOnGameStart()
+        {
+            if (DoNotResetObsoletePatchesOnReload)
+            {
+                return;
+            }
+
+            FixSymptomProbe.Ensure();
+            EnableObsoletePatches = false;
+            if (FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
+            {
+                EnableArchitectSearchResearchPatch = false;
+            }
+        }
+
         private static void ResetWikiRimCompat()
         {
             EnableWikiRimCompat = true;
@@ -3798,6 +4214,31 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsToggleableReadoutsGuiFixLeftover())
             {
                 ResetToggleableReadoutsGuiFix();
+            }
+
+            if (FixSymptomProbe.IsArchitectInfoBoxFpsFixLeftover())
+            {
+                ResetArchitectInfoBoxFpsFix();
+            }
+
+            if (FixSymptomProbe.IsRimatomicsHelFpsFixLeftover())
+            {
+                ResetRimatomicsHelFpsFix();
+            }
+
+            if (FixSymptomProbe.IsDiseaseComplicationFixLeftover())
+            {
+                ResetDiseaseComplicationFix();
+            }
+
+            if (FixSymptomProbe.IsTraitGainFixLeftover())
+            {
+                ResetTraitGainFix();
+            }
+
+            if (FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover())
+            {
+                ResetSoldPawnExitGoodwillFix();
             }
         }
 
@@ -3903,6 +4344,26 @@ namespace HSK.KebabTweaks
                 EnableToggleableReadoutsGuiFix = true;
             }
 
+            if (!FixSymptomProbe.IsDiseaseComplicationFixLeftover())
+            {
+                EnableDiseaseComplicationFix = true;
+            }
+
+            if (!FixSymptomProbe.IsTraitGainFixLeftover())
+            {
+                EnableTraitGainFix = true;
+            }
+
+            if (!FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover())
+            {
+                EnableSoldPawnExitGoodwillFix = true;
+            }
+
+            if (!FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
+            {
+                EnableArchitectSearchResearchPatch = true;
+            }
+
             Mod mod = LoadedModManager.GetMod<KebabTweaksMod>();
             if (mod != null)
             {
@@ -3977,6 +4438,31 @@ namespace HSK.KebabTweaks
             {
                 EnableToggleableReadoutsGuiFix = false;
             }
+
+            if (FixSymptomProbe.IsArchitectInfoBoxFpsFixLeftover())
+            {
+                EnableArchitectInfoBoxFpsFix = false;
+            }
+
+            if (FixSymptomProbe.IsRimatomicsHelFpsFixLeftover())
+            {
+                EnableRimatomicsHelFpsFix = false;
+            }
+
+            if (FixSymptomProbe.IsDiseaseComplicationFixLeftover())
+            {
+                EnableDiseaseComplicationFix = false;
+            }
+
+            if (FixSymptomProbe.IsTraitGainFixLeftover())
+            {
+                EnableTraitGainFix = false;
+            }
+
+            if (FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover())
+            {
+                EnableSoldPawnExitGoodwillFix = false;
+            }
         }
 
         private static void ResetMapPreviewRngBaselineFix()
@@ -4041,7 +4527,27 @@ namespace HSK.KebabTweaks
 
         private static void ResetArchitectInfoBoxFpsFix()
         {
-            EnableArchitectInfoBoxFpsFix = true;
+            EnableArchitectInfoBoxFpsFix = !FixSymptomProbe.IsArchitectInfoBoxFpsFixLeftover();
+        }
+
+        private static void ResetRimatomicsHelFpsFix()
+        {
+            EnableRimatomicsHelFpsFix = !FixSymptomProbe.IsRimatomicsHelFpsFixLeftover();
+        }
+
+        private static void ResetDiseaseComplicationFix()
+        {
+            EnableDiseaseComplicationFix = !FixSymptomProbe.IsDiseaseComplicationFixLeftover();
+        }
+
+        private static void ResetTraitGainFix()
+        {
+            EnableTraitGainFix = !FixSymptomProbe.IsTraitGainFixLeftover();
+        }
+
+        private static void ResetSoldPawnExitGoodwillFix()
+        {
+            EnableSoldPawnExitGoodwillFix = !FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover();
         }
 
         public override void ExposeData()
@@ -4120,6 +4626,13 @@ namespace HSK.KebabTweaks
                 defaultValue: true);
             Scribe_Values.Look(ref EnableAndroidEnlightenFix, "EnableAndroidEnlightenFix",
                 defaultValue: true);
+            Scribe_Values.Look(ref EnableArchitectSearchResearchPatch, "EnableArchitectSearchResearchPatch",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableMonumentMaterialOnMapPatch, "EnableMonumentMaterialOnMapPatch",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableObsoletePatches, "EnableObsoletePatches", defaultValue: false);
+            Scribe_Values.Look(ref DoNotResetObsoletePatchesOnReload, "DoNotResetObsoletePatchesOnReload",
+                defaultValue: false);
             Scribe_Values.Look(ref EnableWikiRimCompat, "EnableWikiRimCompat", defaultValue: true);
             Scribe_Values.Look(ref EnableWikiRimMultilingualSearch, "EnableWikiRimMultilingualSearch",
                 defaultValue: false);
@@ -4155,6 +4668,14 @@ namespace HSK.KebabTweaks
                 defaultValue: true);
             Scribe_Values.Look(ref EnableArchitectInfoBoxFpsFix, "EnableArchitectInfoBoxFpsFix",
                 defaultValue: true);
+            Scribe_Values.Look(ref EnableRimatomicsHelFpsFix, "EnableRimatomicsHelFpsFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableDiseaseComplicationFix, "EnableDiseaseComplicationFix",
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableTraitGainFix, "EnableTraitGainFix",
+                !FixSymptomProbe.IsTraitGainFixLeftover());
+            Scribe_Values.Look(ref EnableSoldPawnExitGoodwillFix, "EnableSoldPawnExitGoodwillFix",
+                !FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover());
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);
             Scribe_Values.Look(ref CatFloorSleepEnableLogging, "CatFloorSleepEnableLogging", defaultValue: false);
@@ -4274,6 +4795,7 @@ namespace HSK.KebabTweaks
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
                 ApplyObsoleteFixesResetOnGameStart();
+                ApplyObsoletePatchesResetOnGameStart();
             }
         }
     }

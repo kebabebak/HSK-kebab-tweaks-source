@@ -46,6 +46,15 @@ namespace HSK.KebabTweaks
         const string SkFactionLeaderGeneratePawnMethodName = "PawnGenerator_GeneratePawn";
         const string SkFactionLeaderFinalizerMethodName = "Faction_TryGenerateNewLeader";
         const string RimThemesBackgroundPatchTypeName = "RimThemesLite.UI_BackgroundMain_Patch";
+        const string ArchitectInfoBoxPatchTypeName = "SK.Patch_ArchitectCategoryTab_DoInfoBox";
+        const string ArchitectInfoBoxCacheFieldName = "_cache";
+        const string ArchitectInfoBoxTargetMethodName = "TargetMethod";
+        const string RimatomicsHelTypeName = "Rimatomics.Building_HEL";
+        const string RimatomicsBetterHelTypeName = "SK.Rimatomic_BetterHEL";
+        const string RimatomicsBetterHelMethodName = "TryFindNewTarget";
+        const string SkSoldPawnExitGoodwillTypeName = "SK.Patch_SoldPawnExitGoodwill";
+        const string SkSoldPawnExitGoodwillMethodName = "Pawn_PreTraded";
+        const string SoldPawnTendFieldName = "timesGuestTendedToByPlayer";
 
         static bool catCrazyTimeProbed;
         static bool catCrazyTimeLeftover;
@@ -74,6 +83,18 @@ namespace HSK.KebabTweaks
         static bool mainMenuBgFitLeftover;
         static bool readoutGuiProbed;
         static bool readoutGuiLeftover;
+        static bool architectInfoBoxProbed;
+        static bool architectInfoBoxLeftover;
+        static bool rimatomicsHelProbed;
+        static bool rimatomicsHelLeftover;
+        static bool diseaseComplicationProbed;
+        static bool diseaseComplicationLeftover;
+        static bool traitGainProbed;
+        static bool traitGainLeftover;
+        static bool soldPawnExitProbed;
+        static bool soldPawnExitLeftover;
+        static bool architectSearchResearchProbed;
+        static bool architectSearchResearchLeftover;
         static bool logged;
 
         /// <summary>
@@ -89,6 +110,12 @@ namespace HSK.KebabTweaks
             ProbeStartingPawnNameIfNeeded();
             ProbeStartingPawnChildAgeIfNeeded();
             ProbeTribalLeaderIfNeeded();
+            ProbeArchitectInfoBoxIfNeeded();
+            ProbeRimatomicsHelIfNeeded();
+            ProbeDiseaseComplicationIfNeeded();
+            ProbeTraitGainIfNeeded();
+            ProbeSoldPawnExitGoodwillIfNeeded();
+            ProbeArchitectSearchResearchIfNeeded();
             ProbeUfFillIfNeeded();
             ProbeAnomalyEspFleeIfNeeded();
             ProbeMainMenuBgFitIfNeeded();
@@ -156,6 +183,42 @@ namespace HSK.KebabTweaks
         {
             Ensure();
             return tribalLeaderLeftover;
+        }
+
+        public static bool IsArchitectInfoBoxFpsFixLeftover()
+        {
+            Ensure();
+            return architectInfoBoxLeftover;
+        }
+
+        public static bool IsArchitectSearchResearchPatchLeftover()
+        {
+            Ensure();
+            return architectSearchResearchLeftover;
+        }
+
+        public static bool IsRimatomicsHelFpsFixLeftover()
+        {
+            Ensure();
+            return rimatomicsHelLeftover;
+        }
+
+        public static bool IsDiseaseComplicationFixLeftover()
+        {
+            Ensure();
+            return diseaseComplicationLeftover;
+        }
+
+        public static bool IsSoldPawnExitGoodwillFixLeftover()
+        {
+            Ensure();
+            return soldPawnExitLeftover;
+        }
+
+        public static bool IsTraitGainFixLeftover()
+        {
+            Ensure();
+            return traitGainLeftover;
         }
 
         /// <summary>
@@ -283,7 +346,10 @@ namespace HSK.KebabTweaks
             if (IsUfFillFixLeftover() || IsBurnWeaponBillFixLeftover() ||
                 IsBreachAxeWorkAmountFixLeftover() || IsRawFungusBillFixLeftover() ||
                 IsAnomalyEspFleeFixLeftover() || IsMainMenuBgFitFixLeftover() ||
-                IsToggleableReadoutsGuiFixLeftover())
+                IsToggleableReadoutsGuiFixLeftover() || IsArchitectInfoBoxFpsFixLeftover() ||
+                IsRimatomicsHelFpsFixLeftover() || IsDiseaseComplicationFixLeftover() ||
+                IsTraitGainFixLeftover() ||
+                IsSoldPawnExitGoodwillFixLeftover())
             {
                 return true;
             }
@@ -374,6 +440,173 @@ namespace HSK.KebabTweaks
             tribalLeaderLeftover = ProbeTribalLeaderClosed();
         }
 
+        static void ProbeArchitectInfoBoxIfNeeded()
+        {
+            if (architectInfoBoxProbed)
+            {
+                return;
+            }
+
+            architectInfoBoxProbed = true;
+            architectInfoBoxLeftover = ProbeArchitectInfoBoxClosed();
+        }
+
+        static void ProbeRimatomicsHelIfNeeded()
+        {
+            if (rimatomicsHelProbed)
+            {
+                return;
+            }
+
+            rimatomicsHelProbed = true;
+            rimatomicsHelLeftover = ProbeRimatomicsHelClosed();
+        }
+
+        static void ProbeArchitectSearchResearchIfNeeded()
+        {
+            if (architectSearchResearchProbed)
+            {
+                return;
+            }
+
+            architectSearchResearchProbed = true;
+            architectSearchResearchLeftover = ProbeArchitectSearchResearchClosed();
+        }
+
+        /// <summary>
+        /// Closed when the loaded Architect Sense search prefix calls Prefs.get_DevMode and get_Visible.
+        /// That is the visibility cut: hidden projects stay out of search, and developer mode still
+        /// searches them. Architect Sense absent stays current, because vanilla Matches still ignores Visible.
+        ///
+        /// Closed, когда загруженный префикс поиска Architect Sense вызывает Prefs.get_DevMode и get_Visible.
+        /// Это отсечение по видимости: скрытые проекты не ищутся, а режим разработчика их всё ещё ищет.
+        /// Без Architect Sense строка остаётся актуальной: ванильный Matches по-прежнему не смотрит Visible.
+        /// </summary>
+        static bool ProbeArchitectSearchResearchClosed()
+        {
+            Type patch = AccessTools.TypeByName(
+                "ArchitectSense.HarmonyPatches+ArchitectCategoryTab_Matches_Patch");
+            if (patch == null)
+            {
+                return false;
+            }
+
+            bool callsDevMode = false;
+            bool callsVisible = false;
+            MethodInfo[] methods = patch.GetMethods(
+                BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public |
+                BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            for (int i = 0; i < methods.Length; i++)
+            {
+                if (MethodCalls(methods[i], typeof(Prefs), "get_DevMode"))
+                {
+                    callsDevMode = true;
+                }
+
+                if (MethodCallsName(methods[i], "get_Visible"))
+                {
+                    callsVisible = true;
+                }
+            }
+
+            return callsDevMode && callsVisible;
+        }
+
+        /// <summary>
+        /// Closed when Diseases+ IsReady already passes get_Severity into FloatRange.Includes.
+        /// That is the 1.7 mod and a later 1.6 mod with the same comparison. Alive when Includes
+        /// still reads the per-tick argument. The mod being absent stays current so the row is
+        /// veiled, not Obsolete.
+        ///
+        /// Closed, если IsReady в Diseases+ уже передаёт get_Severity в FloatRange.Includes.
+        /// Это мод 1.7 и поздний мод 1.6 с тем же сравнением. Alive, если Includes всё ещё читает
+        /// аргумент за тик. Без мода строка остаётся актуальной и затемняется, а не уходит в «Устаревшие».
+        /// </summary>
+        static void ProbeDiseaseComplicationIfNeeded()
+        {
+            if (diseaseComplicationProbed)
+            {
+                return;
+            }
+
+            diseaseComplicationProbed = true;
+            diseaseComplicationLeftover =
+                DiseaseComplicationFixFeatures.ReadOriginalCompare() ==
+                DiseaseSeverityCompare.CurrentSeverity;
+        }
+
+        /// <summary>
+        /// Closed when loaded SK.TraitChangerMapComponent subclasses MapComponent, ticks, stores
+        /// checkColonistCannibal, and that tick IL contains 1200 and 2200. Absent type stays current.
+        ///
+        /// Closed, если загруженный SK.TraitChangerMapComponent наследует MapComponent, тикает,
+        /// хранит checkColonistCannibal, а IL тика содержит 1200 и 2200. Нет типа - строка актуальна.
+        /// </summary>
+        static void ProbeTraitGainIfNeeded()
+        {
+            if (traitGainProbed)
+            {
+                return;
+            }
+
+            traitGainProbed = true;
+            traitGainLeftover = TraitGainFixFeatures.UpstreamTraitChangerPresent();
+        }
+
+        /// <summary>
+        /// Closed when Rimatomics Building_HEL is loaded and SK.Rimatomic_BetterHEL.TryFindNewTarget
+        /// is missing or its IL does not call ListerThings.get_AllThings. Alive when that call is
+        /// still there. Rimatomics absent stays current so the row is veiled, not Obsolete.
+        ///
+        /// Closed, если Rimatomics Building_HEL загружен, а SK.Rimatomic_BetterHEL.TryFindNewTarget
+        /// отсутствует или его IL не вызывает ListerThings.get_AllThings. Alive, если этот вызов
+        /// ещё есть. Без Rimatomics строка остаётся актуальной и затемняется, а не уходит в «Устаревшие».
+        /// </summary>
+        static bool ProbeRimatomicsHelClosed()
+        {
+            if (AccessTools.TypeByName(RimatomicsHelTypeName) == null)
+            {
+                return false;
+            }
+
+            Type better = AccessTools.TypeByName(RimatomicsBetterHelTypeName);
+            MethodInfo method = better == null
+                ? null
+                : AccessTools.Method(better, RimatomicsBetterHelMethodName);
+            if (method == null)
+            {
+                return true;
+            }
+
+            if (method.GetMethodBody() == null)
+            {
+                return false;
+            }
+
+            return !MethodCalls(method, typeof(ListerThings), "get_AllThings");
+        }
+
+        /// <summary>
+        /// Closed when SK.Patch_ArchitectCategoryTab_DoInfoBox has _cache and TargetMethod.
+        /// Alive when that type or either member is absent (the loaded Core_SK still calls
+        /// TruncateHeight without a dictionary).
+        ///
+        /// Closed, если у SK.Patch_ArchitectCategoryTab_DoInfoBox есть _cache и TargetMethod.
+        /// Alive, если типа или любого из членов нет (загруженный Core_SK всё ещё зовёт
+        /// TruncateHeight без словаря).
+        /// </summary>
+        static bool ProbeArchitectInfoBoxClosed()
+        {
+            Type sk = AccessTools.TypeByName(ArchitectInfoBoxPatchTypeName);
+            if (sk == null)
+            {
+                return false;
+            }
+
+            return AccessTools.Field(sk, ArchitectInfoBoxCacheFieldName) != null
+                && AccessTools.Method(sk, ArchitectInfoBoxTargetMethodName) != null;
+        }
+
         /// <summary>
         /// Closed when SK.FactionLeaderGenerationPatches has the GeneratePawn prefix and the
         /// TryGenerateNewLeader finalizer. Alive when that type or either method is absent
@@ -414,6 +647,42 @@ namespace HSK.KebabTweaks
 
             MethodInfo method = AccessTools.Method(sk, SkPawnGeneratorChildAgeMethodName);
             return MethodCallsNamed(method, "set_FixedBiologicalAge");
+        }
+
+        /// <summary>
+        /// Closed when the loaded Core_SK sale hook stores 0 in the tend counter and passes
+        /// false to guest.Released. Alive when that type or either write is absent.
+        ///
+        /// Closed, если загруженный хук продажи Core_SK пишет 0 в счётчик лечений и передаёт
+        /// false в guest.Released. Alive, если этого типа или любой из записей нет.
+        /// </summary>
+        static void ProbeSoldPawnExitGoodwillIfNeeded()
+        {
+            if (soldPawnExitProbed)
+            {
+                return;
+            }
+
+            soldPawnExitProbed = true;
+            soldPawnExitLeftover = ProbeSoldPawnExitGoodwillClosed();
+        }
+
+        static bool ProbeSoldPawnExitGoodwillClosed()
+        {
+            Type sk = AccessTools.TypeByName(SkSoldPawnExitGoodwillTypeName);
+            if (sk == null)
+            {
+                return false;
+            }
+
+            MethodInfo method = AccessTools.Method(sk, SkSoldPawnExitGoodwillMethodName);
+            if (method == null || method.GetMethodBody() == null)
+            {
+                return false;
+            }
+
+            return MethodStoresZeroToField(method, SoldPawnTendFieldName)
+                && MethodPassesFalseTo(method, "set_Released");
         }
 
         /// <summary>
@@ -965,7 +1234,9 @@ namespace HSK.KebabTweaks
                 !startingPawnNameProbed || !startingPawnChildAgeProbed ||
                 !tribalLeaderProbed ||
                 !ufFillProbed || !defsProbed || !anomalyEspProbed || !mainMenuBgFitProbed ||
-                !readoutGuiProbed)
+                !readoutGuiProbed || !architectInfoBoxProbed || !rimatomicsHelProbed ||
+                !diseaseComplicationProbed || !traitGainProbed ||
+                !soldPawnExitProbed)
             {
                 return;
             }
@@ -987,7 +1258,47 @@ namespace HSK.KebabTweaks
                 " RawFungus=" + rawFungusLeftover +
                 " AnomalyEspFlee=" + anomalyEspLeftover +
                 " MainMenuBgFit=" + mainMenuBgFitLeftover +
-                " ReadoutGui=" + readoutGuiLeftover + ".");
+                " ReadoutGui=" + readoutGuiLeftover +
+                " ArchitectInfoBox=" + architectInfoBoxLeftover +
+                " RimatomicsHel=" + rimatomicsHelLeftover +
+                " DiseaseComplication=" + diseaseComplicationLeftover +
+                " TraitGain=" + traitGainLeftover +
+                " SoldPawnExit=" + soldPawnExitLeftover +
+                " ArchitectSearch=" + architectSearchResearchLeftover + ".");
+        }
+
+        static bool MethodCallsName(MethodInfo method, string methodName)
+        {
+            byte[] il = method?.GetMethodBody()?.GetILAsByteArray();
+            if (il == null || methodName == null)
+            {
+                return false;
+            }
+
+            Module module = method.Module;
+            for (int i = 0; i < il.Length - 4; i++)
+            {
+                byte op = il[i];
+                if (op != 0x28 && op != 0x6F)
+                {
+                    continue;
+                }
+
+                int token = BitConverter.ToInt32(il, i + 1);
+                try
+                {
+                    MethodBase resolved = module.ResolveMethod(token);
+                    if (resolved != null && resolved.Name == methodName)
+                    {
+                        return true;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+
+            return false;
         }
 
         static bool MethodCalls(MethodInfo method, Type declaringType, string methodName)
@@ -1146,6 +1457,73 @@ namespace HSK.KebabTweaks
             {
                 ForEachDeclaredMethod(nested[i], visit);
             }
+        }
+
+        static bool MethodStoresZeroToField(MethodInfo method, string fieldName)
+        {
+            byte[] il = method?.GetMethodBody()?.GetILAsByteArray();
+            if (il == null || fieldName == null)
+            {
+                return false;
+            }
+
+            Module module = method.Module;
+            for (int i = 1; i < il.Length - 4; i++)
+            {
+                if (il[i] != 0x7D || il[i - 1] != 0x16)
+                {
+                    continue;
+                }
+
+                int token = BitConverter.ToInt32(il, i + 1);
+                try
+                {
+                    FieldInfo field = module.ResolveField(token);
+                    if (field != null && field.Name == fieldName)
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return false;
+        }
+
+        static bool MethodPassesFalseTo(MethodInfo method, string methodName)
+        {
+            byte[] il = method?.GetMethodBody()?.GetILAsByteArray();
+            if (il == null || methodName == null)
+            {
+                return false;
+            }
+
+            Module module = method.Module;
+            for (int i = 1; i < il.Length - 4; i++)
+            {
+                byte op = il[i];
+                if ((op != 0x28 && op != 0x6F) || il[i - 1] != 0x16)
+                {
+                    continue;
+                }
+
+                int token = BitConverter.ToInt32(il, i + 1);
+                try
+                {
+                    MethodBase resolved = module.ResolveMethod(token);
+                    if (resolved != null && resolved.Name == methodName)
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return false;
         }
 
         static bool MethodCallsNamed(MethodInfo method, string methodName)
