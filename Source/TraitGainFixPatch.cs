@@ -16,15 +16,19 @@ namespace HSK.KebabTweaks
     /// Hardened, and the storyteller never runs TraitChange. Those incidents are absent, or
     /// they name SK.Worker_ChangeTrait when that type is not loaded.
     ///
-    /// Fix: While that component is absent, TraitGainMapComponent counts the same memories and
+    /// Fix: While both counters are absent, TraitGainMapComponent counts the same memories and
     /// mood every 1200 ticks and grants the same traits and letters. TraitChange and TraitRemove
     /// are created or repaired in code when Misc, Special, and the target tags Map_PlayerHome,
     /// Map_TempIncident, Map_Misc, and Map_RaidBeacon exist. A def that already has a resolving
     /// worker and the required category, base chance, and tags is left as it is. A def whose
     /// worker type does not resolve is pointed at TraitGainChangeWorker or TraitGainRemoveWorker
-    /// and filled to that shape. The row is leftover when SK.TraitChangerMapComponent is loaded,
-    /// subclasses MapComponent, has MapComponentTick and checkColonistCannibal, and that tick IL
-    /// contains 1200 and 2200. The tick does nothing in that case. Core SK absent veils the row.
+    /// and filled to that shape. The row is leftover when either loaded counter is present.
+    /// SK.TraitChangerMapComponent must subclass MapComponent, have MapComponentTick and
+    /// checkColonistCannibal, and that tick IL must contain 1200 and 2200.
+    /// HSK.TraitGrowth.TraitGrowthMapComponent must subclass MapComponent and have
+    /// MapComponentTick, its Tick IL must contain 1200 and 2200, and
+    /// HSK.TraitGrowth.PawnGrowthState must store cannibalExposure. The tick does nothing
+    /// in that case. Core SK absent veils the row.
     ///
     /// Проблема: без SK.TraitChangerMapComponent поселенцы не получают Cannibal от воспоминаний
     /// AteHumanlikeMeatDirect, AteHumanlikeMeatAsIngredient и AteHumanlikeMeatAsIngredientCannibal,
@@ -32,19 +36,26 @@ namespace HSK.KebabTweaks
     /// TraitChange. Этих инцидентов нет, либо они ссылаются на SK.Worker_ChangeTrait, когда этого
     /// типа нет в сборке.
     ///
-    /// Исправление: пока этого компонента нет, TraitGainMapComponent считает те же воспоминания и
+    /// Исправление: пока обоих счётчиков нет, TraitGainMapComponent считает те же воспоминания и
     /// настроение каждые 1200 тиков и выдаёт те же черты и письма. TraitChange и TraitRemove
     /// создаются или чинятся в коде, когда есть Misc, Special и метки Map_PlayerHome,
     /// Map_TempIncident, Map_Misc и Map_RaidBeacon. Деф с рабочим воркером и нужными категорией,
     /// шансом и метками не трогается. Деф, чей тип воркера не находится, переводится на
     /// TraitGainChangeWorker или TraitGainRemoveWorker и доводится до этой формы. Строка
-    /// становится leftover, когда SK.TraitChangerMapComponent загружен, наследует MapComponent,
-    /// имеет MapComponentTick и checkColonistCannibal, а IL тика содержит 1200 и 2200. В этом
-    /// случае тик ничего не делает. Без Core SK строка под вуалью.
+    /// становится leftover, когда загружен любой из двух счётчиков.
+    /// SK.TraitChangerMapComponent должен наследовать MapComponent, иметь MapComponentTick и
+    /// checkColonistCannibal, а IL тика содержать 1200 и 2200.
+    /// HSK.TraitGrowth.TraitGrowthMapComponent должен наследовать MapComponent и иметь
+    /// MapComponentTick, IL его Tick должен содержать 1200 и 2200, а
+    /// HSK.TraitGrowth.PawnGrowthState должен хранить cannibalExposure. В этом случае тик
+    /// ничего не делает. Без Core SK строка под вуалью.
     /// </summary>
     public static class TraitGainFixFeatures
     {
         const string UpstreamTypeName = "SK.TraitChangerMapComponent";
+        const string GrowthComponentTypeName = "HSK.TraitGrowth.TraitGrowthMapComponent";
+        const string GrowthStateTypeName = "HSK.TraitGrowth.PawnGrowthState";
+        const string GrowthExposureFieldName = "cannibalExposure";
         public const int CheckInterval = 1200;
         public const int CannibalThreshold = 2200;
 
@@ -140,13 +151,15 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// True when the loaded SK.TraitChangerMapComponent is the counter this fix replaces:
-        /// a MapComponent with MapComponentTick, field checkColonistCannibal, and tick IL
-        /// constants 1200 and 2200.
+        /// True when a loaded counter already replaces this fix. That is SK.TraitChangerMapComponent
+        /// with MapComponentTick, checkColonistCannibal, and tick IL 1200 and 2200, or
+        /// HSK.TraitGrowth.TraitGrowthMapComponent whose Tick IL has those constants and whose
+        /// PawnGrowthState stores cannibalExposure.
         ///
-        /// True, если загруженный SK.TraitChangerMapComponent - тот счётчик, который этот фикс
-        /// заменяет: MapComponent с MapComponentTick, полем checkColonistCannibal и константами
-        /// 1200 и 2200 в IL тика.
+        /// True, если загруженный счётчик уже заменяет этот фикс. Это SK.TraitChangerMapComponent
+        /// с MapComponentTick, checkColonistCannibal и IL тика 1200 и 2200, либо
+        /// HSK.TraitGrowth.TraitGrowthMapComponent, у которого IL Tick содержит эти константы, а
+        /// PawnGrowthState хранит cannibalExposure.
         /// </summary>
         public static bool UpstreamTraitChangerPresent()
         {
@@ -156,6 +169,19 @@ namespace HSK.KebabTweaks
             }
 
             upstreamResolved = true;
+            upstreamPresent = LegacyTraitChangerPresent() || GrowthTraitChangerPresent();
+            return upstreamPresent;
+        }
+
+        /// <summary>
+        /// True when loaded SK.TraitChangerMapComponent is the 1.5 counter: MapComponent,
+        /// MapComponentTick, checkColonistCannibal, and tick IL 1200 and 2200.
+        ///
+        /// True, если загруженный SK.TraitChangerMapComponent - счётчик 1.5: MapComponent,
+        /// MapComponentTick, checkColonistCannibal и IL тика 1200 и 2200.
+        /// </summary>
+        static bool LegacyTraitChangerPresent()
+        {
             Type type = AccessTools.TypeByName(UpstreamTypeName);
             if (type == null || type.IsAbstract || !typeof(MapComponent).IsAssignableFrom(type))
             {
@@ -169,8 +195,40 @@ namespace HSK.KebabTweaks
                 return false;
             }
 
-            upstreamPresent = IlHasInt(tick, CheckInterval) && IlHasInt(tick, CannibalThreshold);
-            return upstreamPresent;
+            return IlHasInt(tick, CheckInterval) && IlHasInt(tick, CannibalThreshold);
+        }
+
+        /// <summary>
+        /// True when People Can Change is the loaded counter: TraitGrowthMapComponent ticks,
+        /// Tick IL contains 1200 and 2200, and PawnGrowthState stores cannibalExposure.
+        ///
+        /// True, если People Can Change - загруженный счётчик: TraitGrowthMapComponent тикает,
+        /// IL Tick содержит 1200 и 2200, а PawnGrowthState хранит cannibalExposure.
+        /// </summary>
+        static bool GrowthTraitChangerPresent()
+        {
+            Type type = AccessTools.TypeByName(GrowthComponentTypeName);
+            if (type == null || type.IsAbstract || !typeof(MapComponent).IsAssignableFrom(type))
+            {
+                return false;
+            }
+
+            if (AccessTools.DeclaredMethod(type, "MapComponentTick") == null)
+            {
+                return false;
+            }
+
+            MethodInfo tick = AccessTools.DeclaredMethod(type, "Tick");
+            Type state = AccessTools.TypeByName(GrowthStateTypeName);
+            FieldInfo exposure = state == null
+                ? null
+                : AccessTools.Field(state, GrowthExposureFieldName);
+            if (tick == null || exposure == null)
+            {
+                return false;
+            }
+
+            return IlHasInt(tick, CheckInterval) && IlHasInt(tick, CannibalThreshold);
         }
 
         /// <summary>
@@ -352,6 +410,11 @@ namespace HSK.KebabTweaks
             return false;
         }
 
+        /// <summary>
+        /// Grants a new Trait when the def and degree exist and the trait is suitable.
+        ///
+        /// Выдаёт новый Trait, когда деф и степень есть и черта подходит.
+        /// </summary>
         public static bool GrantTrait(Pawn pawn, TraitDef trait, int degree, List<TraitDef> changed)
         {
             if (!SuitableTrait(pawn, trait) || !DegreeExists(trait, degree))
@@ -384,6 +447,11 @@ namespace HSK.KebabTweaks
             }
         }
 
+        /// <summary>
+        /// Drops every copy of the trait def and refreshes work and mood.
+        ///
+        /// Снимает все копии этой черты и обновляет работу и настроение.
+        /// </summary>
         public static void RemoveTrait(Pawn pawn, TraitDef trait, List<TraitDef> changed)
         {
             if (pawn?.story?.traits?.allTraits == null || trait == null || !pawn.story.traits.HasTrait(trait))
@@ -462,6 +530,11 @@ namespace HSK.KebabTweaks
             }
         }
 
+        /// <summary>
+        /// Skills touched by the trait defs that just changed, for the passion rewrite.
+        ///
+        /// Навыки, которых коснулись только что изменённые черты, для переписывания увлечений.
+        /// </summary>
         public static void CollectChangedSkills(List<TraitDef> changed, List<SkillDef> skills)
         {
             if (changed == null || skills == null)
@@ -645,6 +718,11 @@ namespace HSK.KebabTweaks
             return valid;
         }
 
+        /// <summary>
+        /// Sends the trait letter when the pawn belongs to the colony.
+        ///
+        /// Отправляет письмо о черте, если пешка принадлежит колонии.
+        /// </summary>
         public static void SendTraitLetter(Pawn pawn, string text, LetterDef letter)
         {
             if (!IsPlayerPawn(pawn) || text.NullOrEmpty() || letter == null || Find.LetterStack == null)
@@ -1067,14 +1145,18 @@ namespace HSK.KebabTweaks
     /// Counts human-meat memories, a long mood, and a long negative stretch on each map.
     /// Coma is skipped because mood stays at zero. A newborn still gets the cannibal count;
     /// mood and Hardened wait, and later colonists on that pass are still checked. Each
-    /// Hardened bonus is a new Trait. The tick does nothing while SK.TraitChangerMapComponent
-    /// with the 1200 and 2200 counter is loaded.
+    /// Hardened bonus is a new Trait. The tick does nothing while either upstream counter is
+    /// loaded: SK.TraitChangerMapComponent with tick IL 1200 and 2200, or
+    /// HSK.TraitGrowth.TraitGrowthMapComponent whose Tick IL has those constants and whose
+    /// PawnGrowthState stores cannibalExposure.
     ///
     /// Считает воспоминания о человеческом мясе, долгое настроение и долгий негатив на каждой
     /// карте. Кома пропускается, потому что настроение остаётся нулём. Новорождённый всё ещё
     /// получает счёт каннибализма; настроение и Hardened ждут, а следующие поселенцы этого
     /// прохода всё ещё проверяются. Каждый бонус Hardened - новый Trait. Тик ничего не делает,
-    /// пока загружен SK.TraitChangerMapComponent со счётчиком 1200 и 2200.
+    /// пока загружен любой из счётчиков: SK.TraitChangerMapComponent с IL тика 1200 и 2200 либо
+    /// HSK.TraitGrowth.TraitGrowthMapComponent, у которого IL Tick содержит эти константы, а
+    /// PawnGrowthState хранит cannibalExposure.
     /// </summary>
     public class TraitGainMapComponent : MapComponent
     {
@@ -1101,6 +1183,11 @@ namespace HSK.KebabTweaks
         {
         }
 
+        /// <summary>
+        /// Saves the per-colonist counters with this component.
+        ///
+        /// Сохраняет счётчики поселенцев вместе с этим компонентом.
+        /// </summary>
         public override void ExposeData()
         {
             base.ExposeData();
@@ -1504,6 +1591,11 @@ namespace HSK.KebabTweaks
     /// </summary>
     public class TraitGainChangeWorker : IncidentWorker
     {
+        /// <summary>
+        /// The storyteller skips this incident while the fix is off or the HSK component is loaded.
+        ///
+        /// Рассказчик пропускает этот инцидент, пока фикс выключен или компонент HSK загружен.
+        /// </summary>
         protected override bool CanFireNowSub(IncidentParms parms)
         {
             return KebabTweaksSettings.IsTraitGainFixEnabled() && !FixSymptomProbe.IsTraitGainFixLeftover();
@@ -1624,6 +1716,13 @@ namespace HSK.KebabTweaks
     /// </summary>
     public class TraitGainRemoveWorker : IncidentWorker
     {
+        /// <summary>
+        /// The storyteller skips this incident while the fix is off or the HSK component is loaded.
+        /// Base chance 0 already keeps it out of the normal draw.
+        ///
+        /// Рассказчик пропускает этот инцидент, пока фикс выключен или компонент HSK загружен.
+        /// Шанс 0 и так не даёт ему выпасть в обычном розыгрыше.
+        /// </summary>
         protected override bool CanFireNowSub(IncidentParms parms)
         {
             return KebabTweaksSettings.IsTraitGainFixEnabled() && !FixSymptomProbe.IsTraitGainFixLeftover();

@@ -37,6 +37,11 @@ namespace HSK.KebabTweaks
     {
         private static readonly Dictionary<MeasureKey, string> results = new Dictionary<MeasureKey, string>();
 
+        /// <summary>
+        /// Installs both TruncateHeight overloads. The hooks stay in place when the checkbox is off.
+        ///
+        /// Ставит обе перегрузки TruncateHeight. Хуки остаются, когда чекбокс выключен.
+        /// </summary>
         public static void Apply(Harmony harmony)
         {
             MethodInfo stringMethod = AccessTools.Method(typeof(GenText), "TruncateHeight", new[]

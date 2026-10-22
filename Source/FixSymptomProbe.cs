@@ -536,11 +536,17 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Closed when loaded SK.TraitChangerMapComponent subclasses MapComponent, ticks, stores
-        /// checkColonistCannibal, and that tick IL contains 1200 and 2200. Absent type stays current.
+        /// Closed when either loaded counter is present. SK.TraitChangerMapComponent must subclass
+        /// MapComponent, tick, store checkColonistCannibal, and contain 1200 and 2200 in that tick.
+        /// HSK.TraitGrowth.TraitGrowthMapComponent must subclass MapComponent and tick, its Tick
+        /// IL must contain 1200 and 2200, and PawnGrowthState must store cannibalExposure.
+        /// Absent both stays current.
         ///
-        /// Closed, если загруженный SK.TraitChangerMapComponent наследует MapComponent, тикает,
-        /// хранит checkColonistCannibal, а IL тика содержит 1200 и 2200. Нет типа - строка актуальна.
+        /// Closed, если загружен любой из счётчиков. SK.TraitChangerMapComponent должен наследовать
+        /// MapComponent, тикать, хранить checkColonistCannibal и содержать 1200 и 2200 в этом тике.
+        /// HSK.TraitGrowth.TraitGrowthMapComponent должен наследовать MapComponent и тикать, IL его
+        /// Tick должен содержать 1200 и 2200, а PawnGrowthState должен хранить cannibalExposure.
+        /// Нет обоих - строка актуальна.
         /// </summary>
         static void ProbeTraitGainIfNeeded()
         {

@@ -47,6 +47,13 @@ namespace HSK.KebabTweaks
             Log.Message("[HSK kebab tweaks] Sold prisoner relations fix loaded.");
         }
 
+        /// <summary>
+        /// Clears the tend count and Released after the player sells a pawn. Buying a pawn
+        /// and a real release do not enter this branch.
+        ///
+        /// Обнуляет счётчик лечений и Released после продажи пешки игроком. Покупка пешки
+        /// и настоящий отпуск в эту ветку не попадают.
+        /// </summary>
         public static void Pawn_PreTraded(Pawn __instance, TradeAction action)
         {
             if (!KebabTweaksSettings.IsSoldPawnExitGoodwillFixEnabled())

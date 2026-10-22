@@ -570,14 +570,15 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// True when trait gain should run: current enable while SK.TraitChangerMapComponent
-        /// with the 1200-tick cannibal counter is absent; Obsolete section plus leftover enable
-        /// when that component is loaded. The tick still does nothing while the component is loaded.
+        /// True when trait gain should run: current enable while both upstream counters are
+        /// absent; Obsolete section plus leftover enable when SK.TraitChangerMapComponent or
+        /// HSK.TraitGrowth.TraitGrowthMapComponent already counts cannibalism every 1200 ticks
+        /// to 2200. The tick still does nothing while either counter is loaded.
         ///
-        /// True, когда выдача черт должна работать: обычный enable, пока нет
-        /// SK.TraitChangerMapComponent со счётчиком каннибализма раз в 1200 тиков; раздел
-        /// «Устаревшие» плюс leftover enable, если этот компонент загружен. Тик всё равно ничего
-        /// не делает, пока компонент загружен.
+        /// True, когда выдача черт должна работать: обычный enable, пока нет обоих счётчиков;
+        /// раздел «Устаревшие» плюс leftover enable, если SK.TraitChangerMapComponent или
+        /// HSK.TraitGrowth.TraitGrowthMapComponent уже считает каннибализм каждые 1200 тиков
+        /// до 2200. Тик всё равно ничего не делает, пока загружен любой из них.
         /// </summary>
         public static bool IsTraitGainFixEnabled()
         {

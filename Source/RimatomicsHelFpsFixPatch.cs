@@ -46,6 +46,13 @@ namespace HSK.KebabTweaks
         static ThingDef razorDef;
         static bool loggedMissingDefs;
 
+        /// <summary>
+        /// Installs the Building_HEL postfix and, when the HSK method exists, the prefix that skips its body.
+        /// The hooks stay in place when the checkbox is off.
+        ///
+        /// Ставит postfix Building_HEL и, если метод HSK есть, prefix, который пропускает его тело.
+        /// Хуки остаются, когда чекбокс выключен.
+        /// </summary>
         public static void Apply(Harmony harmony)
         {
             Type helType = AccessTools.TypeByName("Rimatomics.Building_HEL");

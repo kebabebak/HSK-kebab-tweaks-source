@@ -39,6 +39,11 @@ namespace HSK.KebabTweaks
         static Map currentMap;
         static Sketch currentSketch;
 
+        /// <summary>
+        /// Installs the dialog filter when Simple Monument Quest is loaded.
+        ///
+        /// Ставит фильтр окна, когда Simple Monument Quest загружен.
+        /// </summary>
         public static void Apply(Harmony harmony)
         {
             Type dialogType = AccessTools.TypeByName(DialogTypeName);

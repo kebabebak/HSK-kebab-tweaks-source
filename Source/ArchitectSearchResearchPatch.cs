@@ -42,6 +42,11 @@ namespace HSK.KebabTweaks
         const string SubCategoryTypeName = "ArchitectSense.Designator_SubCategory";
         const string FilterTypeName = "ArchitectSense.ArchitectSense_Filter";
 
+        /// <summary>
+        /// Installs the search prefix. The vanilla method is always present.
+        ///
+        /// Ставит префикс поиска. Ванильный метод есть всегда.
+        /// </summary>
         public static void Apply(Harmony harmony)
         {
             MethodInfo method = AccessTools.Method(typeof(ArchitectCategoryTab), "Matches");
