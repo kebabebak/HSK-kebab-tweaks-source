@@ -734,7 +734,7 @@ namespace HSK.KebabTweaks
     {
         public static void Postfix(ref Job __result, Pawn pawn, IntVec3 cell, WorkGiver __instance)
         {
-            if (!KebabTweaksSettings.EnableGrowerCutTrees)
+            if (!KebabTweaksSettings.IsGrowerCutTreesPatchEnabled())
             {
                 return;
             }
@@ -750,7 +750,7 @@ namespace HSK.KebabTweaks
     {
         public static void Postfix(ref bool __result, Pawn pawn, IntVec3 c, WorkGiver __instance)
         {
-            if (!KebabTweaksSettings.EnableGrowerCutTrees)
+            if (!KebabTweaksSettings.IsGrowerCutTreesPatchEnabled())
             {
                 return;
             }
@@ -815,7 +815,7 @@ namespace HSK.KebabTweaks
 
         public static bool Prefix(IntVec3 cell, Map map, ThingDef plantDef, ref bool __result)
         {
-            if (!KebabTweaksSettings.EnableGrowerCutTrees)
+            if (!KebabTweaksSettings.IsGrowerCutTreesPatchEnabled())
             {
                 return true;
             }
@@ -903,7 +903,7 @@ namespace HSK.KebabTweaks
     {
         public static void Postfix(ref Job __result, Pawn pawn, Thing t, WorkGiver __instance)
         {
-            if (!KebabTweaksSettings.EnableGrowerCutTrees)
+            if (!KebabTweaksSettings.IsGrowerCutTreesPatchEnabled())
             {
                 return;
             }
@@ -918,7 +918,7 @@ namespace HSK.KebabTweaks
     {
         public static void Postfix(ref bool __result, Pawn pawn, Thing t, WorkGiver_Scanner __instance)
         {
-            if (!KebabTweaksSettings.EnableGrowerCutTrees)
+            if (!KebabTweaksSettings.IsGrowerCutTreesPatchEnabled())
             {
                 return;
             }
@@ -933,7 +933,7 @@ namespace HSK.KebabTweaks
 
         public override bool ShouldSkip(Pawn pawn, bool forced = false)
         {
-            if (!KebabTweaksSettings.EnableGrowerCutTrees)
+            if (!KebabTweaksSettings.IsGrowerCutTreesPatchEnabled())
             {
                 return true;
             }

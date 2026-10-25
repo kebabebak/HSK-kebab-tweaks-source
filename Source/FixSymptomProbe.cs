@@ -43,8 +43,10 @@ namespace HSK.KebabTweaks
         const string SkPawnGeneratorPatchesTypeName = "SK.PawnGeneratorPatches";
         const string SkPawnGeneratorChildAgeMethodName = "PawnGenerator_GenerateRandomAge";
         const string SkFactionLeaderGenerationTypeName = "SK.FactionLeaderGenerationPatches";
-        const string SkFactionLeaderGeneratePawnMethodName = "PawnGenerator_GeneratePawn";
-        const string SkFactionLeaderFinalizerMethodName = "Faction_TryGenerateNewLeader";
+        const string GrowerClearZoneDefName = "GrowerClearZone";
+        const string GrowerClearZoneTypeName = "SeedsPlease.WorkGiver_GrowerClearZone";
+        const string GrowerSowWithSeedsTypeName = "SeedsPlease.WorkGiver_GrowerSowWithSeeds";
+        const int GrowerClearZoneMinPriority = 110;
         const string RimThemesBackgroundPatchTypeName = "RimThemesLite.UI_BackgroundMain_Patch";
         const string ArchitectInfoBoxPatchTypeName = "SK.Patch_ArchitectCategoryTab_DoInfoBox";
         const string ArchitectInfoBoxCacheFieldName = "_cache";
@@ -95,6 +97,8 @@ namespace HSK.KebabTweaks
         static bool soldPawnExitLeftover;
         static bool architectSearchResearchProbed;
         static bool architectSearchResearchLeftover;
+        static bool growerCutTreesProbed;
+        static bool growerCutTreesLeftover;
         static bool logged;
 
         /// <summary>
@@ -116,6 +120,7 @@ namespace HSK.KebabTweaks
             ProbeTraitGainIfNeeded();
             ProbeSoldPawnExitGoodwillIfNeeded();
             ProbeArchitectSearchResearchIfNeeded();
+            ProbeGrowerCutTreesIfNeeded();
             ProbeUfFillIfNeeded();
             ProbeAnomalyEspFleeIfNeeded();
             ProbeMainMenuBgFitIfNeeded();
@@ -195,6 +200,12 @@ namespace HSK.KebabTweaks
         {
             Ensure();
             return architectSearchResearchLeftover;
+        }
+
+        public static bool IsGrowerCutTreesPatchLeftover()
+        {
+            Ensure();
+            return growerCutTreesLeftover;
         }
 
         public static bool IsRimatomicsHelFpsFixLeftover()
@@ -474,6 +485,54 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// Closed when GrowerClearZone is a Growing giver at priority 110 or higher and
+        /// WorkGiver_GrowerSowWithSeeds.JobOnCell calls TakesZoneCut on that class.
+        /// SeedsPlease absent, or the def or the call missing, stays current.
+        ///
+        /// Closed, если GrowerClearZone - giver выращивания с приоритетом 110 или выше и
+        /// WorkGiver_GrowerSowWithSeeds.JobOnCell вызывает TakesZoneCut этого класса.
+        /// Без SeedsPlease, без дефа или без вызова строка остаётся актуальной.
+        /// </summary>
+        static void ProbeGrowerCutTreesIfNeeded()
+        {
+            if (growerCutTreesProbed)
+            {
+                return;
+            }
+
+            if (DefDatabase<WorkGiverDef>.DefCount == 0)
+            {
+                return;
+            }
+
+            growerCutTreesProbed = true;
+            growerCutTreesLeftover = ProbeGrowerCutTreesClosed();
+        }
+
+        static bool ProbeGrowerCutTreesClosed()
+        {
+            WorkGiverDef clearDef = DefDatabase<WorkGiverDef>.GetNamedSilentFail(GrowerClearZoneDefName);
+            if (clearDef == null || clearDef.priorityInType < GrowerClearZoneMinPriority)
+            {
+                return false;
+            }
+
+            if (clearDef.workType == null || clearDef.workType.defName != "Growing")
+            {
+                return false;
+            }
+
+            if (clearDef.giverClass == null || clearDef.giverClass.FullName != GrowerClearZoneTypeName)
+            {
+                return false;
+            }
+
+            Type sow = AccessTools.TypeByName(GrowerSowWithSeedsTypeName);
+            MethodInfo jobOnCell = sow == null ? null : AccessTools.Method(sow, "JobOnCell");
+            return MethodCalls(jobOnCell, clearDef.giverClass, "TakesZoneCut");
+        }
+
+        /// <summary>
         /// Closed when the loaded Architect Sense search prefix calls Prefs.get_DevMode and get_Visible.
         /// That is the visibility cut: hidden projects stay out of search, and developer mode still
         /// searches them. Architect Sense absent stays current, because vanilla Matches still ignores Visible.
@@ -614,13 +673,15 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Closed when SK.FactionLeaderGenerationPatches has the GeneratePawn prefix and the
-        /// TryGenerateNewLeader finalizer. Alive when that type or either method is absent
-        /// (the loaded Core_SK does not yet force violence on those leader requests).
+        /// Closed when a method on SK.FactionLeaderGenerationPatches calls
+        /// set_MustBeCapableOfViolence and PawnGenerator.GeneratePawn. Alive when that type
+        /// is absent or no method does both (the loaded Core_SK still leaves the leader
+        /// request incapable of filtering Violent-disabled pawns before the skill check).
         ///
-        /// Closed, если у SK.FactionLeaderGenerationPatches есть prefix GeneratePawn и
-        /// finalizer TryGenerateNewLeader. Alive, если типа или любого из методов нет
-        /// (загруженный Core_SK ещё не требует violence у этих запросов лидера).
+        /// Closed, если метод SK.FactionLeaderGenerationPatches вызывает
+        /// set_MustBeCapableOfViolence и PawnGenerator.GeneratePawn. Alive, если типа нет
+        /// или ни один метод не делает оба вызова (загруженный Core_SK всё ещё не отсекает
+        /// пешек с выключенным Violent до проверки навыка).
         /// </summary>
         static bool ProbeTribalLeaderClosed()
         {
@@ -630,8 +691,21 @@ namespace HSK.KebabTweaks
                 return false;
             }
 
-            return AccessTools.Method(sk, SkFactionLeaderGeneratePawnMethodName) != null
-                && AccessTools.Method(sk, SkFactionLeaderFinalizerMethodName) != null;
+            bool closed = false;
+            ForEachDeclaredMethod(sk, method =>
+            {
+                if (closed)
+                {
+                    return;
+                }
+
+                if (MethodCallsNamed(method, "set_MustBeCapableOfViolence") &&
+                    MethodCalls(method, typeof(PawnGenerator), nameof(PawnGenerator.GeneratePawn)))
+                {
+                    closed = true;
+                }
+            });
+            return closed;
         }
 
         /// <summary>
@@ -1242,7 +1316,7 @@ namespace HSK.KebabTweaks
                 !ufFillProbed || !defsProbed || !anomalyEspProbed || !mainMenuBgFitProbed ||
                 !readoutGuiProbed || !architectInfoBoxProbed || !rimatomicsHelProbed ||
                 !diseaseComplicationProbed || !traitGainProbed ||
-                !soldPawnExitProbed)
+                !soldPawnExitProbed || !growerCutTreesProbed)
             {
                 return;
             }
@@ -1270,7 +1344,8 @@ namespace HSK.KebabTweaks
                 " DiseaseComplication=" + diseaseComplicationLeftover +
                 " TraitGain=" + traitGainLeftover +
                 " SoldPawnExit=" + soldPawnExitLeftover +
-                " ArchitectSearch=" + architectSearchResearchLeftover + ".");
+                " ArchitectSearch=" + architectSearchResearchLeftover +
+                " GrowerCutTrees=" + growerCutTreesLeftover + ".");
         }
 
         static bool MethodCallsName(MethodInfo method, string methodName)

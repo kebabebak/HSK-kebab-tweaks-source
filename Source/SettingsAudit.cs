@@ -496,7 +496,8 @@ namespace HSK.KebabTweaks
             Int(list, "idle-search:ticks", () => KebabTweaksSettings.IdleWorkSearchCooldownTicks,
                 KebabTweaksSettings.DefaultIdleWorkSearchCooldownTicks);
 
-            Bool(list, "grower", () => KebabTweaksSettings.EnableGrowerCutTrees, true);
+            Bool(list, "grower", () => KebabTweaksSettings.EnableGrowerCutTrees,
+                () => !FixSymptomProbe.IsGrowerCutTreesPatchLeftover());
             Bool(list, "grower:log", () => KebabTweaksSettings.GrowerCutTreesEnableLogging, false);
 
             Bool(list, "corpses", () => KebabTweaksSettings.EnableStartingCorpsesNoHaul, true);

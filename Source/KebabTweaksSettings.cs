@@ -408,6 +408,19 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// True when growing-zone cuts should run as farmer sub-work before sowing.
+        ///
+        /// True, когда рубка зоны выращивания должна идти подработой фермера до посева.
+        /// </summary>
+        public static bool IsGrowerCutTreesPatchEnabled()
+        {
+            return IsPatchRunning(
+                EnableGrowerCutTrees,
+                FixSymptomProbe.IsGrowerCutTreesPatchLeftover(),
+                FeatureAvailability.Grower);
+        }
+
+        /// <summary>
         /// True when monument material choices should hide options with nothing on the map.
         ///
         /// True, когда выбор материалов монумента должен скрывать варианты, которых нет на карте.
@@ -1082,17 +1095,10 @@ namespace HSK.KebabTweaks
                         "ParanoidPerfectionist.CatchAnyTooltip".Translate());
                 });
 
-            DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.GrowerCutTrees".Translate(),
-                "KebabTweaks.Patch.GrowerCutTrees.Tooltip".Translate(),
-                SupersededStandaloneMods.GrowerCutTrees,
-                ref EnableGrowerCutTrees, AppliedGrowerCutTrees, true, false, ResetGrowerCutTrees,
-                () =>
-                {
-                    DrawSettingsEnableLoggingCheckboxRow(listing, "GrowerCutTreesPatch.EnableLogging".Translate(),
-                        () => GrowerCutTreesEnableLogging, v => GrowerCutTreesEnableLogging = v);
-                },
-                availabilityId: FeatureAvailability.Grower);
+            if (!FixSymptomProbe.IsGrowerCutTreesPatchLeftover())
+            {
+                DrawGrowerCutTreesPatchBlock(listing, fullWidth, leftover: false);
+            }
 
             DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.StartingCorpsesNoHaul".Translate(),
@@ -1168,7 +1174,27 @@ namespace HSK.KebabTweaks
 
         static bool HasAnyObsoletePatchLeftover()
         {
-            return FixSymptomProbe.IsArchitectSearchResearchPatchLeftover();
+            return FixSymptomProbe.IsArchitectSearchResearchPatchLeftover()
+                || FixSymptomProbe.IsGrowerCutTreesPatchLeftover();
+        }
+
+        void DrawGrowerCutTreesPatchBlock(Listing_Standard listing, float fullWidth, bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.GrowerCutTrees".Translate(),
+                "KebabTweaks.Patch.GrowerCutTrees.Tooltip".Translate(),
+                SupersededStandaloneMods.GrowerCutTrees,
+                ref EnableGrowerCutTrees, AppliedGrowerCutTrees,
+                !leftover, false, ResetGrowerCutTrees,
+                () =>
+                {
+                    DrawSettingsEnableLoggingCheckboxRow(listing, "GrowerCutTreesPatch.EnableLogging".Translate(),
+                        () => GrowerCutTreesEnableLogging, v => GrowerCutTreesEnableLogging = v);
+                },
+                leadingSpacer: true,
+                interactive: leftover ? EnableObsoletePatches : true,
+                relevancePercent: leftover ? 0 : (int?)null,
+                availabilityId: FeatureAvailability.Grower);
         }
 
         void DrawArchitectSearchResearchPatchBlock(Listing_Standard listing, float fullWidth, bool leftover)
@@ -1220,6 +1246,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
             {
                 DrawArchitectSearchResearchPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsGrowerCutTreesPatchLeftover())
+            {
+                DrawGrowerCutTreesPatchBlock(listing, fullWidth, leftover: true);
             }
         }
 
@@ -3928,7 +3959,7 @@ namespace HSK.KebabTweaks
 
         private static void ResetGrowerCutTrees()
         {
-            EnableGrowerCutTrees = true;
+            EnableGrowerCutTrees = !FixSymptomProbe.IsGrowerCutTreesPatchLeftover();
             GrowerCutTreesEnableLogging = false;
         }
 
@@ -4108,6 +4139,12 @@ namespace HSK.KebabTweaks
             {
                 EnableArchitectSearchResearchPatch = false;
             }
+
+            if (FixSymptomProbe.IsGrowerCutTreesPatchLeftover())
+            {
+                EnableGrowerCutTrees = false;
+                GrowerCutTreesEnableLogging = false;
+            }
         }
 
         /// <summary>
@@ -4129,6 +4166,12 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
             {
                 EnableArchitectSearchResearchPatch = false;
+            }
+
+            if (FixSymptomProbe.IsGrowerCutTreesPatchLeftover())
+            {
+                EnableGrowerCutTrees = false;
+                GrowerCutTreesEnableLogging = false;
             }
         }
 

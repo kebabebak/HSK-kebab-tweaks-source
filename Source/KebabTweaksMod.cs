@@ -172,7 +172,7 @@ namespace HSK.KebabTweaks
                     SupersededStandaloneMods.GetActiveRitualsFix, "GetActiveRitualsFixFeatures",
                     () => GetActiveRitualsFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedGrowerCutTrees,
-                    KebabTweaksSettings.EnableGrowerCutTrees, SupersededStandaloneMods.GrowerCutTrees,
+                    KebabTweaksSettings.IsGrowerCutTreesPatchEnabled(), SupersededStandaloneMods.GrowerCutTrees,
                     "GrowerCutTreesFeatures", () => GrowerCutTreesFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedIdleErrorWanderFix,
                     KebabTweaksSettings.EnableIdleErrorWanderFix,
