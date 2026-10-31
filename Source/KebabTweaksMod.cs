@@ -279,6 +279,10 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.EnableWikiRimCompat, null,
                     "WikiRimCompatFeatures",
                     () => WikiRimCompatFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedCombatExtendedCompat,
+                    KebabTweaksSettings.EnableCombatExtendedCompat, null,
+                    "CombatExtendedLeaveGunFeatures",
+                    () => CombatExtendedLeaveGunFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedSaveSettingsLoadFix,
                     KebabTweaksSettings.EnableSaveSettingsLoadFix, null,
                     "SaveSettingsLoadFixFeatures",
@@ -286,6 +290,7 @@ namespace HSK.KebabTweaks
 
                 // XML DefInjected + Rule_String typo safety (no settings toggle).
                 OdysseyRuTradersGuildNamerFixFeatures.Apply(harmony);
+                OdysseyRuRuleKeywordFixFeatures.Apply(harmony);
 
                 ApplyRestartUnlessSuperseded(ref KebabTweaksSettings.AppliedMapPreviewRngBaselineFix,
                     KebabTweaksSettings.EnableMapPreviewRngBaselineFix,
@@ -358,6 +363,14 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.IsSoldPawnExitGoodwillFixEnabled(), null,
                     "SoldPawnExitGoodwillFixFeatures",
                     () => SoldPawnExitGoodwillFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedFactionBombardmentOneSideFix,
+                    KebabTweaksSettings.IsFactionBombardmentOneSideFixEnabled(), null,
+                    FeatureAvailability.FactionBombardment,
+                    () => FactionBombardmentOneSideFixFeatures.Apply(harmony));
+                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedTurretUndraftLastShotFix,
+                    KebabTweaksSettings.IsTurretUndraftLastShotFixEnabled(), null,
+                    FeatureAvailability.TurretUndraftLastShot,
+                    () => TurretUndraftLastShotFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedArchitectSearchResearchPatch,
                     KebabTweaksSettings.IsArchitectSearchResearchPatchEnabled(), null,
                     "ArchitectSearchResearchPatchFeatures",

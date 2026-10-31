@@ -52,6 +52,10 @@ namespace HSK.KebabTweaks
             MethodInfo method = AccessTools.Method(typeof(ArchitectCategoryTab), "Matches");
             if (method == null)
             {
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.ArchitectSearch,
+                    "Architect Search",
+                    "ArchitectCategoryTab.Matches was not found.");
                 return;
             }
 

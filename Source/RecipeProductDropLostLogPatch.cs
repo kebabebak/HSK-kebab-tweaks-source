@@ -33,6 +33,15 @@ namespace HSK.KebabTweaks
         {
             try
             {
+                if (AccessTools.Method(typeof(Log), nameof(Log.Error), new[] { typeof(string) }) == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.RecipeDrop,
+                        "Recipe Drop Lost Log",
+                        "Log.Error(string) was not found.");
+                    return;
+                }
+
                 harmony.Patch(
                     AccessTools.Method(typeof(Log), nameof(Log.Error), new[] { typeof(string) }),
                     prefix: new HarmonyMethod(typeof(RecipeProductDropLostLogFeatures), nameof(Log_Error_Prefix)));

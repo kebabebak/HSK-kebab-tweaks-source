@@ -49,10 +49,12 @@ namespace HSK.KebabTweaks.KebabSwitches
 
     /// <summary>
     /// Catalog of vanilla Core + DLC Letter labels (Letters.xml, Incidents.xml, Messages.xml,
-    /// Anomaly/Royalty/Ideology/Biotech) plus HSK mod letter labels; surgery-failure regex.
+    /// Anomaly/Royalty/Ideology/Biotech) plus HSK mod letter labels, including the fallen monolith,
+    /// an accident, and storyteller frenzy; surgery-failure regex.
     ///
     /// Каталог label писем vanilla Core + DLC (Letters.xml, Incidents.xml, Messages.xml,
-    /// Anomaly/Royalty/Ideology/Biotech) и модов HSK; regex провала хирургии.
+    /// Anomaly/Royalty/Ideology/Biotech) и модов HSK, включая упавший монолит, инцидент
+    /// и ярость рассказчика; regex провала хирургии.
     /// </summary>
     public static class SuppressibleLetters
     {
@@ -68,6 +70,7 @@ namespace HSK.KebabTweaks.KebabSwitches
             new SuppressibleLetterEntry("HediffFromRandomHediffGiverLabel", "LetterHediffFromRandomHediffGiverLabel"),
             new SuppressibleLetterEntry("JoinOfferLabel", "LetterJoinOfferLabel"),
             new SuppressibleLetterEntry("AcceptedProposal", "LetterLabelAcceptedProposal"),
+            new SuppressibleLetterEntry("Accident", "accident"),
             new SuppressibleLetterEntry("Affair", "LetterLabelAffair"),
             new SuppressibleLetterEntry("AgentRevealed", "LetterLabelAgentRevealed"),
             new SuppressibleLetterEntry("AICoreOffer", "LetterLabelAICoreOffer"),
@@ -93,6 +96,7 @@ namespace HSK.KebabTweaks.KebabSwitches
             new SuppressibleLetterEntry("DrugBinge", "LetterLabelDrugBinge"),
             new SuppressibleLetterEntry("FactionBaseDefeated", "LetterLabelFactionBaseDefeated"),
             new SuppressibleLetterEntry("FactionBaseProximity", "LetterLabelFactionBaseProximity"),
+            new SuppressibleLetterEntry("FallenMonolith", null),
             new SuppressibleLetterEntry("FarmAnimalsWanderIn", "LetterLabelFarmAnimalsWanderIn"),
             new SuppressibleLetterEntry("FirstSummerWarning", "LetterLabelFirstSummerWarning"),
             new SuppressibleLetterEntry("FoundPreciousLump", "LetterLabelFoundPreciousLump"),
@@ -211,6 +215,7 @@ namespace HSK.KebabTweaks.KebabSwitches
             new SuppressibleLetterEntry("SingleSlaveEscape", "LetterLabelSingleSlaveEscape"),
             new SuppressibleLetterEntry("SingleSlaveRebellion", "LetterLabelSingleSlaveRebellion"),
             new SuppressibleLetterEntry("SpacedroneIncoming", "LetterLabelSpacedroneIncoming"),
+            new SuppressibleLetterEntry("StorytellerFrenzy", null),
             new SuppressibleLetterEntry("SurpriseReinforcements", "LetterLabelSurpriseReinforcements"),
             new SuppressibleLetterEntry("ThirdTrimester", "LetterLabelThirdTrimester"),
             new SuppressibleLetterEntry("TributeCollectorArrival", "LetterLabelTributeCollectorArrival"),

@@ -36,6 +36,16 @@ namespace HSK.KebabTweaks
         {
             try
             {
+                if (AccessTools.Method(typeof(JobGiver_Wander), "TryGiveJob") == null
+                    || AccessTools.Method(typeof(JobGiver_IdleError), "TryGiveJob") == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.IdleErrorWander,
+                        "Idle Error Wander Fix",
+                        "JobGiver_Wander.TryGiveJob or JobGiver_IdleError.TryGiveJob was not found.");
+                    return;
+                }
+
                 harmony.CreateClassProcessor(typeof(JobGiver_Wander_TryGiveJob_Patch)).Patch();
                 harmony.CreateClassProcessor(typeof(JobGiver_IdleError_TryGiveJob_Patch)).Patch();
                 Log.Message("[IdleErrorWanderFixPatch] Patches applied.");

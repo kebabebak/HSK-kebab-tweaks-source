@@ -92,6 +92,7 @@ namespace HSK.KebabTweaks.KebabSwitches
 
         private static void AddLetterLabels(Dictionary<string, string> map)
         {
+            map["accident"] = "Accident";
             map["LetterBladelinkWeaponBondedLabel"] = "Persona bond: {WEAPON_labelShort}";
             map["LetterCraftedLegendaryLabel"] = "Legendary Work";
             map["LetterCraftedMasterworkLabel"] = "Masterwork";

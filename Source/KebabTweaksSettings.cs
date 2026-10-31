@@ -4,6 +4,7 @@ using HSK.KebabTweaks.KebabSwitches;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace HSK.KebabTweaks
 {
@@ -21,6 +22,9 @@ namespace HSK.KebabTweaks
         public const float DefaultLowTpsLogCooldownSeconds = 1f;
         public const int DefaultIdleWorkSearchCooldownTicks = 1000;
         public const int MaxIdleWorkSearchCooldownTicks = 100000;
+        public const int DefaultCombatExtendedLeaveGunTicks = 600;
+        public const int MinCombatExtendedLeaveGunTicks = 0;
+        public const int MaxCombatExtendedLeaveGunTicks = 3600;
 
 #if RIMWORLD_1_6
         public static bool EnableCatCrazyTime;
@@ -72,7 +76,10 @@ namespace HSK.KebabTweaks
         public static bool EnableObsoletePatches;
         public static bool DoNotResetObsoletePatchesOnReload;
         public static bool EnableWikiRimCompat = true;
-        public static bool EnableWikiRimMultilingualSearch;
+        public static bool EnableWikiRimMultilingualSearch = true;
+        public static bool EnableCombatExtendedCompat = true;
+        public static int CombatExtendedLeaveGunTicks = DefaultCombatExtendedLeaveGunTicks;
+        public static string CombatExtendedLeaveGunTicks_Buffer;
         public static bool EnableSaveSettingsLoadFix = true;
         public static bool EnableObsoleteFixes;
         public static bool DoNotResetObsoleteFixesOnReload;
@@ -95,6 +102,8 @@ namespace HSK.KebabTweaks
         public static bool EnableDiseaseComplicationFix = true;
         public static bool EnableTraitGainFix = true;
         public static bool EnableSoldPawnExitGoodwillFix = true;
+        public static bool EnableFactionBombardmentOneSideFix = true;
+        public static bool EnableTurretUndraftLastShotFix = true;
 
 #if RIMWORLD_1_6
         public static bool AppliedCatCrazyTime;
@@ -139,6 +148,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedArchitectSearchResearchPatch = true;
         public static bool AppliedMonumentMaterialOnMapPatch = true;
         public static bool AppliedWikiRimCompat = true;
+        public static bool AppliedCombatExtendedCompat = true;
         public static bool AppliedSaveSettingsLoadFix = true;
         public static bool AppliedMapPreviewRngBaselineFix = true;
         public static bool AppliedUnifiedXmlPathFix = true;
@@ -156,6 +166,8 @@ namespace HSK.KebabTweaks
         public static bool AppliedDiseaseComplicationFix = true;
         public static bool AppliedTraitGainFix = true;
         public static bool AppliedSoldPawnExitGoodwillFix = true;
+        public static bool AppliedFactionBombardmentOneSideFix = true;
+        public static bool AppliedTurretUndraftLastShotFix = true;
 
         public static bool CatCrazyTimeEnableLogging;
         public static bool CatFloorSleepEnableLogging;
@@ -303,6 +315,8 @@ namespace HSK.KebabTweaks
             {
                 SuppressAlertIds = new HashSet<string>(StringComparer.Ordinal);
             }
+
+            SuppressAlertIds.Remove(ToolNeedIgnore.RetiredWholeAlertId);
         }
 
         public static bool IsAlertSuppressed(string id)
@@ -404,7 +418,7 @@ namespace HSK.KebabTweaks
             return IsPatchRunning(
                 EnableArchitectSearchResearchPatch,
                 FixSymptomProbe.IsArchitectSearchResearchPatchLeftover(),
-                null);
+                FeatureAvailability.ArchitectSearch);
         }
 
         /// <summary>
@@ -545,7 +559,7 @@ namespace HSK.KebabTweaks
             return IsFixRunning(
                 EnableArchitectInfoBoxFpsFix,
                 FixSymptomProbe.IsArchitectInfoBoxFpsFixLeftover(),
-                null);
+                FeatureAvailability.ArchitectInfoBox);
         }
 
         /// <summary>
@@ -615,7 +629,45 @@ namespace HSK.KebabTweaks
             return IsFixRunning(
                 EnableSoldPawnExitGoodwillFix,
                 FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover(),
-                null);
+                FeatureAvailability.SoldPawn);
+        }
+
+        /// <summary>
+        /// True when the faction-bombardment hooks should run: current enable while
+        /// SK.FactionalWarPawnGroupPatches is absent; Obsolete section plus leftover enable
+        /// when that Core_SK type already fills an empty group and removes a one-sided pair.
+        /// Factional War absent blocks the hooks.
+        ///
+        /// True, когда хуки фракционной бомбардировки должны работать: обычный enable, пока
+        /// нет SK.FactionalWarPawnGroupPatches; раздел «Устаревшие» плюс leftover enable, если
+        /// этот тип Core_SK уже заполняет пустую группу и снимает одностороннюю пару.
+        /// Без Factional War хуки не работают.
+        /// </summary>
+        public static bool IsFactionBombardmentOneSideFixEnabled()
+        {
+            return IsFixRunning(
+                EnableFactionBombardmentOneSideFix,
+                FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover(),
+                FeatureAvailability.FactionBombardment);
+        }
+
+        /// <summary>
+        /// True when the manned-turret last-shot prefix should run: current enable while
+        /// SK.TurretGunCEPatches does not yet refuse BeginBurst. Obsolete section plus leftover
+        /// enable when that Core_SK prefix already refuses the shot, waits one frame, and queues
+        /// the detour. Combat Extended absent blocks the hook.
+        ///
+        /// True, когда prefix дострела обитаемого орудия должен работать: обычный enable, пока
+        /// SK.TurretGunCEPatches ещё не отказывает BeginBurst. Раздел «Устаревшие» плюс leftover
+        /// enable, если этот prefix Core_SK уже отказывает в выстреле, ждёт один кадр и ставит
+        /// детур в очередь. Без Combat Extended хук не работает.
+        /// </summary>
+        public static bool IsTurretUndraftLastShotFixEnabled()
+        {
+            return IsFixRunning(
+                EnableTurretUndraftLastShotFix,
+                FixSymptomProbe.IsTurretUndraftLastShotFixLeftover(),
+                FeatureAvailability.TurretUndraftLastShot);
         }
 
         public static bool IsBurnWeaponBillFixEnabled()
@@ -773,7 +825,6 @@ namespace HSK.KebabTweaks
         private float scrollContentHeightNotifications;
         private float scrollContentHeightPatches = 500f;
         private float scrollContentHeightFixes = 1100f;
-        private float obsoleteFixesSectionHeightCache;
 
         /// <summary>
         /// Same preset gradient as kebab limits modified-limit highlight colors.
@@ -1093,7 +1144,8 @@ namespace HSK.KebabTweaks
                         ref ParanoidCatchAnyError,
                         false,
                         "ParanoidPerfectionist.CatchAnyTooltip".Translate());
-                });
+                },
+                availabilityId: FeatureAvailability.Paranoid);
 
             if (!FixSymptomProbe.IsGrowerCutTreesPatchLeftover())
             {
@@ -1165,6 +1217,25 @@ namespace HSK.KebabTweaks
             }
 
             DrawMonumentMaterialOnMapPatchBlock(listing, fullWidth);
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.CombatExtended".Translate(),
+                "KebabTweaks.Patch.CombatExtended.Tooltip".Translate(),
+                null,
+                ref EnableCombatExtendedCompat, AppliedCombatExtendedCompat, true, false,
+                ResetCombatExtendedCompat,
+                () =>
+                {
+                    DrawBodyContentNumericIntRow(
+                        listing,
+                        fullWidth,
+                        "KebabTweaks.CombatExtended.LeaveGun".Translate(),
+                        ref CombatExtendedLeaveGunTicks,
+                        ref CombatExtendedLeaveGunTicks_Buffer,
+                        MinCombatExtendedLeaveGunTicks,
+                        MaxCombatExtendedLeaveGunTicks,
+                        DefaultCombatExtendedLeaveGunTicks);
+                },
+                availabilityId: FeatureAvailability.CombatExtendedLeaveGun);
             DrawCompatibilityPatchesSection(listing, fullWidth);
             if (HasAnyObsoletePatchLeftover())
             {
@@ -1208,7 +1279,8 @@ namespace HSK.KebabTweaks
                 null,
                 leadingSpacer: true,
                 interactive: leftover ? EnableObsoletePatches : true,
-                relevancePercent: leftover ? 0 : (int?)null);
+                relevancePercent: leftover ? 0 : (int?)null,
+                availabilityId: FeatureAvailability.ArchitectSearch);
         }
 
         void DrawMonumentMaterialOnMapPatchBlock(Listing_Standard listing, float fullWidth)
@@ -1294,13 +1366,14 @@ namespace HSK.KebabTweaks
                         listing,
                         "KebabTweaks.WikiRim.MultilingualSearch".Translate(),
                         ref EnableWikiRimMultilingualSearch,
-                        false,
+                        true,
                         "KebabTweaks.WikiRim.MultilingualSearch.Tooltip".Translate());
                 },
                 headerSuffix: " " + "KebabTweaks.Patch.WikiRim.PackageSuffix".Translate(),
                 headerSuffixTooltip: "KebabTweaks.Patch.WikiRim.PackageSuffixTooltip".Translate(),
                 availabilityId: FeatureAvailability.WikiRim);
         }
+
 
         private void DrawFixesTabContents(Listing_Standard listing, float fullWidth)
         {
@@ -1673,6 +1746,16 @@ namespace HSK.KebabTweaks
                 DrawSoldPawnExitGoodwillFixPatchBlock(listing, fullWidth, leftover: false);
             }
 
+            if (!FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover())
+            {
+                DrawFactionBombardmentOneSideFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
+            if (!FixSymptomProbe.IsTurretUndraftLastShotFixLeftover())
+            {
+                DrawTurretUndraftLastShotFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
             if (HasAnyObsoleteLeftover())
             {
                 DrawObsoleteFixesSection(listing, fullWidth);
@@ -1711,8 +1794,6 @@ namespace HSK.KebabTweaks
             DrawFeatureBodyPanel(listing, fullWidth, () =>
             {
                 bool searchActive = NotificationsSearchQueryActive();
-                bool showLogging = !searchActive || NotificationsSearchKeyedMatches("KebabSwitches.EnableLogging");
-                bool showIgnoreAll = !searchActive || NotificationsSearchKeyedMatches("KebabSwitches.IgnoreAll");
                 bool screenHeaderMatch = searchActive && NotificationsSearchKeyedMatches("KebabSwitches.ScreenMessagesHeader");
                 bool letterHeaderMatch = searchActive && NotificationsSearchKeyedMatches("KebabSwitches.LettersHeader");
                 bool alertHeaderMatch = searchActive && NotificationsSearchKeyedMatches("KebabSwitches.AlertsHeader");
@@ -1720,46 +1801,33 @@ namespace HSK.KebabTweaks
                 bool showLetters = !searchActive || letterHeaderMatch || CountMatchingLetters() > 0;
                 bool showAlerts = !searchActive || alertHeaderMatch || CountMatchingAlerts() > 0;
 
-                if (showLogging)
+                DrawSettingsEnableLoggingCheckboxRow(listing, "KebabSwitches.EnableLogging".Translate(),
+                    () => KebabSwitchesEnableLogging, v => KebabSwitchesEnableLogging = v);
+                DrawSettingsRowSeparator(listing, fullWidth);
+                bool ignoreAll = AllNotificationIgnoresEnabled();
+                bool ignoreAllBefore = ignoreAll;
+                DrawSettingsCheckboxRow(
+                    listing,
+                    "KebabSwitches.IgnoreAll".Translate(),
+                    ref ignoreAll,
+                    false,
+                    dependencyAvailable: NotificationDependency.AnyIgnoreRow());
+                if (ignoreAll != ignoreAllBefore)
                 {
-                    DrawSettingsEnableLoggingCheckboxRow(listing, "KebabSwitches.EnableLogging".Translate(),
-                        () => KebabSwitchesEnableLogging, v => KebabSwitchesEnableLogging = v);
-                }
-
-                if (showLogging && showIgnoreAll)
-                {
-                    DrawSettingsRowSeparator(listing, fullWidth);
-                }
-
-                if (showIgnoreAll)
-                {
-                    bool ignoreAll = AllNotificationIgnoresEnabled();
-                    bool ignoreAllBefore = ignoreAll;
-                    DrawSettingsCheckboxRow(
-                        listing,
+                    bool turnOn = ignoreAll;
+                    Find.WindowStack.Add(new Dialog_MessageBox(
+                        (turnOn
+                            ? "KebabSwitches.IgnoreAll.ConfirmOn"
+                            : "KebabSwitches.IgnoreAll.ConfirmOff").Translate(),
+                        "Confirm".Translate(),
+                        () => SetAllNotificationIgnores(turnOn),
+                        "Cancel".Translate(),
+                        null,
                         "KebabSwitches.IgnoreAll".Translate(),
-                        ref ignoreAll,
-                        false);
-                    if (ignoreAll != ignoreAllBefore)
-                    {
-                        bool turnOn = ignoreAll;
-                        Find.WindowStack.Add(new Dialog_MessageBox(
-                            (turnOn
-                                ? "KebabSwitches.IgnoreAll.ConfirmOn"
-                                : "KebabSwitches.IgnoreAll.ConfirmOff").Translate(),
-                            "Confirm".Translate(),
-                            () => SetAllNotificationIgnores(turnOn),
-                            "Cancel".Translate(),
-                            null,
-                            "KebabSwitches.IgnoreAll".Translate(),
-                            buttonADestructive: true));
-                    }
+                        buttonADestructive: true));
                 }
 
-                if (showLogging || showIgnoreAll)
-                {
-                    DrawSettingsRowSeparator(listing, fullWidth);
-                }
+                DrawSettingsRowSeparator(listing, fullWidth);
 
                 DrawNotificationsSearchRow(listing);
                 DrawSettingsRowSeparator(listing, fullWidth);
@@ -1774,6 +1842,7 @@ namespace HSK.KebabTweaks
                         "KebabSwitches.ScreenMessagesHeader".Translate(),
                         AllScreenMessagesSuppressed(),
                         SetAllScreenMessages,
+                        NotificationDependency.AnyScreenRow(),
                         () =>
                         {
                             foreach (SuppressibleScreenMessageEntry entry in SuppressibleScreenMessages.All)
@@ -1784,8 +1853,14 @@ namespace HSK.KebabTweaks
                                 }
 
                                 bool value = entry.IsSuppressEnabled();
-                                DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
-                                entry.SetSuppressEnabled(value);
+                                bool rowAvailable = NotificationDependency.IsScreenRowAvailable(entry);
+                                DrawSettingsCheckboxRow(
+                                    listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip, rowAvailable);
+                                if (rowAvailable)
+                                {
+                                    entry.SetSuppressEnabled(value);
+                                }
+
                                 DrawSettingsRowSeparator(listing, fullWidth);
                             }
                         });
@@ -1805,6 +1880,7 @@ namespace HSK.KebabTweaks
                         "KebabSwitches.LettersHeader".Translate(),
                         AllLettersSuppressed(),
                         SetAllLetters,
+                        NotificationDependency.AnyLetterRow(),
                         () =>
                         {
                             foreach (SuppressibleLetterEntry entry in SuppressibleLetters.All)
@@ -1815,8 +1891,14 @@ namespace HSK.KebabTweaks
                                 }
 
                                 bool value = entry.IsSuppressEnabled;
-                                DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
-                                entry.SetSuppressEnabled(value);
+                                bool rowAvailable = NotificationDependency.IsLetterRowAvailable(entry);
+                                DrawSettingsCheckboxRow(
+                                    listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip, rowAvailable);
+                                if (rowAvailable)
+                                {
+                                    entry.SetSuppressEnabled(value);
+                                }
+
                                 DrawSettingsRowSeparator(listing, fullWidth);
                             }
                         });
@@ -1836,24 +1918,30 @@ namespace HSK.KebabTweaks
                         "KebabSwitches.AlertsHeader".Translate(),
                         AllAlertsSuppressed(),
                         SetAllAlerts,
+                        NotificationDependency.AnyAlertIgnore(),
                         () =>
                         {
+                            DrawToolNeedRows(listing, fullWidth, alertHeaderMatch);
                             foreach (SuppressibleAlertEntry entry in SuppressibleAlerts.All)
                             {
-                                if (!alertHeaderMatch && !NotificationsSearchMatches(entry))
+                                if (alertHeaderMatch || NotificationsSearchMatches(entry))
                                 {
-                                    continue;
-                                }
+                                    bool value = entry.IsSuppressEnabled;
+                                    bool rowAvailable = NotificationDependency.IsAlertRowAvailable(entry);
+                                    DrawSettingsCheckboxRow(
+                                        listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip, rowAvailable);
+                                    if (rowAvailable)
+                                    {
+                                        entry.SetSuppressEnabled(value);
+                                    }
 
-                                bool value = entry.IsSuppressEnabled;
-                                DrawSettingsCheckboxRow(listing, entry.CheckboxLabel, ref value, false, entry.SourceTooltip);
-                                entry.SetSuppressEnabled(value);
-                                DrawSettingsRowSeparator(listing, fullWidth);
+                                    DrawSettingsRowSeparator(listing, fullWidth);
+                                }
                             }
                         });
                 }
 
-                bool anyHit = showLogging || showIgnoreAll || showScreen || showLetters || showAlerts;
+                bool anyHit = showScreen || showLetters || showAlerts;
                 NotificationsSearchWidget.noResultsMatched = searchActive && !anyHit;
                 if (searchActive && !anyHit)
                 {
@@ -1873,10 +1961,16 @@ namespace HSK.KebabTweaks
             string headerLabel,
             bool allOn,
             Action<bool> setAll,
+            bool feedAvailable,
             Action drawRows)
         {
             bool master = allOn;
-            DrawSettingsSectionHeader(listing, headerLabel, ref master, "KebabSwitches.SectionMaster.Tooltip".Translate());
+            DrawSettingsSectionHeader(
+                listing,
+                headerLabel,
+                ref master,
+                "KebabSwitches.SectionMaster.Tooltip".Translate(),
+                feedAvailable);
             if (master != allOn)
             {
                 setAll(master);
@@ -1888,85 +1982,154 @@ namespace HSK.KebabTweaks
 
         static bool AllScreenMessagesSuppressed()
         {
-            if (SuppressibleScreenMessages.All.Length == 0)
-            {
-                return false;
-            }
-
+            bool any = false;
             for (int i = 0; i < SuppressibleScreenMessages.All.Length; i++)
             {
-                if (!SuppressibleScreenMessages.All[i].IsSuppressEnabled())
+                SuppressibleScreenMessageEntry entry = SuppressibleScreenMessages.All[i];
+                if (!NotificationDependency.IsScreenRowAvailable(entry))
+                {
+                    continue;
+                }
+
+                any = true;
+                if (!entry.IsSuppressEnabled())
                 {
                     return false;
                 }
             }
 
-            return true;
+            return any;
         }
 
         static void SetAllScreenMessages(bool value)
         {
             for (int i = 0; i < SuppressibleScreenMessages.All.Length; i++)
             {
-                SuppressibleScreenMessages.All[i].SetSuppressEnabled(value);
+                if (NotificationDependency.IsScreenRowAvailable(SuppressibleScreenMessages.All[i]))
+                {
+                    SuppressibleScreenMessages.All[i].SetSuppressEnabled(value);
+                }
             }
         }
 
         static bool AllLettersSuppressed()
         {
-            if (SuppressibleLetters.All.Length == 0)
-            {
-                return false;
-            }
-
+            bool any = false;
             for (int i = 0; i < SuppressibleLetters.All.Length; i++)
             {
-                if (!SuppressibleLetters.All[i].IsSuppressEnabled)
+                SuppressibleLetterEntry entry = SuppressibleLetters.All[i];
+                if (!NotificationDependency.IsLetterRowAvailable(entry))
+                {
+                    continue;
+                }
+
+                any = true;
+                if (!entry.IsSuppressEnabled)
                 {
                     return false;
                 }
             }
 
-            return true;
+            return any;
         }
 
         static void SetAllLetters(bool value)
         {
             for (int i = 0; i < SuppressibleLetters.All.Length; i++)
             {
-                SuppressibleLetters.All[i].SetSuppressEnabled(value);
+                if (NotificationDependency.IsLetterRowAvailable(SuppressibleLetters.All[i]))
+                {
+                    SuppressibleLetters.All[i].SetSuppressEnabled(value);
+                }
             }
         }
 
         static bool AllAlertsSuppressed()
         {
-            if (SuppressibleAlerts.All.Length == 0)
-            {
-                return false;
-            }
-
+            bool any = false;
             for (int i = 0; i < SuppressibleAlerts.All.Length; i++)
             {
-                if (!SuppressibleAlerts.All[i].IsSuppressEnabled)
+                SuppressibleAlertEntry entry = SuppressibleAlerts.All[i];
+                if (!NotificationDependency.IsAlertRowAvailable(entry))
+                {
+                    continue;
+                }
+
+                any = true;
+                if (!entry.IsSuppressEnabled)
                 {
                     return false;
                 }
             }
 
-            return true;
+            for (int i = 0; i < ToolNeedIgnore.All.Length; i++)
+            {
+                ToolNeedEntry entry = ToolNeedIgnore.All[i];
+                if (!NotificationDependency.IsToolRowAvailable(entry))
+                {
+                    continue;
+                }
+
+                any = true;
+                if (!entry.IsSuppressEnabled)
+                {
+                    return false;
+                }
+            }
+
+            return any;
         }
 
         static void SetAllAlerts(bool value)
         {
             for (int i = 0; i < SuppressibleAlerts.All.Length; i++)
             {
-                SuppressibleAlerts.All[i].SetSuppressEnabled(value);
+                if (NotificationDependency.IsAlertRowAvailable(SuppressibleAlerts.All[i]))
+                {
+                    SuppressibleAlerts.All[i].SetSuppressEnabled(value);
+                }
+            }
+
+            for (int i = 0; i < ToolNeedIgnore.All.Length; i++)
+            {
+                if (NotificationDependency.IsToolRowAvailable(ToolNeedIgnore.All[i]))
+                {
+                    ToolNeedIgnore.All[i].SetSuppressEnabled(value);
+                }
             }
         }
 
         static bool AllNotificationIgnoresEnabled()
         {
-            return AllScreenMessagesSuppressed() && AllLettersSuppressed() && AllAlertsSuppressed();
+            bool any = false;
+            if (NotificationDependency.AnyScreenRow())
+            {
+                any = true;
+                if (!AllScreenMessagesSuppressed())
+                {
+                    return false;
+                }
+            }
+
+            if (NotificationDependency.AnyLetterRow())
+            {
+                any = true;
+                if (!AllLettersSuppressed())
+                {
+                    return false;
+                }
+            }
+
+            if (NotificationDependency.AnyAlertIgnore())
+            {
+                any = true;
+                if (!AllAlertsSuppressed())
+                {
+                    return false;
+                }
+            }
+
+            return any;
         }
 
         static void SetAllNotificationIgnores(bool value)
@@ -2005,11 +2168,6 @@ namespace HSK.KebabTweaks
                 },
                 interactive: true,
                 drawRainbowTop: false);
-
-            float startY = listing.CurHeight;
-            float cachedHeight = obsoleteFixesSectionHeightCache;
-            Rect cachedRect = new Rect(0f, startY, fullWidth, cachedHeight);
-            BlockDisabledSettingsRowInput(cachedRect, !EnableObsoleteFixes && cachedHeight > 0.5f);
 
             if (FixSymptomProbe.IsUfFillFixLeftover())
             {
@@ -2102,10 +2260,15 @@ namespace HSK.KebabTweaks
                 DrawSoldPawnExitGoodwillFixPatchBlock(listing, fullWidth, leftover: true);
             }
 
-            float height = listing.CurHeight - startY;
-            obsoleteFixesSectionHeightCache = height;
-            DrawDisabledSettingsRowVeil(new Rect(0f, startY, fullWidth, height),
-                !EnableObsoleteFixes && height > 0.5f);
+            if (FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover())
+            {
+                DrawFactionBombardmentOneSideFixPatchBlock(listing, fullWidth, leftover: true);
+            }
+
+            if (FixSymptomProbe.IsTurretUndraftLastShotFixLeftover())
+            {
+                DrawTurretUndraftLastShotFixPatchBlock(listing, fullWidth, leftover: true);
+            }
         }
 
         private void DrawObsoleteFixesEnableHeaderRow(Listing_Standard listing)
@@ -2266,7 +2429,8 @@ namespace HSK.KebabTweaks
                     DrawSettingsCheckboxRow(listing,
                         "KebabTweaks.Patch.UfFillExtraIngredientsFix.CapPickup".Translate(),
                         ref EnableUfFillCapPickupToBillCount, true,
-                        "KebabTweaks.Patch.UfFillExtraIngredientsFix.CapPickupTooltip".Translate());
+                        "KebabTweaks.Patch.UfFillExtraIngredientsFix.CapPickupTooltip".Translate(),
+                        !FeatureAvailability.IsBlocked(FeatureAvailability.UfFillCap));
                 },
                 FixErrorTraceCatalog.UfFillExtraIngredientsFix,
                 FixErrorTraceCatalog.UfFillExtraIngredientsFixTipId,
@@ -2385,7 +2549,8 @@ namespace HSK.KebabTweaks
                 !leftover, false, ResetArchitectInfoBoxFpsFix,
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
-                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                availabilityId: FeatureAvailability.ArchitectInfoBox);
         }
 
         private void DrawRimatomicsHelFpsFixPatchBlock(
@@ -2452,7 +2617,42 @@ namespace HSK.KebabTweaks
                 !leftover, false, ResetSoldPawnExitGoodwillFix,
                 null,
                 interactive: leftover ? EnableObsoleteFixes : true,
-                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null);
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                availabilityId: FeatureAvailability.SoldPawn);
+        }
+
+        private void DrawFactionBombardmentOneSideFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.FactionBombardmentOneSideFix".Translate(),
+                "KebabTweaks.Patch.FactionBombardmentOneSideFix.Tooltip".Translate(),
+                null,
+                ref EnableFactionBombardmentOneSideFix, AppliedFactionBombardmentOneSideFix,
+                !leftover, false, ResetFactionBombardmentOneSideFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                availabilityId: FeatureAvailability.FactionBombardment);
+        }
+
+        private void DrawTurretUndraftLastShotFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.TurretUndraftLastShotFix".Translate(),
+                "KebabTweaks.Patch.TurretUndraftLastShotFix.Tooltip".Translate(),
+                null,
+                ref EnableTurretUndraftLastShotFix, AppliedTurretUndraftLastShotFix,
+                !leftover, false, ResetTurretUndraftLastShotFix,
+                null,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? ObsoleteFixRelevancePercent : (int?)null,
+                availabilityId: FeatureAvailability.TurretUndraftLastShot);
         }
 
         private void DrawAnomalyEspFleeFixPatchBlock(
@@ -2507,8 +2707,8 @@ namespace HSK.KebabTweaks
                 Rect spacer = listing.GetRect(FeatureHeaderLeadingSpacerHeight);
                 spacer.x = 0f;
                 spacer.width = fullWidth;
-                BlockDisabledSettingsRowInput(spacer, dependencyBlocked);
-                DrawDisabledSettingsRowVeil(spacer, dependencyBlocked);
+                BlockDisabledSettingsRowInput(spacer, !interactive);
+                DrawDisabledSettingsRowVeil(spacer, !interactive);
             }
 
             DrawPatchEnableHeaderRow(
@@ -2536,7 +2736,7 @@ namespace HSK.KebabTweaks
                 trailingSuffix);
             if (drawBody != null)
             {
-                DrawFeatureBodyPanel(listing, fullWidth, drawBody, enabled && !dependencyBlocked);
+                DrawFeatureBodyPanel(listing, fullWidth, drawBody, interactive && enabled);
             }
             else
             {
@@ -2545,9 +2745,11 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Draws feature options inside a dimmed panel.
+        /// Draws feature options on the body panel. A non-interactive body veils each control
+        /// on its own rect.
         ///
-        /// Рисует опции фичи в затемнённой панели.
+        /// Рисует опции фичи на панели body. Неинтерактивный body затемняет каждый элемент
+        /// своим прямоугольником.
         /// </summary>
         private void DrawFeatureBodyPanel(Listing_Standard listing, float fullWidth, Action drawBody,
             bool interactive = true, bool drawRainbowTop = true)
@@ -2565,8 +2767,6 @@ namespace HSK.KebabTweaks
             {
                 DrawFeatureBodyPanelFill(cachedRect);
             }
-
-            BlockDisabledSettingsRowInput(cachedRect, !interactive && cachedHeight > 0.5f);
 
             float previousInset = bodyContentInset;
             bool previousInteractive = bodyContentInteractive;
@@ -2589,8 +2789,6 @@ namespace HSK.KebabTweaks
             {
                 DrawFeatureBodyPanelChrome(panelRect, drawRainbowTop);
             }
-
-            DrawDisabledSettingsRowVeil(panelRect, !interactive && height > 0.5f);
         }
 
         private static void DrawFeatureBodyPanelFill(Rect rect)
@@ -2684,6 +2882,7 @@ namespace HSK.KebabTweaks
         {
             Rect row = listing.GetRect(SettingsCheckboxRowHeight);
             ApplyBodyContentInset(ref row, fullWidth);
+            BlockDisabledSettingsRowInput(row, !bodyContentInteractive);
             Rect left = row.LeftHalf();
             Rect right = row.RightHalf();
             const float numericFieldHeight = 24f;
@@ -2708,6 +2907,8 @@ namespace HSK.KebabTweaks
             {
                 DrawNonDefaultTextUnderline(row.LeftHalf(), label, TextAnchor.MiddleLeft);
             }
+
+            DrawDisabledSettingsRowVeil(row, !bodyContentInteractive);
         }
 
         /// <summary>
@@ -2727,6 +2928,7 @@ namespace HSK.KebabTweaks
         {
             Rect row = listing.GetRect(SettingsCheckboxRowHeight);
             ApplyBodyContentInset(ref row, fullWidth);
+            BlockDisabledSettingsRowInput(row, !bodyContentInteractive);
             Rect left = row.LeftHalf();
             Rect right = row.RightHalf();
             const float numericFieldHeight = 24f;
@@ -2751,6 +2953,8 @@ namespace HSK.KebabTweaks
             {
                 DrawNonDefaultTextUnderline(row.LeftHalf(), label, TextAnchor.MiddleLeft);
             }
+
+            DrawDisabledSettingsRowVeil(row, !bodyContentInteractive);
         }
 
         /// <summary>
@@ -2786,6 +2990,10 @@ namespace HSK.KebabTweaks
 
                 TooltipHandler.TipRegion(row, "KebabTweaks.SupersededStandaloneTooltip".Translate());
             }
+            else if (dependencyBlocked)
+            {
+                TooltipHandler.TipRegion(row, "KebabTweaks.MissingDependenciesTooltip".Translate());
+            }
 
             BlockDisabledSettingsRowInput(row, dependencyBlocked);
             DrawFeatureHeaderLabel(row, label, supersededActive, differsFromDefault: false);
@@ -2796,10 +3004,12 @@ namespace HSK.KebabTweaks
 
         /// <summary>
         /// Centered patch title with reset, enable, optional magnifier, and optional copy.
-        /// Yellow outline when a restart-required toggle is pending.
+        /// Yellow outline when a restart-required toggle is pending. The row is veiled once
+        /// when it is not interactive.
         ///
         /// Центрированный заголовок патча со сбросом, enable, необязательной лупой и копированием.
-        /// Жёлтая обводка, пока рестарт-переключатель не применён.
+        /// Жёлтая обводка, пока рестарт-переключатель не применён. Строка затемняется один раз,
+        /// когда она неинтерактивна.
         /// </summary>
         private void DrawPatchEnableHeaderRow(
             Listing_Standard listing,
@@ -3015,7 +3225,7 @@ namespace HSK.KebabTweaks
                 DrawInnerBoxBorder(checkRect, 2f, RestartPendingOutlineColor);
             }
 
-            DrawDisabledSettingsRowVeil(row, dependencyVeil);
+            DrawDisabledSettingsRowVeil(row, !interactive);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -3169,18 +3379,21 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
-        /// Draws the Notifications search box. Ignore rows match four lists at once: the
-        /// English checkbox, the Russian checkbox, the English game sentence, and the Russian
-        /// game sentence. Enable logging, Ignore all, and the three feed headers use ForKeyed.
+        /// Draws the Notifications search box. Enable logging and Ignore all stay above it and
+        /// are not search targets, so the box does not move while typing. Ignore rows match four
+        /// lists at once: the English checkbox, the Russian checkbox, the English game sentence,
+        /// and the Russian game sentence. The three feed headers use ForKeyed.
         ///
-        /// Рисует поле поиска на вкладке Уведомления. Строки игнора сверяются сразу по четырём
-        /// спискам: английский чекбокс, русский чекбокс, английская фраза игры и русская фраза
-        /// игры. Включить логирование, Игнорировать все и три заголовка лент ищутся через ForKeyed.
+        /// Рисует поле поиска на вкладке Уведомления. Включить логирование и Игнорировать все
+        /// остаются над ним и не участвуют в поиске, поэтому поле не сдвигается при наборе.
+        /// Строки игнора сверяются сразу по четырём спискам: английский чекбокс, русский чекбокс,
+        /// английская фраза игры и русская фраза игры. Три заголовка лент ищутся через ForKeyed.
         /// </summary>
         private void DrawNotificationsSearchRow(Listing_Standard listing)
         {
             Rect row = listing.GetRect(SettingsCheckboxRowHeight);
             ApplyBodyContentInset(ref row, listing.ColumnWidth);
+            BlockDisabledSettingsRowInput(row, !bodyContentInteractive);
 
             const float widgetHeight = 24f;
             float widgetWidth = Mathf.Max(widgetHeight, row.width / 3f);
@@ -3191,13 +3404,17 @@ namespace HSK.KebabTweaks
                 widgetHeight);
 
             string previous = NotificationsSearchWidget.filter.Text ?? string.Empty;
+            bool previousGuiEnabled = GUI.enabled;
+            GUI.enabled = previousGuiEnabled && bodyContentInteractive;
             NotificationsSearchWidget.OnGUI(widgetRect);
+            GUI.enabled = previousGuiEnabled;
             string current = NotificationsSearchWidget.filter.Text ?? string.Empty;
             if (!string.Equals(previous, current, StringComparison.Ordinal))
             {
                 settingsScrollPositionNotifications = Vector2.zero;
             }
 
+            DrawDisabledSettingsRowVeil(row, !bodyContentInteractive);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -3205,9 +3422,11 @@ namespace HSK.KebabTweaks
         {
             Rect row = listing.GetRect(SettingsCheckboxRowHeight);
             ApplyBodyContentInset(ref row, listing.ColumnWidth);
+            BlockDisabledSettingsRowInput(row, !bodyContentInteractive);
             Text.Anchor = TextAnchor.MiddleLeft;
             DrawUnwrappedLabel(row, "KebabSwitches.Search.NoMatches".Translate());
             Text.Anchor = TextAnchor.UpperLeft;
+            DrawDisabledSettingsRowVeil(row, !bodyContentInteractive);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -3239,6 +3458,43 @@ namespace HSK.KebabTweaks
             }
 
             return NotificationSearchTexts.Matches(entry, NotificationsSearchWidget.filter.Text);
+        }
+
+        private static bool NotificationsSearchMatches(ToolNeedEntry entry)
+        {
+            if (!NotificationsSearchQueryActive())
+            {
+                return true;
+            }
+
+            return NotificationSearchTexts.Matches(entry, NotificationsSearchWidget.filter.Text);
+        }
+
+        private void DrawToolNeedRows(Listing_Standard listing, float fullWidth, bool headerMatch)
+        {
+            for (int i = 0; i < ToolNeedIgnore.All.Length; i++)
+            {
+                ToolNeedEntry entry = ToolNeedIgnore.All[i];
+                if (!headerMatch && !NotificationsSearchMatches(entry))
+                {
+                    continue;
+                }
+
+                bool value = entry.IsSuppressEnabled;
+                bool rowAvailable = NotificationDependency.IsToolRowAvailable(entry);
+                DrawSettingsCheckboxRow(
+                    listing,
+                    entry.CheckboxLabel,
+                    ref value,
+                    false,
+                    "KebabSwitches.ToolNeed.Tooltip".Translate(),
+                    rowAvailable);
+                if (rowAvailable)
+                {
+                    entry.SetSuppressEnabled(value);
+                }
+                DrawSettingsRowSeparator(listing, fullWidth);
+            }
         }
 
         private static bool NotificationsSearchQueryActive()
@@ -3291,6 +3547,14 @@ namespace HSK.KebabTweaks
                 }
             }
 
+            for (int i = 0; i < ToolNeedIgnore.All.Length; i++)
+            {
+                if (NotificationsSearchMatches(ToolNeedIgnore.All[i]))
+                {
+                    count++;
+                }
+            }
+
             return count;
         }
 
@@ -3305,8 +3569,10 @@ namespace HSK.KebabTweaks
             Listing_Standard listing,
             string label,
             ref bool value,
-            string tooltip)
+            string tooltip,
+            bool dependencyAvailable = true)
         {
+            bool interactive = bodyContentInteractive && dependencyAvailable;
             Rect row = listing.GetRect(SettingsSectionHeaderHeight);
             float controlY = row.y + (row.height - CheckboxControlSize) / 2f;
             Rect checkRect = new Rect(
@@ -3317,25 +3583,33 @@ namespace HSK.KebabTweaks
             Text.Anchor = TextAnchor.MiddleCenter;
             DrawUnwrappedLabel(row, label);
             Text.Anchor = TextAnchor.UpperLeft;
-            if (!tooltip.NullOrEmpty())
+            string tip = tooltip ?? string.Empty;
+            if (!dependencyAvailable && bodyContentInteractive)
             {
-                if (bodyContentInteractive && Mouse.IsOver(row))
+                string missingNote = "KebabTweaks.MissingDependenciesTooltip".Translate();
+                tip = tip.NullOrEmpty() ? missingNote : missingNote + "\n\n" + tip;
+            }
+
+            if (!tip.NullOrEmpty())
+            {
+                if (interactive && Mouse.IsOver(row))
                 {
                     Widgets.DrawHighlight(row);
                 }
 
-                TooltipHandler.TipRegion(row, tooltip);
+                TooltipHandler.TipRegion(row, tip);
             }
 
-            BlockDisabledSettingsRowInput(row, !bodyContentInteractive);
+            BlockDisabledSettingsRowInput(row, !interactive);
             bool displayed = value;
             Widgets.Checkbox(new Vector2(checkRect.x, checkRect.y), ref displayed, CheckboxControlSize,
-                disabled: !bodyContentInteractive);
-            if (bodyContentInteractive && displayed != value)
+                disabled: !interactive);
+            if (interactive && displayed != value)
             {
                 value = displayed;
             }
 
+            DrawDisabledSettingsRowVeil(row, !interactive);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -3453,26 +3727,43 @@ namespace HSK.KebabTweaks
             string label,
             ref bool value,
             bool defaultValue,
-            string tooltip = null)
+            string tooltip = null,
+            bool dependencyAvailable = true)
         {
+            bool interactive = bodyContentInteractive && dependencyAvailable;
             Rect row = listing.GetRect(CalcCheckboxRowHeight(listing, label));
             ApplyBodyContentInset(ref row, listing.ColumnWidth);
-            if (!tooltip.NullOrEmpty())
+            BlockDisabledSettingsRowInput(row, !interactive);
+            string tip = tooltip ?? string.Empty;
+            if (!dependencyAvailable && bodyContentInteractive)
             {
-                if (bodyContentInteractive && Mouse.IsOver(row))
+                string missingNote = "KebabTweaks.MissingDependenciesTooltip".Translate();
+                tip = tip.NullOrEmpty() ? missingNote : missingNote + "\n\n" + tip;
+            }
+
+            if (!tip.NullOrEmpty())
+            {
+                if (interactive && Mouse.IsOver(row))
                 {
                     Widgets.DrawHighlight(row);
                 }
 
-                TooltipHandler.TipRegion(row, tooltip);
+                TooltipHandler.TipRegion(row, tip);
             }
 
-            Widgets.CheckboxLabeled(row, label, ref value, disabled: !bodyContentInteractive);
+            bool shown = value;
+            Widgets.CheckboxLabeled(row, label, ref shown, disabled: !interactive);
+            if (interactive)
+            {
+                value = shown;
+            }
+
             if (value != defaultValue)
             {
                 DrawNonDefaultTextUnderline(row, label, TextAnchor.MiddleLeft);
             }
 
+            DrawDisabledSettingsRowVeil(row, !interactive);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -3520,6 +3811,7 @@ namespace HSK.KebabTweaks
             x -= digitGap + controlSize;
             DrawStartingCorpseMarkModeDigit(new Rect(x, controlY, controlSize, controlSize), 1, interactive);
 
+            DrawDisabledSettingsRowVeil(row, !interactive);
             listing.Gap(SettingsCheckboxRowGap);
         }
 
@@ -3579,6 +3871,7 @@ namespace HSK.KebabTweaks
         {
             Rect row = listing.GetRect(CalcCheckboxRowHeight(listing, label));
             ApplyBodyContentInset(ref row, listing.ColumnWidth);
+            BlockDisabledSettingsRowInput(row, !bodyContentInteractive);
             if (!featureTooltip.NullOrEmpty())
             {
                 if (bodyContentInteractive && Mouse.IsOver(row))
@@ -3599,6 +3892,7 @@ namespace HSK.KebabTweaks
                     DrawNonDefaultTextUnderline(row, label, TextAnchor.MiddleLeft);
                 }
 
+                DrawDisabledSettingsRowVeil(row, true);
                 listing.Gap(SettingsCheckboxRowGap);
                 return;
             }
@@ -3818,6 +4112,7 @@ namespace HSK.KebabTweaks
             ResetMonumentMaterialOnMapPatch();
             ResetObsoletePatches();
             ResetWikiRimCompat();
+            ResetCombatExtendedCompat();
             ResetObsoleteFixes();
             ResetMapPreviewRngBaselineFix();
             ResetUnifiedXmlPathFix();
@@ -3835,6 +4130,8 @@ namespace HSK.KebabTweaks
             ResetDiseaseComplicationFix();
             ResetTraitGainFix();
             ResetSoldPawnExitGoodwillFix();
+            ResetFactionBombardmentOneSideFix();
+            ResetTurretUndraftLastShotFix();
             Write();
         }
 
@@ -4178,7 +4475,14 @@ namespace HSK.KebabTweaks
         private static void ResetWikiRimCompat()
         {
             EnableWikiRimCompat = true;
-            EnableWikiRimMultilingualSearch = false;
+            EnableWikiRimMultilingualSearch = true;
+        }
+
+        private static void ResetCombatExtendedCompat()
+        {
+            EnableCombatExtendedCompat = true;
+            CombatExtendedLeaveGunTicks = DefaultCombatExtendedLeaveGunTicks;
+            CombatExtendedLeaveGunTicks_Buffer = null;
         }
 
         private static void ResetSaveSettingsLoadFix()
@@ -4283,6 +4587,16 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover())
             {
                 ResetSoldPawnExitGoodwillFix();
+            }
+
+            if (FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover())
+            {
+                ResetFactionBombardmentOneSideFix();
+            }
+
+            if (FixSymptomProbe.IsTurretUndraftLastShotFixLeftover())
+            {
+                ResetTurretUndraftLastShotFix();
             }
         }
 
@@ -4403,6 +4717,16 @@ namespace HSK.KebabTweaks
                 EnableSoldPawnExitGoodwillFix = true;
             }
 
+            if (!FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover())
+            {
+                EnableFactionBombardmentOneSideFix = true;
+            }
+
+            if (!FixSymptomProbe.IsTurretUndraftLastShotFixLeftover())
+            {
+                EnableTurretUndraftLastShotFix = true;
+            }
+
             if (!FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
             {
                 EnableArchitectSearchResearchPatch = true;
@@ -4507,6 +4831,16 @@ namespace HSK.KebabTweaks
             {
                 EnableSoldPawnExitGoodwillFix = false;
             }
+
+            if (FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover())
+            {
+                EnableFactionBombardmentOneSideFix = false;
+            }
+
+            if (FixSymptomProbe.IsTurretUndraftLastShotFixLeftover())
+            {
+                EnableTurretUndraftLastShotFix = false;
+            }
         }
 
         private static void ResetMapPreviewRngBaselineFix()
@@ -4594,6 +4928,16 @@ namespace HSK.KebabTweaks
             EnableSoldPawnExitGoodwillFix = !FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover();
         }
 
+        private static void ResetFactionBombardmentOneSideFix()
+        {
+            EnableFactionBombardmentOneSideFix = !FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover();
+        }
+
+        private static void ResetTurretUndraftLastShotFix()
+        {
+            EnableTurretUndraftLastShotFix = !FixSymptomProbe.IsTurretUndraftLastShotFixLeftover();
+        }
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -4679,7 +5023,17 @@ namespace HSK.KebabTweaks
                 defaultValue: false);
             Scribe_Values.Look(ref EnableWikiRimCompat, "EnableWikiRimCompat", defaultValue: true);
             Scribe_Values.Look(ref EnableWikiRimMultilingualSearch, "EnableWikiRimMultilingualSearch",
-                defaultValue: false);
+                defaultValue: true);
+            Scribe_Values.Look(ref EnableCombatExtendedCompat, "EnableCombatExtendedCompat", defaultValue: true);
+            Scribe_Values.Look(ref CombatExtendedLeaveGunTicks, "CombatExtendedLeaveGunTicks",
+                defaultValue: DefaultCombatExtendedLeaveGunTicks);
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+            {
+                CombatExtendedLeaveGunTicks = Mathf.Clamp(
+                    CombatExtendedLeaveGunTicks,
+                    MinCombatExtendedLeaveGunTicks,
+                    MaxCombatExtendedLeaveGunTicks);
+            }
             Scribe_Values.Look(ref EnableSaveSettingsLoadFix, "EnableSaveSettingsLoadFix", defaultValue: true);
             Scribe_Values.Look(ref EnableObsoleteFixes, "EnableObsoleteFixes", defaultValue: false);
             Scribe_Values.Look(ref DoNotResetObsoleteFixesOnReload, "DoNotResetObsoleteFixesOnReload",
@@ -4720,6 +5074,10 @@ namespace HSK.KebabTweaks
                 !FixSymptomProbe.IsTraitGainFixLeftover());
             Scribe_Values.Look(ref EnableSoldPawnExitGoodwillFix, "EnableSoldPawnExitGoodwillFix",
                 !FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover());
+            Scribe_Values.Look(ref EnableFactionBombardmentOneSideFix, "EnableFactionBombardmentOneSideFix",
+                !FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover());
+            Scribe_Values.Look(ref EnableTurretUndraftLastShotFix, "EnableTurretUndraftLastShotFix",
+                !FixSymptomProbe.IsTurretUndraftLastShotFixLeftover());
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);
             Scribe_Values.Look(ref CatFloorSleepEnableLogging, "CatFloorSleepEnableLogging", defaultValue: false);

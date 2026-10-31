@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -17,9 +18,13 @@ namespace HSK.KebabTweaks.KebabSwitches
     {
         public static void Apply(Harmony harmony)
         {
-            harmony.Patch(
-                AccessTools.Method(typeof(AlertsReadout), "CheckAddOrRemoveAlert"),
-                prefix: new HarmonyMethod(typeof(SuppressAlertPatch), nameof(Prefix)));
+            MethodInfo method = AccessTools.Method(typeof(AlertsReadout), "CheckAddOrRemoveAlert");
+            if (method == null)
+            {
+                return;
+            }
+
+            harmony.Patch(method, prefix: new HarmonyMethod(typeof(SuppressAlertPatch), nameof(Prefix)));
         }
 
         /// <summary>

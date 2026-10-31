@@ -24,6 +24,7 @@ namespace HSK.KebabTweaks
         public const string Numbers = "NumbersLoadDefaultFallbackFeatures";
         public const string AndroidEnlighten = "AndroidEnlightenFixFeatures";
         public const string WikiRim = "WikiRimCompatFeatures";
+        public const string CombatExtendedLeaveGun = "CombatExtendedLeaveGunFeatures";
         public const string TakeFromMending = "TakeFromMendingFeatures";
         public const string CatFloorSleep = "CatFloorSleepFeatures";
         public const string TradeCaravan = "TradeCaravanLordFixFeatures";
@@ -65,6 +66,13 @@ namespace HSK.KebabTweaks
         public const string AnomalyEsp = "AnomalyEspFleeFixFeatures";
         public const string ToggleableReadouts = "ToggleableReadoutsGuiFixFeatures";
         public const string MonumentMaterials = "MonumentMaterialOnMapPatchFeatures";
+        public const string FactionBombardment = "FactionBombardmentOneSideFixFeatures";
+        public const string TurretUndraftLastShot = "TurretUndraftLastShotFixFeatures";
+        public const string ArchitectSearch = "ArchitectSearchResearchPatchFeatures";
+        public const string ArchitectInfoBox = "ArchitectInfoBoxFpsFixFeatures";
+        public const string SoldPawn = "SoldPawnExitGoodwillFixFeatures";
+        public const string Paranoid = "ParanoidPerfectionistFeatures";
+        public const string UfFillCap = "UfFillCapPickup";
 
         public const string CoreSk = "Core SK (skyarkhangel.HSK)";
 

@@ -19,7 +19,7 @@ namespace HSK.KebabTweaks
     /// cooldown is active. Finding a job clears stale cooldown state; changing Work tab priorities
     /// or allowed area clears cooldown so the next wander can run a full scan with new rules.
     /// Emergency JobGiver_Work is never throttled. Cooldown adds a minimum interval between full
-    /// scans after NoJob; vanilla wander (125–200 ticks) still gates how often think tree runs.
+    /// scans after NoJob; vanilla wander (125-200 ticks) still gates how often think tree runs.
     /// Prefix return false only for the cooldown window (documented; Postfix cannot skip the scan).
     ///
     /// Проблема: Idle-колонисты снова и снова вызывают vanilla JobGiver_Work.TryIssueJobPackage
@@ -32,7 +32,7 @@ namespace HSK.KebabTweaks
     /// активен. Найденная работа сбрасывает stale-состояние; смена приоритетов Work tab или
     /// allowed area сбрасывает cooldown, чтобы следующий wander сделал полный scan с новыми
     /// правилами. Emergency JobGiver_Work не троттлится. Cooldown - минимальный интервал между
-    /// полными scan после NoJob; vanilla wander (125–200 тиков) всё равно задаёт частоту think tree.
+    /// полными scan после NoJob; vanilla wander (125-200 тиков) всё равно задаёт частоту think tree.
     /// Prefix return false только в окне cooldown (документировано; Postfix не может пропустить scan).
     /// </summary>
     public static class IdleWorkSearchCooldownFeatures

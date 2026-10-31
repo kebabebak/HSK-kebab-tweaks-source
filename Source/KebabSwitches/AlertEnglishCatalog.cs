@@ -110,6 +110,8 @@ namespace HSK.KebabTweaks.KebabSwitches
             map["NeedColonistBeds"] = "Need colonist beds";
             map["NeedDefenses"] = "Need defenses";
             map["NeedDoctor"] = "Need doctor";
+            map["FishIndustry.IdleAquacultureBasinLabel"] = "Idle aquaculture basin";
+            map["FishIndustry.NeedHopperLabel"] = "Need food hopper";
             map["NeedFoodHopper"] = "Need food hopper";
             map["NeedJoySource"] = "Need recreation variety";
             map["NeedMealSource"] = "Need meal source";

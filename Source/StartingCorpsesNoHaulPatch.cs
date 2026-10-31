@@ -38,6 +38,18 @@ namespace HSK.KebabTweaks
             {
                 bool animalGenerator = AccessTools.TypeByName("SK.Events.AnimalCorpsesGenerator") != null;
                 bool villagerGenerator = AccessTools.TypeByName("SK.Events.VillagerCorpsesGenerator") != null;
+                MethodInfo haulFastEarly = AccessTools.Method(
+                    typeof(HaulAIUtility),
+                    "PawnCanAutomaticallyHaulFast");
+                if (!animalGenerator && !villagerGenerator && haulFastEarly == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.StartingCorpses,
+                        "Starting Corpses Patch",
+                        "corpse generators and HaulAIUtility.PawnCanAutomaticallyHaulFast were not found.");
+                    return;
+                }
+
                 if (animalGenerator)
                 {
                     harmony.CreateClassProcessor(typeof(AnimalCorpsesGenerator_GenerateAnimalCorpses_Patch)).Patch();
@@ -55,9 +67,14 @@ namespace HSK.KebabTweaks
                         "[HSK kebab tweaks] Starting Corpses No Haul: Core SK (skyarkhangel.HSK) corpse generators are not loaded; scatter hooks skipped. Haul marking still applies.");
                 }
 
-                MethodInfo haulFast = AccessTools.Method(
-                    typeof(HaulAIUtility),
-                    "PawnCanAutomaticallyHaulFast");
+                if (haulFastEarly == null)
+                {
+                    FeatureAvailability.WarnOnce(
+                        "StartingCorpsesHaul",
+                        "[HSK kebab tweaks] Starting Corpses Patch: HaulAIUtility.PawnCanAutomaticallyHaulFast was not found; haul marking skipped.");
+                }
+
+                MethodInfo haulFast = haulFastEarly;
                 if (haulFast != null)
                 {
                     harmony.Patch(

@@ -44,9 +44,11 @@ namespace HSK.KebabTweaks.KebabSwitches
     }
 
     /// <summary>
-    /// Catalog of vanilla Core + DLC Alert types (RimWorld.Alert subclasses) for the right-side HUD list.
+    /// Catalog of vanilla Core + DLC Alert types (RimWorld.Alert subclasses) for the right-side HUD list,
+    /// plus the HSK fish-basin alerts. Colonists-need-tools is not a whole-alert row.
     ///
-    /// Каталог vanilla Core + DLC Alert (подклассы RimWorld.Alert) для списка справа на HUD.
+    /// Каталог vanilla Core + DLC Alert (подклассы RimWorld.Alert) для списка справа на HUD,
+    /// плюс оповещения HSK про бассейн. «Поселенцы нуждаются в инструменте» не отключается одной строкой.
     /// </summary>
     public static class SuppressibleAlerts
     {
@@ -62,6 +64,8 @@ namespace HSK.KebabTweaks.KebabSwitches
             new SuppressibleAlertEntry("AnimalPenNeeded", "AlertAnimalPenNeeded"),
             new SuppressibleAlertEntry("AnimalPenNotEnclosed", "AlertAnimalPenNotEnclosed"),
             new SuppressibleAlertEntry("AnimalRoaming", "AlertAnimalIsRoaming"),
+            new SuppressibleAlertEntry("AquacultureBasinNeedsHopper", "FishIndustry.NeedHopperLabel"),
+            new SuppressibleAlertEntry("AquaponicBasinNotBreeding", "FishIndustry.IdleAquacultureBasinLabel"),
             new SuppressibleAlertEntry("AwaitingMedicalOperation", "PatientsAwaitingMedicalOperation"),
             new SuppressibleAlertEntry("BestowerWaiting", "BestowerWaitingAlert"),
             new SuppressibleAlertEntry("BilliardsTableOnWall", "BilliardsNeedsSpace"),

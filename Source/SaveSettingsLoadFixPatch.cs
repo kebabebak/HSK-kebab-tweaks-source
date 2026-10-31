@@ -67,6 +67,16 @@ namespace HSK.KebabTweaks
         {
             try
             {
+                if (AccessTools.Method(typeof(BillStack), nameof(BillStack.AddBill)) == null
+                    || AccessTools.Method(typeof(Toils_Recipe), nameof(Toils_Recipe.MakeUnfinishedThingIfNeeded)) == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.SaveSettings,
+                        "Save Settings Load Fix",
+                        "BillStack.AddBill or Toils_Recipe.MakeUnfinishedThingIfNeeded was not found.");
+                    return;
+                }
+
                 harmony.Patch(
                     AccessTools.Method(typeof(BillStack), nameof(BillStack.AddBill)),
                     prefix: new HarmonyMethod(

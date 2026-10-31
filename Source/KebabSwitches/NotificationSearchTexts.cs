@@ -173,6 +173,22 @@ namespace HSK.KebabTweaks.KebabSwitches
             return QuadHits(quad, query);
         }
 
+        public static bool Matches(ToolNeedEntry entry, string query)
+        {
+            if (entry == null || query.NullOrEmpty())
+            {
+                return false;
+            }
+
+            if (!ToolNeedQuads.TryGetValue(entry, out SearchQuad quad))
+            {
+                quad = BuildToolNeedQuad(entry);
+                ToolNeedQuads[entry] = quad;
+            }
+
+            return QuadHits(quad, query);
+        }
+
         private struct SearchQuad
         {
             public string DisplayedEnglish;
@@ -189,6 +205,9 @@ namespace HSK.KebabTweaks.KebabSwitches
 
         private static readonly Dictionary<SuppressibleAlertEntry, SearchQuad> AlertQuads =
             new Dictionary<SuppressibleAlertEntry, SearchQuad>();
+
+        private static readonly Dictionary<ToolNeedEntry, SearchQuad> ToolNeedQuads =
+            new Dictionary<ToolNeedEntry, SearchQuad>();
 
         private static readonly string[] FoodCauseKeys =
         {
@@ -235,6 +254,34 @@ namespace HSK.KebabTweaks.KebabSwitches
             };
             FillEmptyGameText(ref quad);
             return quad;
+        }
+
+        private static SearchQuad BuildToolNeedQuad(ToolNeedEntry entry)
+        {
+            const string tooltipKey = "KebabSwitches.ToolNeed.Tooltip";
+            SearchQuad quad = new SearchQuad
+            {
+                DisplayedEnglish = Compose(EnglishLanguage(), IgnoreAlertKey, entry.EnglishLabel),
+                DisplayedRussian = Compose(FirstRussian(), IgnoreAlertKey, entry.RussianLabel),
+                GameEnglish = JoinToolNeedGame(
+                    entry.EnglishLabel + "\nColonist lacks tools\nassigned to work tasks that require tools",
+                    Resolve(EnglishLanguage(), tooltipKey)),
+                GameRussian = JoinToolNeedGame(
+                    entry.RussianLabel + "\nУ поселенца нет инструмента\nСледующие поселенцы назначены для рабочих задач, которые требуют инструментов",
+                    Resolve(FirstRussian(), tooltipKey)),
+            };
+            FillEmptyGameText(ref quad);
+            return quad;
+        }
+
+        private static string JoinToolNeedGame(string label, string tooltip)
+        {
+            if (tooltip.NullOrEmpty())
+            {
+                return label;
+            }
+
+            return label + "\n" + tooltip;
         }
 
         /// <summary>
@@ -681,6 +728,19 @@ namespace HSK.KebabTweaks.KebabSwitches
             }
 
             return languages;
+        }
+
+        private static LoadedLanguage FirstRussian()
+        {
+            foreach (LoadedLanguage language in LanguageDatabase.AllLoadedLanguages)
+            {
+                if (IsRussian(language))
+                {
+                    return language;
+                }
+            }
+
+            return null;
         }
 
         private static LoadedLanguage EnglishLanguage()

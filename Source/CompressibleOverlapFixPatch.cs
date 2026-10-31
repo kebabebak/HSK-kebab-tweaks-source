@@ -40,6 +40,17 @@ namespace HSK.KebabTweaks
             try
             {
                 MethodInfo buildCompressed = AccessTools.Method(typeof(MapFileCompressor), nameof(MapFileCompressor.BuildCompressedString));
+                MethodBase finalizeEarly = AccessTools.Method(typeof(Map), "FinalizeInit")
+                    ?? AccessTools.Method(typeof(Map), "FinalizeLoading");
+                if (buildCompressed == null && finalizeEarly == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.Compressible,
+                        "Overlapping Save Objects Fix",
+                        "MapFileCompressor.BuildCompressedString and Map.FinalizeInit were not found.");
+                    return;
+                }
+
                 if (buildCompressed != null)
                 {
                     harmony.Patch(
@@ -50,7 +61,9 @@ namespace HSK.KebabTweaks
                 }
                 else
                 {
-                    Log.Message("[HSK kebab tweaks] MapFileCompressor.BuildCompressedString not found; overlapping save-object save hook skipped.");
+                    FeatureAvailability.WarnOnce(
+                        "compressible:save",
+                        "[HSK kebab tweaks] Overlapping Save Objects Fix: MapFileCompressor.BuildCompressedString was not found; save hook skipped.");
                 }
 
                 MethodBase finalize = AccessTools.Method(typeof(Map), "FinalizeInit")
@@ -65,7 +78,9 @@ namespace HSK.KebabTweaks
                 }
                 else
                 {
-                    Log.Message("[HSK kebab tweaks] Map.FinalizeInit/FinalizeLoading not found; overlapping save-object load hook skipped.");
+                    FeatureAvailability.WarnOnce(
+                        "compressible:load",
+                        "[HSK kebab tweaks] Overlapping Save Objects Fix: Map.FinalizeInit was not found; load hook skipped.");
                 }
 
                 Type mineralDefType = AccessTools.TypeByName("Minerals.ThingDef_StaticMineral");

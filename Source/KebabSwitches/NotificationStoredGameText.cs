@@ -116,6 +116,47 @@ namespace HSK.KebabTweaks.KebabSwitches
                     ? "У охотника нет подходящего оружия"
                     : "Hunter lacks suitable weapon");
             }
+            else if (id == "Accident")
+            {
+                AppendLine(sb, seen, russian
+                    ? "несчастный случай"
+                    : "has had an unfortunate accident");
+            }
+            else if (id == "FallenMonolith")
+            {
+                AppendLine(sb, seen, russian
+                    ? "замечает древний монолит, частично погребённый"
+                    : "has noticed an ancient monolith partly buried nearby");
+                AppendLine(sb, seen, russian
+                    ? "Исследуйте его, чтобы узнать о нём больше."
+                    : "If you investigate it, you could learn more.");
+            }
+            else if (id == "StorytellerFrenzy")
+            {
+                AppendLine(sb, seen, russian ? "в ярости" : "frenzy");
+                AppendLine(sb, seen, russian ? "Рассказчик в ярости" : "storyteller frenzy");
+                AppendLine(sb, seen, russian
+                    ? "Мы разгневали рассказчика, не следует ждать ничего хорошего."
+                    : "You have angered the storyteller, we shouldn't expect anything good in the future.");
+            }
+            else if (id == "AquacultureBasinNeedsHopper")
+            {
+                AppendLine(sb, seen, russian
+                    ? "нет рядом загрузочной воронки"
+                    : "no hopper next to it");
+                AppendLine(sb, seen, russian
+                    ? "Постройте воронку рядом с бассейном"
+                    : "Build a hopper adjacent to the aquaculture basin");
+            }
+            else if (id == "AquaponicBasinNotBreeding")
+            {
+                AppendLine(sb, seen, russian
+                    ? "неактивный бассейн для разведения рыбы"
+                    : "idle aquaculture basin");
+                AppendLine(sb, seen, russian
+                    ? "поместить икру рыбы, чтобы начать разведение"
+                    : "start the breeding process");
+            }
         }
 
         /// <summary>
@@ -151,6 +192,11 @@ namespace HSK.KebabTweaks.KebabSwitches
             else if (id == "FleshbeastsEmerging")
             {
                 addExact("Появление биошматов");
+            }
+            else if (id == "FallenMonolith")
+            {
+                addExact("Fallen monolith");
+                addExact("Упавший монолит");
             }
         }
 

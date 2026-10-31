@@ -67,7 +67,10 @@ namespace HSK.KebabTweaks
             MethodInfo error = AccessTools.Method(typeof(Log), nameof(Log.Error), new[] { typeof(string) });
             if (error == null)
             {
-                Log.Warning("[HSK kebab tweaks] Paranoid perfectionist found no Log.Error, so repeated errors are not watched.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.Paranoid,
+                    "Paranoid Perfectionist",
+                    "Log.Error(string) was not found.");
                 return;
             }
 

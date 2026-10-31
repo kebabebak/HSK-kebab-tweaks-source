@@ -51,6 +51,22 @@ namespace HSK.KebabTweaks
         {
             try
             {
+                MethodBase createGraphEarly = AccessTools.Method(
+                    typeof(LordJob_TradeWithColony),
+                    nameof(LordJob_TradeWithColony.CreateGraph));
+                MethodBase executeEarly = AccessTools.Method(
+                    typeof(IncidentWorker_TraderCaravanArrival),
+                    "TryExecuteWorker",
+                    new[] { typeof(IncidentParms) });
+                if (createGraphEarly == null && executeEarly == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.TraderStay,
+                        "Trader Caravan Stay Fix",
+                        "LordJob_TradeWithColony.CreateGraph and IncidentWorker_TraderCaravanArrival.TryExecuteWorker were not found.");
+                    return;
+                }
+
                 MethodBase createGraph = AccessTools.Method(
                     typeof(LordJob_TradeWithColony),
                     nameof(LordJob_TradeWithColony.CreateGraph));

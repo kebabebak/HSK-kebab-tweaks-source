@@ -39,6 +39,15 @@ namespace HSK.KebabTweaks
     {
         public static void Apply(Harmony harmony)
         {
+            if (AccessTools.Method(typeof(Pawn), nameof(Pawn.PreTraded)) == null)
+            {
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.SoldPawn,
+                    "Sold Prisoner Relations Fix",
+                    "Pawn.PreTraded was not found.");
+                return;
+            }
+
             harmony.Patch(
                 AccessTools.Method(typeof(Pawn), nameof(Pawn.PreTraded)),
                 postfix: new HarmonyMethod(

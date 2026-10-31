@@ -26,6 +26,15 @@ namespace HSK.KebabTweaks
         {
             try
             {
+                if (AccessTools.Method(typeof(JobGiver_OptimizeApparel), "TryGiveJob") == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.Hospitality,
+                        "Hospitality Guest Apparel Fix",
+                        "JobGiver_OptimizeApparel.TryGiveJob was not found.");
+                    return;
+                }
+
                 harmony.CreateClassProcessor(typeof(JobGiver_OptimizeApparel_TryGiveJob_Patch)).Patch();
                 Log.Message("[HospitalityGuestApparelOptimizeFixPatch] Patches applied.");
             }

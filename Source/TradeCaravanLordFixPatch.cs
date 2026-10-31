@@ -70,9 +70,11 @@ namespace HSK.KebabTweaks
                 MethodBase dismissTrigger = TradeDismissTrigger_Patch.FindTargetMethod();
                 if (dismissTrigger == null)
                 {
-                    Log.Warning(
-                        "[TradeCaravanLordFixPatch] CreateGraph dismiss trigger (b__0) not found; " +
-                        "NRE guard skipped.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.TradeCaravan,
+                        "Trade Caravan Lord Fix",
+                        "CreateGraph dismiss trigger (b__0) was not found.");
+                    return;
                 }
                 else
                 {

@@ -26,6 +26,16 @@ namespace HSK.KebabTweaks
         {
             try
             {
+                if (AccessTools.Method(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot),
+                        new[] { typeof(SoundDef), typeof(SoundInfo) }) == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.CeProjectile,
+                        "CE Projectile Null Sound Fix",
+                        "SoundStarter.PlayOneShot(SoundDef, SoundInfo) was not found.");
+                    return;
+                }
+
                 harmony.Patch(
                     AccessTools.Method(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot),
                         new[] { typeof(SoundDef), typeof(SoundInfo) }),

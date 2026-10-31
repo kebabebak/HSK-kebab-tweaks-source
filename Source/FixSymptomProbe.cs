@@ -6,6 +6,7 @@ using RimWorld;
 using SK;
 using Verse;
 using Verse.AI;
+using Verse.AI.Group;
 
 namespace HSK.KebabTweaks
 {
@@ -57,6 +58,15 @@ namespace HSK.KebabTweaks
         const string SkSoldPawnExitGoodwillTypeName = "SK.Patch_SoldPawnExitGoodwill";
         const string SkSoldPawnExitGoodwillMethodName = "Pawn_PreTraded";
         const string SoldPawnTendFieldName = "timesGuestTendedToByPlayer";
+        const string FactionBombardmentUtilityTypeName =
+            "SR.ModRimWorld.FactionalWar.PawnGroupMakerUtility";
+        const string FactionBombardmentSkTypeName = "SK.FactionalWarPawnGroupPatches";
+        const string FactionBombardmentFillMethodName = "FillEmptyGroup";
+        const string FactionBombardmentParmsName = "pawnGroupMakerParms";
+        const string TurretGunCeTypeName = "CombatExtended.Building_TurretGunCE";
+        const string TurretGunCePatchesTypeName = "SK.TurretGunCEPatches";
+        const string TurretGunCeBeginBurstMethodName = "Building_TurretGunCE_BeginBurst";
+        const string TurretUndraftCePackageId = "CETeam.CombatExtended";
 
         static bool catCrazyTimeProbed;
         static bool catCrazyTimeLeftover;
@@ -95,10 +105,14 @@ namespace HSK.KebabTweaks
         static bool traitGainLeftover;
         static bool soldPawnExitProbed;
         static bool soldPawnExitLeftover;
+        static bool factionBombardmentProbed;
+        static bool factionBombardmentLeftover;
         static bool architectSearchResearchProbed;
         static bool architectSearchResearchLeftover;
         static bool growerCutTreesProbed;
         static bool growerCutTreesLeftover;
+        static bool turretUndraftProbed;
+        static bool turretUndraftLeftover;
         static bool logged;
 
         /// <summary>
@@ -119,6 +133,8 @@ namespace HSK.KebabTweaks
             ProbeDiseaseComplicationIfNeeded();
             ProbeTraitGainIfNeeded();
             ProbeSoldPawnExitGoodwillIfNeeded();
+            ProbeFactionBombardmentOneSideIfNeeded();
+            ProbeTurretUndraftLastShotIfNeeded();
             ProbeArchitectSearchResearchIfNeeded();
             ProbeGrowerCutTreesIfNeeded();
             ProbeUfFillIfNeeded();
@@ -224,6 +240,18 @@ namespace HSK.KebabTweaks
         {
             Ensure();
             return soldPawnExitLeftover;
+        }
+
+        public static bool IsFactionBombardmentOneSideFixLeftover()
+        {
+            Ensure();
+            return factionBombardmentLeftover;
+        }
+
+        public static bool IsTurretUndraftLastShotFixLeftover()
+        {
+            Ensure();
+            return turretUndraftLeftover;
         }
 
         public static bool IsTraitGainFixLeftover()
@@ -360,7 +388,9 @@ namespace HSK.KebabTweaks
                 IsToggleableReadoutsGuiFixLeftover() || IsArchitectInfoBoxFpsFixLeftover() ||
                 IsRimatomicsHelFpsFixLeftover() || IsDiseaseComplicationFixLeftover() ||
                 IsTraitGainFixLeftover() ||
-                IsSoldPawnExitGoodwillFixLeftover())
+                IsSoldPawnExitGoodwillFixLeftover() ||
+                IsFactionBombardmentOneSideFixLeftover() ||
+                IsTurretUndraftLastShotFixLeftover())
             {
                 return true;
             }
@@ -763,6 +793,141 @@ namespace HSK.KebabTweaks
 
             return MethodStoresZeroToField(method, SoldPawnTendFieldName)
                 && MethodPassesFalseTo(method, "set_Released");
+        }
+
+        /// <summary>
+        /// Closed when Factional War is loaded and SK.FactionalWarPawnGroupPatches.FillEmptyGroup
+        /// takes pawnGroupMakerParms and calls PawnGroupMakerUtility.MaxPawnCost, and a method
+        /// on that type calls LordManager.RemoveLord. Alive when Factional War or that type is
+        /// absent, or the fill method does not have that parameter and call.
+        ///
+        /// Closed, если Factional War загружен и SK.FactionalWarPawnGroupPatches.FillEmptyGroup
+        /// принимает pawnGroupMakerParms и зовёт PawnGroupMakerUtility.MaxPawnCost, а метод этого
+        /// типа зовёт LordManager.RemoveLord. Alive, если Factional War или этого типа нет, либо
+        /// у fill нет этого параметра и вызова.
+        /// </summary>
+        static void ProbeFactionBombardmentOneSideIfNeeded()
+        {
+            if (factionBombardmentProbed)
+            {
+                return;
+            }
+
+            factionBombardmentProbed = true;
+            factionBombardmentLeftover = ProbeFactionBombardmentOneSideClosed();
+        }
+
+        static bool ProbeFactionBombardmentOneSideClosed()
+        {
+            if (AccessTools.TypeByName(FactionBombardmentUtilityTypeName) == null)
+            {
+                return false;
+            }
+
+            Type sk = AccessTools.TypeByName(FactionBombardmentSkTypeName);
+            if (sk == null)
+            {
+                return false;
+            }
+
+            MethodInfo fill = AccessTools.Method(sk, FactionBombardmentFillMethodName);
+            if (fill == null || !FillTakesPawnGroupMakerParms(fill))
+            {
+                return false;
+            }
+
+            if (!MethodCalls(fill, typeof(PawnGroupMakerUtility), "MaxPawnCost"))
+            {
+                return false;
+            }
+
+            bool removesLord = false;
+            ForEachDeclaredMethod(sk, method =>
+            {
+                if (removesLord)
+                {
+                    return;
+                }
+
+                if (MethodCalls(method, typeof(LordManager), nameof(LordManager.RemoveLord)))
+                {
+                    removesLord = true;
+                }
+            });
+            return removesLord;
+        }
+
+        static bool FillTakesPawnGroupMakerParms(MethodInfo fill)
+        {
+            ParameterInfo[] parameters = fill.GetParameters();
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                ParameterInfo parameter = parameters[i];
+                if (parameter.ParameterType == typeof(PawnGroupMakerParms) &&
+                    parameter.Name == FactionBombardmentParmsName)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Closed when Combat Extended is loaded and SK.TurretGunCEPatches.Building_TurretGunCE_BeginBurst
+        /// calls ResetCurrentTarget and Time.get_frameCount and stores burstWarmupTicksLeft, and that
+        /// type queues LongEventHandler.QueueLongEvent. That is the manned-gun refusal plus the
+        /// main-thread detour. Combat Extended absent stays current so the row is veiled, not Obsolete.
+        ///
+        /// Closed, если Combat Extended загружен, а SK.TurretGunCEPatches.Building_TurretGunCE_BeginBurst
+        /// вызывает ResetCurrentTarget и Time.get_frameCount и пишет burstWarmupTicksLeft, и этот тип
+        /// ставит LongEventHandler.QueueLongEvent. Это отказ для занятого орудия плюс детур на главном
+        /// потоке. Без Combat Extended строка остаётся актуальной и затемняется, а не уходит в «Устаревшие».
+        /// </summary>
+        static void ProbeTurretUndraftLastShotIfNeeded()
+        {
+            if (turretUndraftProbed)
+            {
+                return;
+            }
+
+            turretUndraftProbed = true;
+            turretUndraftLeftover = ProbeTurretUndraftLastShotClosed();
+        }
+
+        static bool ProbeTurretUndraftLastShotClosed()
+        {
+            if (!ModsConfig.IsActive(TurretUndraftCePackageId))
+            {
+                return false;
+            }
+
+            Type ce = AccessTools.TypeByName(TurretGunCeTypeName);
+            Type sk = AccessTools.TypeByName(TurretGunCePatchesTypeName);
+            if (ce == null || sk == null)
+            {
+                return false;
+            }
+
+            MethodInfo begin = AccessTools.Method(sk, TurretGunCeBeginBurstMethodName);
+            if (begin == null || !MethodCalls(begin, ce, "ResetCurrentTarget"))
+            {
+                return false;
+            }
+
+            Type time = AccessTools.TypeByName("UnityEngine.Time");
+            if (time == null || !MethodCalls(begin, time, "get_frameCount"))
+            {
+                return false;
+            }
+
+            FieldInfo warmup = AccessTools.Field(ce, "burstWarmupTicksLeft");
+            if (!MethodStoresField(begin, warmup))
+            {
+                return false;
+            }
+
+            return TypeTreeCalls(sk, typeof(LongEventHandler), "QueueLongEvent");
         }
 
         /// <summary>
@@ -1316,7 +1481,7 @@ namespace HSK.KebabTweaks
                 !ufFillProbed || !defsProbed || !anomalyEspProbed || !mainMenuBgFitProbed ||
                 !readoutGuiProbed || !architectInfoBoxProbed || !rimatomicsHelProbed ||
                 !diseaseComplicationProbed || !traitGainProbed ||
-                !soldPawnExitProbed || !growerCutTreesProbed)
+                !soldPawnExitProbed || !growerCutTreesProbed || !turretUndraftProbed)
             {
                 return;
             }
@@ -1345,7 +1510,8 @@ namespace HSK.KebabTweaks
                 " TraitGain=" + traitGainLeftover +
                 " SoldPawnExit=" + soldPawnExitLeftover +
                 " ArchitectSearch=" + architectSearchResearchLeftover +
-                " GrowerCutTrees=" + growerCutTreesLeftover + ".");
+                " GrowerCutTrees=" + growerCutTreesLeftover +
+                " TurretUndraftLastShot=" + turretUndraftLeftover + ".");
         }
 
         static bool MethodCallsName(MethodInfo method, string methodName)
@@ -1430,6 +1596,40 @@ namespace HSK.KebabTweaks
             {
                 byte op = il[i];
                 if (op != 0x7B && op != 0x7C)
+                {
+                    continue;
+                }
+
+                int token = BitConverter.ToInt32(il, i + 1);
+                try
+                {
+                    FieldInfo resolved = module.ResolveField(token);
+                    if (FieldMatches(resolved, field))
+                    {
+                        return true;
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return false;
+        }
+
+        static bool MethodStoresField(MethodInfo method, FieldInfo field)
+        {
+            byte[] il = method?.GetMethodBody()?.GetILAsByteArray();
+            if (il == null || field == null)
+            {
+                return false;
+            }
+
+            Module module = method.Module;
+            for (int i = 0; i < il.Length - 4; i++)
+            {
+                byte op = il[i];
+                if (op != 0x7D && op != 0x80)
                 {
                     continue;
                 }

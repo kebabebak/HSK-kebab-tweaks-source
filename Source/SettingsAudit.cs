@@ -516,7 +516,11 @@ namespace HSK.KebabTweaks
             Bool(list, "patch-obsolete:keep", () => KebabTweaksSettings.DoNotResetObsoletePatchesOnReload, false);
 
             Bool(list, "wikirim", () => KebabTweaksSettings.EnableWikiRimCompat, true);
-            Bool(list, "wikirim:multi", () => KebabTweaksSettings.EnableWikiRimMultilingualSearch, false);
+            Bool(list, "wikirim:multi", () => KebabTweaksSettings.EnableWikiRimMultilingualSearch, true);
+
+            Bool(list, "comp-ce", () => KebabTweaksSettings.EnableCombatExtendedCompat, true);
+            Int(list, "comp-ce:ticks", () => KebabTweaksSettings.CombatExtendedLeaveGunTicks,
+                KebabTweaksSettings.DefaultCombatExtendedLeaveGunTicks);
 
             Bool(list, "mending", () => KebabTweaksSettings.EnableTakeFromMending, true);
             Bool(list, "mending:log", () => KebabTweaksSettings.TakeFromMendingEnableLogging, false);
@@ -580,6 +584,10 @@ namespace HSK.KebabTweaks
                 () => !FixSymptomProbe.IsTraitGainFixLeftover());
             Bool(list, "sold-pawn", () => KebabTweaksSettings.EnableSoldPawnExitGoodwillFix,
                 () => !FixSymptomProbe.IsSoldPawnExitGoodwillFixLeftover());
+            Bool(list, "faction-bomb", () => KebabTweaksSettings.EnableFactionBombardmentOneSideFix,
+                () => !FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover());
+            Bool(list, "turret-last-shot", () => KebabTweaksSettings.EnableTurretUndraftLastShotFix,
+                () => !FixSymptomProbe.IsTurretUndraftLastShotFixLeftover());
             Bool(list, "map-preview", () => KebabTweaksSettings.EnableMapPreviewRngBaselineFix, true);
             Bool(list, "unified-xml", () => KebabTweaksSettings.EnableUnifiedXmlPathFix, true);
             Bool(list, "menu-bg", () => KebabTweaksSettings.EnableMainMenuBgFitFix,

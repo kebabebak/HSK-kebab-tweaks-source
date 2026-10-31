@@ -65,6 +65,20 @@ namespace HSK.KebabTweaks
                 }
 
                 MethodBase jobOnCell = AccessTools.Method(workGiverType, "JobOnCell");
+                MethodBase isCellOpenEarly = AccessTools.Method(
+                    driverType,
+                    "IsCellOpenForSowingPlantOfType",
+                    new[] { typeof(IntVec3), typeof(Map), typeof(ThingDef) });
+                MethodBase makeNewToilsEarly = FindMakeNewToilsMoveNext(driverType);
+                if (jobOnCell == null && isCellOpenEarly == null && makeNewToilsEarly == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.SeedsPlease,
+                        "SeedsPlease Sow Fix",
+                        "SeedsPlease sow methods were not found.");
+                    return;
+                }
+
                 if (jobOnCell != null)
                 {
                     harmony.Patch(

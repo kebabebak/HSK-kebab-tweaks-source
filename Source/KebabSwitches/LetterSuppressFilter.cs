@@ -46,6 +46,14 @@ namespace HSK.KebabTweaks.KebabSwitches
             "глубинного сканера",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
+        private static readonly Regex FallenMonolithEnglishPattern = new Regex(
+            "ancient monolith",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+        private static readonly Regex FallenMonolithRussianPattern = new Regex(
+            "древний монолит",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
         private static readonly Dictionary<string, List<Regex>> PatternsById =
             new Dictionary<string, List<Regex>>(StringComparer.Ordinal);
 
@@ -108,6 +116,24 @@ namespace HSK.KebabTweaks.KebabSwitches
                 {
                     AddPattern(entry.Id, DeepScannerEnglishPattern);
                     AddPattern(entry.Id, DeepScannerRussianPattern);
+                }
+
+                if (string.Equals(entry.Id, "Accident", StringComparison.Ordinal))
+                {
+                    AddExact(entry.Id, "Accident");
+                    AddExact(entry.Id, "Инцидент");
+                }
+
+                if (string.Equals(entry.Id, "FallenMonolith", StringComparison.Ordinal))
+                {
+                    AddPattern(entry.Id, FallenMonolithEnglishPattern);
+                    AddPattern(entry.Id, FallenMonolithRussianPattern);
+                }
+
+                if (string.Equals(entry.Id, "StorytellerFrenzy", StringComparison.Ordinal))
+                {
+                    AddExact(entry.Id, "{0} frenzy");
+                    AddExact(entry.Id, "{0} в ярости");
                 }
 
                 NotificationStoredGameText.AppendDefLetterLabels(entry.Id, text => AddExact(entry.Id, text));

@@ -46,6 +46,15 @@ namespace HSK.KebabTweaks
         public static void Apply(Harmony harmony)
         {
             MethodInfo canDrill = AccessTools.Method(typeof(CompDeepDrill), "CanDrillNow");
+            if (canDrill == null)
+            {
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.DrillLimit,
+                    "Drill Limit Patch",
+                    "CompDeepDrill.CanDrillNow was not found.");
+                return;
+            }
+
             if (canDrill != null)
             {
                 harmony.Patch(

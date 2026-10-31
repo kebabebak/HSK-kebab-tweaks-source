@@ -127,7 +127,10 @@ namespace HSK.KebabTweaks
             {
                 if (method == null)
                 {
-                    Log.Warning("[HSK kebab tweaks] Resource readout fix skipped a missing method.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.ToggleableReadouts,
+                        "Resource readout fix",
+                        "a readout method was not found.");
                     return;
                 }
             }
@@ -136,7 +139,10 @@ namespace HSK.KebabTweaks
             {
                 if (method == null)
                 {
-                    Log.Warning("[HSK kebab tweaks] Resource readout fix skipped a missing method.");
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.ToggleableReadouts,
+                        "Resource readout fix",
+                        "a readout method was not found.");
                     return;
                 }
             }

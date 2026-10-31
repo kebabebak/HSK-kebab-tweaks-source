@@ -68,6 +68,18 @@ namespace HSK.KebabTweaks
         {
             try
             {
+                if (AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.JobOnCell)) == null
+                    || AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnCell)) == null
+                    || AccessTools.Method(typeof(WorkGiver_PlantsCut), nameof(WorkGiver_PlantsCut.JobOnThing)) == null
+                    || AccessTools.Method(typeof(WorkGiver_Scanner), nameof(WorkGiver_Scanner.HasJobOnThing)) == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.Grower,
+                        "Grower Cut Trees Patch",
+                        "sow or plant-cut job methods were not found.");
+                    return;
+                }
+
                 GrowerCutPlantsDef = DefDatabase<WorkGiverDef>.GetNamedSilentFail("GrowerCutPlants");
                 WorkTabPriorityHelper.CacheGrowingWorkGivers();
 

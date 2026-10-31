@@ -68,7 +68,18 @@ namespace HSK.KebabTweaks
                 typeof(Pawn_CarryTracker),
                 nameof(Pawn_CarryTracker.TryStartCarry),
                 new[] { typeof(Thing), typeof(int), typeof(bool) });
-            if (tryStartCarry != null)
+            MethodInfo startCarryThing = AccessTools.Method(typeof(Toils_Haul), nameof(Toils_Haul.StartCarryThing));
+            MethodInfo jumpToCollect = AccessTools.Method(
+                typeof(JobDriver_DoBill),
+                nameof(JobDriver_DoBill.JumpToCollectNextIntoHandsForBill));
+            if (tryStartCarry == null || startCarryThing == null || jumpToCollect == null)
+            {
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.UfFillCap,
+                    "Fermenter Fill Amounts Fix",
+                    "pickup cap targets were not found.");
+            }
+            else
             {
                 harmony.Patch(
                     tryStartCarry,
@@ -78,29 +89,11 @@ namespace HSK.KebabTweaks
                     postfix: new HarmonyMethod(
                         typeof(Pawn_CarryTracker_TryStartCarry_UfFillCap_Patch),
                         nameof(Pawn_CarryTracker_TryStartCarry_UfFillCap_Patch.Postfix)));
-            }
-            else
-            {
-                FeatureAvailability.WarnOnce(
-                    "UfFillTryStartCarry",
-                    "[HSK kebab tweaks] Fermenter Fill Amounts Fix: Pawn_CarryTracker.TryStartCarry(Thing, int, bool) was not found; pickup cap skipped.");
-            }
-
-            MethodInfo startCarryThing = AccessTools.Method(typeof(Toils_Haul), nameof(Toils_Haul.StartCarryThing));
-            if (startCarryThing != null)
-            {
                 harmony.Patch(
                     startCarryThing,
                     postfix: new HarmonyMethod(
                         typeof(Toils_Haul_StartCarryThing_UfFillCap_Patch),
                         nameof(Toils_Haul_StartCarryThing_UfFillCap_Patch.Postfix)));
-            }
-
-            MethodInfo jumpToCollect = AccessTools.Method(
-                typeof(JobDriver_DoBill),
-                nameof(JobDriver_DoBill.JumpToCollectNextIntoHandsForBill));
-            if (jumpToCollect != null)
-            {
                 harmony.Patch(
                     jumpToCollect,
                     postfix: new HarmonyMethod(

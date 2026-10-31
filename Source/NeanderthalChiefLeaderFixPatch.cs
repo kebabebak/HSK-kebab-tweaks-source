@@ -45,6 +45,15 @@ namespace HSK.KebabTweaks
         /// </summary>
         public static void Apply(Harmony harmony)
         {
+            if (AccessTools.Method(typeof(Faction), nameof(Faction.TryGenerateNewLeader)) == null)
+            {
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.TribalLeader,
+                    "Tribal Leader Fix",
+                    "Faction.TryGenerateNewLeader was not found.");
+                return;
+            }
+
             harmony.Patch(
                 AccessTools.Method(typeof(Faction), nameof(Faction.TryGenerateNewLeader)),
                 postfix: new HarmonyMethod(

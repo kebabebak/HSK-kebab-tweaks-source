@@ -71,6 +71,18 @@ namespace HSK.KebabTweaks
                 return;
             }
 
+            if (AccessTools.Method(AccessTools.TypeByName(LoadFilterDialogTypeName), "DoFileInteraction") == null
+                || AccessTools.Method(typeof(WindowStack), nameof(WindowStack.Add)) == null
+                || AccessTools.Method(typeof(Window), nameof(Window.PostClose)) == null
+                || AccessTools.Method(typeof(OutfitDatabase), nameof(OutfitDatabase.MakeNewOutfit)) == null)
+            {
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.ApparelPolicy,
+                    "Apparel Policy Load Fix",
+                    "wardrobe load methods were not found.");
+                return;
+            }
+
             harmony.Patch(
                 AccessTools.Method(typeof(WindowStack), nameof(WindowStack.Add)),
                 prefix: new HarmonyMethod(typeof(ApparelPolicyLoadFixFeatures), nameof(WindowStack_Add_Prefix)));

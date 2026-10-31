@@ -50,6 +50,16 @@ namespace HSK.KebabTweaks.KebabSwitches
                     + "RU: Операция над ... провалилась / Операция провалилась: ...";
             }
 
+            if (string.Equals(entry.Id, "FallenMonolith", StringComparison.Ordinal))
+            {
+                return "Fallen monolith\nУпавший монолит";
+            }
+
+            if (string.Equals(entry.Id, "StorytellerFrenzy", StringComparison.Ordinal))
+            {
+                return "{0} frenzy\n{0} в ярости";
+            }
+
             return FormatKeyedSource(entry.TranslationKey);
         }
 

@@ -41,6 +41,27 @@ namespace HSK.KebabTweaks
         {
             try
             {
+                if (AccessTools.Method(
+                        typeof(PawnGenerator),
+                        nameof(PawnGenerator.GeneratePawn),
+                        new[] { typeof(PawnGenerationRequest) }) == null)
+                {
+                    FeatureAvailability.SkipHandled(
+                        FeatureAvailability.Ratkin,
+                        "Ratkin Mercenary Age Fix",
+                        "PawnGenerator.GeneratePawn(PawnGenerationRequest) was not found.");
+                    return;
+                }
+
+                if (DefDatabase<PawnKindDef>.GetNamedSilentFail("RatkinMercenary") == null)
+                {
+                    FeatureAvailability.SkipMissingMods(
+                        FeatureAvailability.Ratkin,
+                        "Ratkin Mercenary Age Fix",
+                        "NewRatkin");
+                    return;
+                }
+
                 harmony.Patch(
                     AccessTools.Method(
                         typeof(PawnGenerator),

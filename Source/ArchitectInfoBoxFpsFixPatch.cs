@@ -60,7 +60,10 @@ namespace HSK.KebabTweaks
             });
             if (stringMethod == null || taggedMethod == null)
             {
-                Log.Warning("[ArchitectInfoBoxFpsFixPatch] TruncateHeight was not found; patch skipped.");
+                FeatureAvailability.SkipHandled(
+                    FeatureAvailability.ArchitectInfoBox,
+                    "Architect Info Box Frame Rate",
+                    "GenText.TruncateHeight was not found.");
                 return;
             }
 
