@@ -20,7 +20,7 @@ namespace HSK.KebabTweaks
     {
         public const float DefaultLowTpsThreshold = 100f;
         public const float DefaultLowTpsLogCooldownSeconds = 1f;
-        public const int DefaultIdleWorkSearchCooldownTicks = 1000;
+        public const int DefaultIdleWorkSearchCooldownTicks = 6000;
         public const int MaxIdleWorkSearchCooldownTicks = 100000;
         public const int DefaultCombatExtendedLeaveGunTicks = 600;
         public const int MinCombatExtendedLeaveGunTicks = 0;
@@ -42,7 +42,7 @@ namespace HSK.KebabTweaks
         public static bool EnableGrowerCutTrees = true;
         public static bool EnableIdleErrorWanderFix = true;
         public static bool EnableHospitalityGuestApparelOptimizeFix = true;
-        public static bool EnableLowTpsPawnDump = true;
+        public static bool EnableLowTpsPawnDump;
         public static bool EnableIdleWorkSearchCooldown = true;
         public static bool EnableParanoidPerfectionist;
         public static bool ParanoidCatchCritical = true;
@@ -61,7 +61,6 @@ namespace HSK.KebabTweaks
         public static bool EnableCompressibleOverlapFix = true;
         public static bool EnableApparelPolicyLoadFix = true;
         public static bool EnableBillRenamePrefill = true;
-        public static bool EnableRecipeProductDropLostLog = true;
         public static bool EnableNumbersLoadDefaultFallback = true;
         public static bool EnableAllowToolHaulUrgentlyNreFix = true;
         public static bool EnableDubsAnalyzerBeginUpdateFix = true;
@@ -80,6 +79,7 @@ namespace HSK.KebabTweaks
         public static bool EnableCombatExtendedCompat = true;
         public static int CombatExtendedLeaveGunTicks = DefaultCombatExtendedLeaveGunTicks;
         public static string CombatExtendedLeaveGunTicks_Buffer;
+        public static bool CombatExtendedLeaveGunIgnoreHoldFire;
         public static bool EnableSaveSettingsLoadFix = true;
         public static bool EnableObsoleteFixes;
         public static bool DoNotResetObsoleteFixesOnReload;
@@ -104,6 +104,7 @@ namespace HSK.KebabTweaks
         public static bool EnableSoldPawnExitGoodwillFix = true;
         public static bool EnableFactionBombardmentOneSideFix = true;
         public static bool EnableTurretUndraftLastShotFix = true;
+        public static bool EnableHugsLibLogPathFix = true;
 
 #if RIMWORLD_1_6
         public static bool AppliedCatCrazyTime;
@@ -121,7 +122,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedGrowerCutTrees = true;
         public static bool AppliedIdleErrorWanderFix = true;
         public static bool AppliedHospitalityGuestApparelOptimizeFix = true;
-        public static bool AppliedLowTpsPawnDump = true;
+        public static bool AppliedLowTpsPawnDump;
         public static bool AppliedIdleWorkSearchCooldown = true;
         public static bool AppliedParanoidPerfectionist;
         public static bool AppliedDrillLimitPatch = true;
@@ -135,7 +136,6 @@ namespace HSK.KebabTweaks
         public static bool AppliedCompressibleOverlapFix = true;
         public static bool AppliedApparelPolicyLoadFix = true;
         public static bool AppliedBillRenamePrefill = true;
-        public static bool AppliedRecipeProductDropLostLog = true;
         public static bool AppliedNumbersLoadDefaultFallback = true;
         public static bool AppliedAllowToolHaulUrgentlyNreFix = true;
         public static bool AppliedDubsAnalyzerBeginUpdateFix = true;
@@ -168,6 +168,7 @@ namespace HSK.KebabTweaks
         public static bool AppliedSoldPawnExitGoodwillFix = true;
         public static bool AppliedFactionBombardmentOneSideFix = true;
         public static bool AppliedTurretUndraftLastShotFix = true;
+        public static bool AppliedHugsLibLogPathFix = true;
 
         public static bool CatCrazyTimeEnableLogging;
         public static bool CatFloorSleepEnableLogging;
@@ -633,6 +634,25 @@ namespace HSK.KebabTweaks
         }
 
         /// <summary>
+        /// True when the log-copy postfix should run: current enable while HugsLib still
+        /// returns a different file than the one the game is writing. Obsolete section plus
+        /// leftover enable when that method already returns the game file. HugsLib absent
+        /// blocks the hook.
+        ///
+        /// True, когда постфикс копирования лога должен работать: обычный enable, пока HugsLib
+        /// ещё возвращает другой файл, чем тот, который пишет игра. Раздел «Устаревшие» плюс
+        /// leftover enable, если этот метод уже возвращает файл игры. Без HugsLib хук не
+        /// работает.
+        /// </summary>
+        public static bool IsHugsLibLogPathFixEnabled()
+        {
+            return IsFixRunning(
+                EnableHugsLibLogPathFix,
+                FixSymptomProbe.IsHugsLibLogPathFixLeftover(),
+                FeatureAvailability.HugsLibLogPath);
+        }
+
+        /// <summary>
         /// True when the faction-bombardment hooks should run: current enable while
         /// SK.FactionalWarPawnGroupPatches is absent; Obsolete section plus leftover enable
         /// when that Core_SK type already fills an empty group and removes a one-sided pair.
@@ -1013,7 +1033,7 @@ namespace HSK.KebabTweaks
                 "KebabTweaks.Patch.LowTpsPawnDump".Translate(),
                 "KebabTweaks.Patch.LowTpsPawnDump.Tooltip".Translate(),
                 SupersededStandaloneMods.LowTpsPawnDump,
-                ref EnableLowTpsPawnDump, AppliedLowTpsPawnDump, true, false, ResetLowTpsPawnDump,
+                ref EnableLowTpsPawnDump, AppliedLowTpsPawnDump, false, false, ResetLowTpsPawnDump,
                 () =>
                 {
                     DrawSettingsEnableLoggingCheckboxRow(listing, "LowTpsPawnDump.EnableLogging".Translate(),
@@ -1183,15 +1203,6 @@ namespace HSK.KebabTweaks
                 availabilityId: FeatureAvailability.BillRename);
 
             DrawPatchBlock(listing, fullWidth,
-                "KebabTweaks.Patch.RecipeProductDropLostLog".Translate(),
-                "KebabTweaks.Patch.RecipeProductDropLostLog.Tooltip".Translate(),
-                null,
-                ref EnableRecipeProductDropLostLog, AppliedRecipeProductDropLostLog, true, false,
-                ResetRecipeProductDropLostLog,
-                null,
-                availabilityId: FeatureAvailability.RecipeDrop);
-
-            DrawPatchBlock(listing, fullWidth,
                 "KebabTweaks.Patch.NumbersLoadDefaultFallback".Translate(),
                 "KebabTweaks.Patch.NumbersLoadDefaultFallback.Tooltip".Translate(),
                 null,
@@ -1234,6 +1245,13 @@ namespace HSK.KebabTweaks
                         MinCombatExtendedLeaveGunTicks,
                         MaxCombatExtendedLeaveGunTicks,
                         DefaultCombatExtendedLeaveGunTicks);
+                    listing.Gap(SettingsCheckboxRowGap);
+                    DrawSettingsRowSeparator(listing, fullWidth);
+                    DrawSettingsCheckboxRow(listing,
+                        "KebabTweaks.CombatExtended.IgnoreHoldFire".Translate(),
+                        ref CombatExtendedLeaveGunIgnoreHoldFire,
+                        false,
+                        "KebabTweaks.CombatExtended.IgnoreHoldFire.Tooltip".Translate());
                 },
                 availabilityId: FeatureAvailability.CombatExtendedLeaveGun);
             DrawCompatibilityPatchesSection(listing, fullWidth);
@@ -1756,6 +1774,11 @@ namespace HSK.KebabTweaks
                 DrawTurretUndraftLastShotFixPatchBlock(listing, fullWidth, leftover: false);
             }
 
+            if (!FixSymptomProbe.IsHugsLibLogPathFixLeftover())
+            {
+                DrawHugsLibLogPathFixPatchBlock(listing, fullWidth, leftover: false);
+            }
+
             if (HasAnyObsoleteLeftover())
             {
                 DrawObsoleteFixesSection(listing, fullWidth);
@@ -2269,6 +2292,11 @@ namespace HSK.KebabTweaks
             {
                 DrawTurretUndraftLastShotFixPatchBlock(listing, fullWidth, leftover: true);
             }
+
+            if (FixSymptomProbe.IsHugsLibLogPathFixLeftover())
+            {
+                DrawHugsLibLogPathFixPatchBlock(listing, fullWidth, leftover: true);
+            }
         }
 
         private void DrawObsoleteFixesEnableHeaderRow(Listing_Standard listing)
@@ -2477,6 +2505,26 @@ namespace HSK.KebabTweaks
                 interactive: leftover ? EnableObsoleteFixes : true,
                 relevancePercent: leftover ? 0 : (int?)null,
                 availabilityId: FeatureAvailability.ToggleableReadouts);
+        }
+
+        private void DrawHugsLibLogPathFixPatchBlock(
+            Listing_Standard listing,
+            float fullWidth,
+            bool leftover)
+        {
+            DrawPatchBlock(listing, fullWidth,
+                "KebabTweaks.Patch.HugsLibLogPathFix".Translate(),
+                "KebabTweaks.Patch.HugsLibLogPathFix.Tooltip".Translate(),
+                null,
+                ref EnableHugsLibLogPathFix, AppliedHugsLibLogPathFix,
+                !leftover, true, ResetHugsLibLogPathFix,
+                null,
+                FixErrorTraceCatalog.HugsLibLogPathFix,
+                FixErrorTraceCatalog.HugsLibLogPathFixTipId,
+                interactive: leftover ? EnableObsoleteFixes : true,
+                relevancePercent: leftover ? 0 : (int?)null,
+                researchLink: FeatureResearchLinkCatalog.HugsLibLogPathFix,
+                availabilityId: FeatureAvailability.HugsLibLogPath);
         }
 
         private void DrawBurnWeaponBillFixPatchBlock(
@@ -4098,7 +4146,6 @@ namespace HSK.KebabTweaks
             ResetCompressibleOverlapFix();
             ResetApparelPolicyLoadFix();
             ResetBillRenamePrefill();
-            ResetRecipeProductDropLostLog();
             ResetNumbersLoadDefaultFallback();
             ResetAllowToolHaulUrgentlyNreFix();
             ResetDubsAnalyzerBeginUpdateFix();
@@ -4132,6 +4179,7 @@ namespace HSK.KebabTweaks
             ResetSoldPawnExitGoodwillFix();
             ResetFactionBombardmentOneSideFix();
             ResetTurretUndraftLastShotFix();
+            ResetHugsLibLogPathFix();
             Write();
         }
 
@@ -4272,7 +4320,7 @@ namespace HSK.KebabTweaks
 
         private static void ResetLowTpsPawnDump()
         {
-            EnableLowTpsPawnDump = true;
+            EnableLowTpsPawnDump = false;
             LowTpsEnableLogging = false;
             LowTpsColonistsOnly = false;
             LowTpsSkipWhenPaused = false;
@@ -4360,11 +4408,6 @@ namespace HSK.KebabTweaks
         private static void ResetBillRenamePrefill()
         {
             EnableBillRenamePrefill = true;
-        }
-
-        private static void ResetRecipeProductDropLostLog()
-        {
-            EnableRecipeProductDropLostLog = true;
         }
 
         private static void ResetNumbersLoadDefaultFallback()
@@ -4483,6 +4526,7 @@ namespace HSK.KebabTweaks
             EnableCombatExtendedCompat = true;
             CombatExtendedLeaveGunTicks = DefaultCombatExtendedLeaveGunTicks;
             CombatExtendedLeaveGunTicks_Buffer = null;
+            CombatExtendedLeaveGunIgnoreHoldFire = false;
         }
 
         private static void ResetSaveSettingsLoadFix()
@@ -4597,6 +4641,11 @@ namespace HSK.KebabTweaks
             if (FixSymptomProbe.IsTurretUndraftLastShotFixLeftover())
             {
                 ResetTurretUndraftLastShotFix();
+            }
+
+            if (FixSymptomProbe.IsHugsLibLogPathFixLeftover())
+            {
+                ResetHugsLibLogPathFix();
             }
         }
 
@@ -4727,6 +4776,11 @@ namespace HSK.KebabTweaks
                 EnableTurretUndraftLastShotFix = true;
             }
 
+            if (!FixSymptomProbe.IsHugsLibLogPathFixLeftover())
+            {
+                EnableHugsLibLogPathFix = true;
+            }
+
             if (!FixSymptomProbe.IsArchitectSearchResearchPatchLeftover())
             {
                 EnableArchitectSearchResearchPatch = true;
@@ -4841,6 +4895,11 @@ namespace HSK.KebabTweaks
             {
                 EnableTurretUndraftLastShotFix = false;
             }
+
+            if (FixSymptomProbe.IsHugsLibLogPathFixLeftover())
+            {
+                EnableHugsLibLogPathFix = false;
+            }
         }
 
         private static void ResetMapPreviewRngBaselineFix()
@@ -4938,6 +4997,11 @@ namespace HSK.KebabTweaks
             EnableTurretUndraftLastShotFix = !FixSymptomProbe.IsTurretUndraftLastShotFixLeftover();
         }
 
+        private static void ResetHugsLibLogPathFix()
+        {
+            EnableHugsLibLogPathFix = !FixSymptomProbe.IsHugsLibLogPathFixLeftover();
+        }
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -4961,7 +5025,7 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableIdleErrorWanderFix, "EnableIdleErrorWanderFix", defaultValue: true);
             Scribe_Values.Look(ref EnableHospitalityGuestApparelOptimizeFix,
                 "EnableHospitalityGuestApparelOptimizeFix", defaultValue: true);
-            Scribe_Values.Look(ref EnableLowTpsPawnDump, "EnableLowTpsPawnDump", defaultValue: true);
+            Scribe_Values.Look(ref EnableLowTpsPawnDump, "EnableLowTpsPawnDump", defaultValue: false);
             Scribe_Values.Look(ref EnableIdleWorkSearchCooldown, "EnableIdleWorkSearchCooldown",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableParanoidPerfectionist, "EnableParanoidPerfectionist", defaultValue: false);
@@ -4995,7 +5059,6 @@ namespace HSK.KebabTweaks
             Scribe_Values.Look(ref EnableCompressibleOverlapFix, "EnableCompressibleOverlapFix", defaultValue: true);
             Scribe_Values.Look(ref EnableApparelPolicyLoadFix, "EnableApparelPolicyLoadFix", defaultValue: true);
             Scribe_Values.Look(ref EnableBillRenamePrefill, "EnableBillRenamePrefill", defaultValue: true);
-            Scribe_Values.Look(ref EnableRecipeProductDropLostLog, "EnableRecipeProductDropLostLog", defaultValue: true);
             Scribe_Values.Look(ref EnableNumbersLoadDefaultFallback, "EnableNumbersLoadDefaultFallback",
                 defaultValue: true);
             Scribe_Values.Look(ref EnableAllowToolHaulUrgentlyNreFix, "EnableAllowToolHaulUrgentlyNreFix",
@@ -5034,6 +5097,8 @@ namespace HSK.KebabTweaks
                     MinCombatExtendedLeaveGunTicks,
                     MaxCombatExtendedLeaveGunTicks);
             }
+            Scribe_Values.Look(ref CombatExtendedLeaveGunIgnoreHoldFire, "CombatExtendedLeaveGunIgnoreHoldFire",
+                defaultValue: false);
             Scribe_Values.Look(ref EnableSaveSettingsLoadFix, "EnableSaveSettingsLoadFix", defaultValue: true);
             Scribe_Values.Look(ref EnableObsoleteFixes, "EnableObsoleteFixes", defaultValue: false);
             Scribe_Values.Look(ref DoNotResetObsoleteFixesOnReload, "DoNotResetObsoleteFixesOnReload",
@@ -5078,6 +5143,8 @@ namespace HSK.KebabTweaks
                 !FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover());
             Scribe_Values.Look(ref EnableTurretUndraftLastShotFix, "EnableTurretUndraftLastShotFix",
                 !FixSymptomProbe.IsTurretUndraftLastShotFixLeftover());
+            Scribe_Values.Look(ref EnableHugsLibLogPathFix, "EnableHugsLibLogPathFix",
+                !FixSymptomProbe.IsHugsLibLogPathFixLeftover());
 
             Scribe_Values.Look(ref CatCrazyTimeEnableLogging, "CatCrazyTimeEnableLogging", defaultValue: false);
             Scribe_Values.Look(ref CatFloorSleepEnableLogging, "CatFloorSleepEnableLogging", defaultValue: false);

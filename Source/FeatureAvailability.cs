@@ -20,7 +20,6 @@ namespace HSK.KebabTweaks
         public const string StartingCorpses = "StartingCorpsesNoHaulFeatures";
         public const string ApparelPolicy = "ApparelPolicyLoadFixFeatures";
         public const string BillRename = "BillRenamePrefillFeatures";
-        public const string RecipeDrop = "RecipeProductDropLostLogFeatures";
         public const string Numbers = "NumbersLoadDefaultFallbackFeatures";
         public const string AndroidEnlighten = "AndroidEnlightenFixFeatures";
         public const string WikiRim = "WikiRimCompatFeatures";
@@ -68,6 +67,7 @@ namespace HSK.KebabTweaks
         public const string MonumentMaterials = "MonumentMaterialOnMapPatchFeatures";
         public const string FactionBombardment = "FactionBombardmentOneSideFixFeatures";
         public const string TurretUndraftLastShot = "TurretUndraftLastShotFixFeatures";
+        public const string HugsLibLogPath = "HugsLibLogPathFixFeatures";
         public const string ArchitectSearch = "ArchitectSearchResearchPatchFeatures";
         public const string ArchitectInfoBox = "ArchitectInfoBoxFpsFixFeatures";
         public const string SoldPawn = "SoldPawnExitGoodwillFixFeatures";

@@ -36,6 +36,7 @@ namespace HSK.KebabTweaks
         public const int StartingPawnChildAgeFixTipId = 25;
         public const int RatkinMercenaryAgeFixTipId = 27;
         public const int ToggleableReadoutsGuiFixTipId = 28;
+        public const int HugsLibLogPathFixTipId = 29;
 
         public const string TakeFromMending = @"Doio threw exception in WorkGiver DoBillsMakeWeapons: System.NullReferenceException: Object reference not set to an instance of an object
 [Ref 79A5B8F5]
@@ -481,6 +482,13 @@ Trying to read from an empty file";
 @"Root level exception in OnGUI(): System.MissingFieldException: Field not found: 'UnityEngine.GUIContent.m_Text'.
 [Ref EA8932FB]
   at HarmonyGenerated.RimWorld.ResourceReadout.ResourceReadoutOnGUI_Patch2(ResourceReadout this)";
+
+        public const string HugsLibLogPathFix =
+@"[HugsLib][ERR] Exception during PrepareLogData: System.IO.FileNotFoundException: Log file not found:[LocalLow]\Ludeon Studios\RimWorld by Ludeon Studios\Player.log
+   at HugsLib.Logs.LogPublisher.GetLogFileContents()
+   at HugsLib.Logs.LogPublisher.PrepareLogData()
+   at HugsLib.Logs.LogPublisher.CopyToClipboard()
+   at HugsLib.Logs.Dialog_PublishLogsOptions.DoWindowContents(Rect inRect)";
 
         public const string RatkinMercenaryAgeFix =
 @"This PawnGenerationRequest was not created through the correct constructor.

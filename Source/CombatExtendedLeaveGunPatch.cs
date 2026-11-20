@@ -24,7 +24,9 @@ namespace HSK.KebabTweaks
     /// undrafted player colonist (IsColonist, so a colony slave is included and a raider
     /// is not) whose current job is ManTurret on that gun counts ticks when that call ends
     /// with no current target, no forced target, and no world target, and the call was not
-    /// hold fire, not a reload, and not a roof that blocks an overhead shell. A call that stores a target, including a new target after the
+    /// hold fire, not a reload, and not a roof that blocks an overhead shell.
+    /// CombatExtendedLeaveGunIgnoreHoldFire turns that hold-fire stay off, so the count
+    /// can run while hold fire is active. A call that stores a target, including a new target after the
     /// previous one was destroyed, zeroes the count. The count also stays zero during the
     /// burst and the cooldown, because this method is not called then; the next search is
     /// the moment the count can start. At CombatExtendedLeaveGunTicks the job ends with
@@ -51,7 +53,9 @@ namespace HSK.KebabTweaks
     /// без призыва (IsColonist: раб колонии входит, рейдер нет), чья текущая работа -
     /// ManTurret на этом орудии, копит тики, когда вызов закончился без текущей цели, без
     /// принудительной цели и без цели на мировой карте, и это был не hold fire, не
-    /// перезарядка и не крыша, которая блокирует навесной снаряд. Вызов, который записал цель, в том числе новую после
+    /// перезарядка и не крыша, которая блокирует навесной снаряд.
+    /// CombatExtendedLeaveGunIgnoreHoldFire отключает эту причину сидеть: при включении
+    /// счёт идёт и при активном hold fire. Вызов, который записал цель, в том числе новую после
     /// уничтожения предыдущей, обнуляет счёт. Счёт также остаётся нулём во время очереди и
     /// кулдауна, потому что этот метод тогда не вызывается; следующий поиск - момент, с
     /// которого счёт может начаться. На CombatExtendedLeaveGunTicks работа кончается через
@@ -88,7 +92,7 @@ namespace HSK.KebabTweaks
             {
                 FeatureAvailability.SkipMissingMods(
                     FeatureAvailability.CombatExtendedLeaveGun,
-                    "ComP: Combat Extended",
+                    "Leave Idle Gun Patch",
                     "Combat Extended (CETeam.CombatExtended)");
                 return;
             }
@@ -101,7 +105,7 @@ namespace HSK.KebabTweaks
             {
                 FeatureAvailability.SkipHandled(
                     FeatureAvailability.CombatExtendedLeaveGun,
-                    "ComP: Combat Extended",
+                    "Leave Idle Gun Patch",
                     "Building_TurretGunCE.TryStartShootSomething is not from CETeam.CombatExtended.");
                 return;
             }
@@ -121,7 +125,7 @@ namespace HSK.KebabTweaks
             {
                 FeatureAvailability.SkipHandled(
                     FeatureAvailability.CombatExtendedLeaveGun,
-                    "ComP: Combat Extended",
+                    "Leave Idle Gun Patch",
                     "Building_TurretGunCE is missing a target or hold-fire field.");
                 return;
             }
@@ -230,15 +234,19 @@ namespace HSK.KebabTweaks
 
         /// <summary>
         /// True when this call kept a reason to stay: hold fire, reload, a roof over an overhead shell,
-        /// or any target the search stored. A destroyed target that was replaced in this same call is a stored target.
+        /// or any target the search stored. CombatExtendedLeaveGunIgnoreHoldFire drops hold fire
+        /// from that list. A destroyed target that was replaced in this same call is a stored target.
         ///
         /// Истина, если у вызова осталась причина сидеть: hold fire, перезарядка, крыша над навесным снарядом
-        /// или любая цель, которую поиск записал. Уничтоженная цель, заменённая в этом же вызове, - записанная цель.
+        /// или любая цель, которую поиск записал. CombatExtendedLeaveGunIgnoreHoldFire убирает hold fire
+        /// из этого списка. Уничтоженная цель, заменённая в этом же вызове, - записанная цель.
         /// </summary>
         private static bool SearchDidNotFail(Building_Turret turret)
         {
             // Tick already clears holdFire when the gun has no hold-fire button.
-            if (holdFireField.GetValue(turret) is bool holdFire && holdFire)
+            // Ignore Hold fire drops this stay reason, so the count can run while it is active.
+            if (!KebabTweaksSettings.CombatExtendedLeaveGunIgnoreHoldFire
+                && holdFireField.GetValue(turret) is bool holdFire && holdFire)
             {
                 return true;
             }

@@ -113,6 +113,8 @@ namespace HSK.KebabTweaks
         static bool growerCutTreesLeftover;
         static bool turretUndraftProbed;
         static bool turretUndraftLeftover;
+        static bool hugsLibLogPathProbed;
+        static bool hugsLibLogPathLeftover;
         static bool logged;
 
         /// <summary>
@@ -141,6 +143,7 @@ namespace HSK.KebabTweaks
             ProbeAnomalyEspFleeIfNeeded();
             ProbeMainMenuBgFitIfNeeded();
             ProbeReadoutGuiIfNeeded();
+            ProbeHugsLibLogPathIfNeeded();
             ProbeDefBackedFixesIfNeeded();
             LogOnce();
         }
@@ -340,6 +343,12 @@ namespace HSK.KebabTweaks
             return readoutGuiLeftover;
         }
 
+        public static bool IsHugsLibLogPathFixLeftover()
+        {
+            Ensure();
+            return hugsLibLogPathLeftover;
+        }
+
         /// <summary>
         /// Header suffix for Fermenter Fill: 0 leftover, 65 when CommitIngredients still aborts
         /// extra stacks after IngredientPortion RemainingCount or get_RemainingCount, null when
@@ -390,7 +399,8 @@ namespace HSK.KebabTweaks
                 IsTraitGainFixLeftover() ||
                 IsSoldPawnExitGoodwillFixLeftover() ||
                 IsFactionBombardmentOneSideFixLeftover() ||
-                IsTurretUndraftLastShotFixLeftover())
+                IsTurretUndraftLastShotFixLeftover() ||
+                IsHugsLibLogPathFixLeftover())
             {
                 return true;
             }
@@ -1468,6 +1478,38 @@ namespace HSK.KebabTweaks
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic) != null;
         }
 
+        /// <summary>
+        /// Closed when HugsLib.Utils.HugsLibUtility.TryGetLogFilePath already returns the file
+        /// the game is writing, or its IL calls Application.get_consoleLogPath. That is Unity,
+        /// where Player.log is the console log, and a later HugsLib that reads consoleLogPath.
+        /// Alive when the returned path is a different file. Unknown while the log file is not
+        /// visible yet, or while HugsLib is listed and its type is not loaded yet, so the probe
+        /// retries. HugsLib absent after load stays current and the row is veiled.
+        ///
+        /// Closed, если HugsLib.Utils.HugsLibUtility.TryGetLogFilePath уже возвращает файл,
+        /// который пишет игра, или его IL вызывает Application.get_consoleLogPath. Это Unity,
+        /// где Player.log и есть лог консоли, и поздний HugsLib, который читает consoleLogPath.
+        /// Alive, если возвращённый путь - другой файл. Пока файл лога не виден, или HugsLib
+        /// есть в списке, а тип ещё не загружен, результат неизвестен и зонд повторяется.
+        /// После загрузки без HugsLib строка остаётся актуальной и под вуалью.
+        /// </summary>
+        static void ProbeHugsLibLogPathIfNeeded()
+        {
+            if (hugsLibLogPathProbed)
+            {
+                return;
+            }
+
+            bool? closed = HugsLibLogPathFixFeatures.ReadClosed();
+            if (closed == null)
+            {
+                return;
+            }
+
+            hugsLibLogPathProbed = true;
+            hugsLibLogPathLeftover = closed.Value;
+        }
+
         static void LogOnce()
         {
             if (logged)
@@ -1479,7 +1521,7 @@ namespace HSK.KebabTweaks
                 !startingPawnNameProbed || !startingPawnChildAgeProbed ||
                 !tribalLeaderProbed ||
                 !ufFillProbed || !defsProbed || !anomalyEspProbed || !mainMenuBgFitProbed ||
-                !readoutGuiProbed || !architectInfoBoxProbed || !rimatomicsHelProbed ||
+                !readoutGuiProbed || !hugsLibLogPathProbed || !architectInfoBoxProbed || !rimatomicsHelProbed ||
                 !diseaseComplicationProbed || !traitGainProbed ||
                 !soldPawnExitProbed || !growerCutTreesProbed || !turretUndraftProbed)
             {
@@ -1504,6 +1546,7 @@ namespace HSK.KebabTweaks
                 " AnomalyEspFlee=" + anomalyEspLeftover +
                 " MainMenuBgFit=" + mainMenuBgFitLeftover +
                 " ReadoutGui=" + readoutGuiLeftover +
+                " HugsLibLog=" + hugsLibLogPathLeftover +
                 " ArchitectInfoBox=" + architectInfoBoxLeftover +
                 " RimatomicsHel=" + rimatomicsHelLeftover +
                 " DiseaseComplication=" + diseaseComplicationLeftover +

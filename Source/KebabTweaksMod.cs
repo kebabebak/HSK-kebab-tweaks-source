@@ -115,6 +115,7 @@ namespace HSK.KebabTweaks
                     return;
                 }
 
+                HugsLibLogPathFixFeatures.NoteLoadFinished();
                 FixSymptomProbe.Ensure();
                 KebabTweaksSettings.ApplyObsoleteFixesResetOnGameStart();
                 KebabTweaksSettings.ApplyObsoletePatchesResetOnGameStart();
@@ -210,9 +211,6 @@ namespace HSK.KebabTweaks
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedBillRenamePrefill,
                     KebabTweaksSettings.EnableBillRenamePrefill, null,
                     "BillRenamePrefillFeatures", () => BillRenamePrefillFeatures.Apply(harmony));
-                ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedRecipeProductDropLostLog,
-                    KebabTweaksSettings.EnableRecipeProductDropLostLog, null,
-                    "RecipeProductDropLostLogFeatures", () => RecipeProductDropLostLogFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedNumbersLoadDefaultFallback,
                     KebabTweaksSettings.EnableNumbersLoadDefaultFallback, null,
                     "NumbersLoadDefaultFallbackFeatures",
@@ -371,6 +369,13 @@ namespace HSK.KebabTweaks
                     KebabTweaksSettings.IsTurretUndraftLastShotFixEnabled(), null,
                     FeatureAvailability.TurretUndraftLastShot,
                     () => TurretUndraftLastShotFixFeatures.Apply(harmony));
+
+                HugsLibLogPathFixFeatures.NoteIfMissing();
+                ApplyRestartUnlessSuperseded(ref KebabTweaksSettings.AppliedHugsLibLogPathFix,
+                    KebabTweaksSettings.IsHugsLibLogPathFixEnabled(),
+                    null,
+                    FeatureAvailability.HugsLibLogPath,
+                    () => HugsLibLogPathFixFeatures.Apply(harmony));
                 ApplyLiveUnlessSuperseded(ref KebabTweaksSettings.AppliedArchitectSearchResearchPatch,
                     KebabTweaksSettings.IsArchitectSearchResearchPatchEnabled(), null,
                     "ArchitectSearchResearchPatchFeatures",

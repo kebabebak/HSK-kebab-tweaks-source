@@ -473,7 +473,7 @@ namespace HSK.KebabTweaks
         static List<Track> Build()
         {
             var list = new List<Track>(160);
-            Bool(list, "low-tps", () => KebabTweaksSettings.EnableLowTpsPawnDump, true);
+            Bool(list, "low-tps", () => KebabTweaksSettings.EnableLowTpsPawnDump, false);
             Bool(list, "low-tps:log", () => KebabTweaksSettings.LowTpsEnableLogging, false);
             Bool(list, "low-tps:colonists", () => KebabTweaksSettings.LowTpsColonistsOnly, false);
             Bool(list, "low-tps:paused", () => KebabTweaksSettings.LowTpsSkipWhenPaused, false);
@@ -506,7 +506,6 @@ namespace HSK.KebabTweaks
 
             Bool(list, "apparel", () => KebabTweaksSettings.EnableApparelPolicyLoadFix, true);
             Bool(list, "bill-rename", () => KebabTweaksSettings.EnableBillRenamePrefill, true);
-            Bool(list, "recipe-drop", () => KebabTweaksSettings.EnableRecipeProductDropLostLog, true);
             Bool(list, "numbers", () => KebabTweaksSettings.EnableNumbersLoadDefaultFallback, true);
             Bool(list, "android", () => KebabTweaksSettings.EnableAndroidEnlightenFix, true);
             Bool(list, "arch-search", () => KebabTweaksSettings.EnableArchitectSearchResearchPatch,
@@ -521,6 +520,7 @@ namespace HSK.KebabTweaks
             Bool(list, "comp-ce", () => KebabTweaksSettings.EnableCombatExtendedCompat, true);
             Int(list, "comp-ce:ticks", () => KebabTweaksSettings.CombatExtendedLeaveGunTicks,
                 KebabTweaksSettings.DefaultCombatExtendedLeaveGunTicks);
+            Bool(list, "comp-ce:hold-fire", () => KebabTweaksSettings.CombatExtendedLeaveGunIgnoreHoldFire, false);
 
             Bool(list, "mending", () => KebabTweaksSettings.EnableTakeFromMending, true);
             Bool(list, "mending:log", () => KebabTweaksSettings.TakeFromMendingEnableLogging, false);
@@ -588,6 +588,8 @@ namespace HSK.KebabTweaks
                 () => !FixSymptomProbe.IsFactionBombardmentOneSideFixLeftover());
             Bool(list, "turret-last-shot", () => KebabTweaksSettings.EnableTurretUndraftLastShotFix,
                 () => !FixSymptomProbe.IsTurretUndraftLastShotFixLeftover());
+            Bool(list, "log-copy", () => KebabTweaksSettings.EnableHugsLibLogPathFix,
+                () => !FixSymptomProbe.IsHugsLibLogPathFixLeftover());
             Bool(list, "map-preview", () => KebabTweaksSettings.EnableMapPreviewRngBaselineFix, true);
             Bool(list, "unified-xml", () => KebabTweaksSettings.EnableUnifiedXmlPathFix, true);
             Bool(list, "menu-bg", () => KebabTweaksSettings.EnableMainMenuBgFitFix,

@@ -66,5 +66,8 @@ namespace HSK.KebabTweaks
 
         public const string StratumSolarRoofEnergyTabFix =
             "https://discord.com/channels/272340793174392832/1538384032780386434";
+
+        public const string HugsLibLogPathFix =
+            "https://steamcommunity.com/sharedfiles/filedetails/comments/2873415404";
     }
 }
